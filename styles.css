@@ -326,7 +326,6 @@ h4 { font-size: 1.15rem; }
     width: 80px; height: 80px;
     border-top: 2px solid var(--gold);
     border-left: 2px solid var(--gold);
-    display: none; /* Reversible: remove this line to show the decorative photo corner again. */
 }
 .image-frame::after {
     content: '';
@@ -335,7 +334,6 @@ h4 { font-size: 1.15rem; }
     width: 80px; height: 80px;
     border-bottom: 2px solid var(--gold);
     border-right: 2px solid var(--gold);
-    display: none; /* Reversible: remove this line to show the decorative photo corner again. */
 }
 .image-placeholder {
     height: 100%;
@@ -355,6 +353,41 @@ h4 { font-size: 1.15rem; }
     object-position: top;
     display: block;
     border-radius: 4px;
+}
+.profile-card {
+    aspect-ratio: 4/5;
+    min-height: 420px;
+    padding: clamp(2rem, 5vw, 3rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 2rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background:
+        linear-gradient(145deg, rgba(212, 162, 86, 0.12), rgba(255,255,255,0.03)),
+        var(--black-card);
+}
+.profile-logo {
+    width: min(220px, 70%);
+    height: auto;
+    border-radius: 8px;
+    align-self: flex-start;
+}
+.profile-card span {
+    display: block;
+    color: var(--gold);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+.profile-card strong {
+    display: block;
+    margin-top: 0.5rem;
+    font-family: var(--font-serif);
+    font-size: clamp(2.1rem, 5vw, 3.5rem);
+    line-height: 1;
 }
 
 /* ===== CARDS ===== */

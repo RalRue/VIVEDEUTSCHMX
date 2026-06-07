@@ -23,6 +23,7 @@ const translations = {
 
         'about.eyebrow': 'Acerca de VIVE DEUTSCH MX',
         'about.photo': 'Foto de Ralph',
+        'about.profile.role': 'Alemán como lengua extranjera',
         'about.title': '¡Bienvenido a VIVE DEUTSCH MX!',
         'about.p1': 'VIVE DEUTSCH MX nació con la idea de hacer el alemán más accesible, práctico y personal para estudiantes, profesionales y personas que desean trabajar, estudiar o vivir en Alemania.',
         'about.p2': 'Detrás de VIVE DEUTSCH MX estoy yo: Ralph Stöcker, hablante nativo de alemán, profesor de alemán como lengua extranjera y fundador de este proyecto. Vivo y trabajo en Zapopan, en el área metropolitana de Guadalajara, Jalisco, México, y desde hace años acompaño a estudiantes de habla hispana para que aprendan alemán de manera clara, comprensible e individual.',
@@ -233,6 +234,7 @@ const translations = {
 
         'about.eyebrow': 'About VIVE DEUTSCH MX',
         'about.photo': 'Photo of Ralph',
+        'about.profile.role': 'German as a foreign language',
         'about.title': 'Welcome to VIVE DEUTSCH MX!',
         'about.p1': 'VIVE DEUTSCH MX was founded with the idea of making German more accessible, practical and personal for students, professionals and people who want to work, study or live in Germany.',
         'about.p2': "Behind VIVE DEUTSCH MX is me: Ralph Stöcker, a native German speaker, teacher of German as a foreign language and founder of this project. I live and work in Zapopan, in the greater Guadalajara area, Jalisco, Mexico, and have been helping Spanish-speaking learners master German in a clear, understandable and individual way for years.",
@@ -443,6 +445,7 @@ const translations = {
 
         'about.eyebrow': 'Über VIVE DEUTSCH MX',
         'about.photo': 'Foto von Ralph',
+        'about.profile.role': 'Deutsch als Fremdsprache',
         'about.title': 'Herzlich willkommen bei VIVE DEUTSCH MX!',
         'about.p1': 'VIVE DEUTSCH MX wurde mit der Idee gegründet, Deutsch für Schüler, Fachkräfte und Menschen, die in Deutschland arbeiten, studieren oder leben möchten, zugänglicher, praxisorientierter und persönlicher zu machen.',
         'about.p2': 'Hinter VIVE DEUTSCH MX stehe ich: Ralph Stöcker, deutscher Muttersprachler, Lehrer für Deutsch als Fremdsprache und Gründer dieses Projekts. Ich lebe und arbeite in Zapopan, im Großraum Guadalajara, Jalisco, Mexiko, und unterstütze seit Jahren spanischsprachige Lernende dabei, Deutsch auf eine klare, verständliche und individuelle Weise zu erlernen.',

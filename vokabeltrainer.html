@@ -87,7 +87,7 @@
             margin-bottom: 24px;
         }
 
-        .intro, .stats, .trainer, .list-panel {
+        .intro, .stats, .trainer {
             background: rgba(21, 21, 21, 0.88);
             border: 1px solid var(--border);
             border-radius: 8px;
@@ -299,28 +299,6 @@
             font-weight: 800;
         }
 
-        .vocab-item.locked {
-            color: var(--muted);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .vocab-item.locked b,
-        .vocab-item.locked span {
-            filter: blur(4px);
-            opacity: 0.5;
-        }
-
-        .vocab-item.locked::after {
-            content: "Premium";
-            position: absolute;
-            inset: 0;
-            display: grid;
-            place-items: center;
-            color: var(--gold-soft);
-            font-weight: 800;
-            background: rgba(10, 10, 10, 0.38);
-        }
 
         .progress {
             display: grid;
@@ -346,37 +324,6 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.06em;
-        }
-
-        .list-panel {
-            margin-top: 24px;
-            padding: 24px;
-        }
-
-        .list-panel h2 {
-            margin: 0 0 14px;
-            font-family: "Playfair Display", Georgia, serif;
-            font-size: 2rem;
-        }
-
-        .vocab-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 10px;
-        }
-
-        .vocab-item {
-            padding: 12px;
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 6px;
-            background: rgba(255,255,255,0.035);
-        }
-
-        .vocab-item b { color: var(--text); }
-        .vocab-item span {
-            display: block;
-            margin-top: 4px;
-            color: var(--muted);
         }
 
         @media (max-width: 760px) {
@@ -476,12 +423,6 @@
                 </div>
             </div>
         </section>
-
-        <section class="list-panel">
-            <h2>Aktuelle Wortliste</h2>
-            <p>Die ersten Vokabeln sind frei. Weitere Vokabeln werden nach der Freischaltung sichtbar.</p>
-            <div class="vocab-list" id="vocabList"></div>
-        </section>
     </main>
 
     <script>
@@ -532,7 +473,6 @@
         const rightEl = document.getElementById("right");
         const wrongEl = document.getElementById("wrong");
         const accuracyEl = document.getElementById("accuracy");
-        const vocabList = document.getElementById("vocabList");
         const unlockPanel = document.getElementById("unlockPanel");
         const unlockCode = document.getElementById("unlockCode");
         const unlockBtn = document.getElementById("unlockBtn");
@@ -675,21 +615,11 @@
                 hideLocked();
                 feedback.className = "feedback good";
                 feedback.textContent = "Freigeschaltet. Du hast jetzt Zugriff auf die volle Wortliste.";
-                renderList();
                 nextCard();
             } else {
                 feedback.className = "feedback bad";
                 feedback.textContent = "Der Freischaltcode stimmt nicht. Bitte pruefe ihn oder frage die Freischaltung an.";
             }
-        }
-
-        function renderList() {
-            vocabList.innerHTML = vocabulary.map(item => `
-                <div class="vocab-item${!isPremium && vocabulary.indexOf(item) >= FREE_WORD_LIMIT ? " locked" : ""}">
-                    <b>${item.es}</b>
-                    <span>${item.de}</span>
-                </div>
-            `).join("");
         }
 
         checkBtn.addEventListener("click", checkAnswer);
@@ -706,7 +636,6 @@
         modeSelect.addEventListener("change", nextCard);
 
         fillCategories();
-        renderList();
         updateStats();
         nextCard();
     </script>
