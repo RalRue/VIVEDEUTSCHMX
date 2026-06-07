@@ -151,7 +151,7 @@
 
         .controls {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
             gap: 12px;
             margin-bottom: 22px;
         }
@@ -254,51 +254,6 @@
 
         .feedback.good { color: var(--green); }
         .feedback.bad { color: var(--red); }
-        .feedback.locked { color: var(--gold-soft); }
-
-        .unlock-panel {
-            display: none;
-            gap: 14px;
-            padding: 18px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            background: rgba(212, 162, 86, 0.08);
-        }
-
-        .unlock-panel.visible {
-            display: grid;
-        }
-
-        .unlock-panel h3 {
-            margin: 0;
-            font-size: 1.25rem;
-        }
-
-        .unlock-panel p {
-            margin: 0;
-            color: var(--muted);
-            line-height: 1.6;
-        }
-
-        .unlock-actions {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto;
-            gap: 10px;
-        }
-
-        .payment-link {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 46px;
-            border-radius: 6px;
-            padding: 0 16px;
-            color: #0b0b0b;
-            background: var(--gold);
-            text-decoration: none;
-            font-weight: 800;
-        }
-
 
         .progress {
             display: grid;
@@ -351,12 +306,12 @@
             <div class="intro">
                 <span class="eyebrow">Spanisch Deutsch</span>
                 <h1>Vokabeln aktiv lernen.</h1>
-                <p>Trainiere in beide Richtungen: Spanisch zu Deutsch oder Deutsch zu Spanisch. Die kostenlose Version enthaelt 12 Vokabeln und 20 Versuche. Danach kannst du den Trainer fuer einen kleinen Beitrag freischalten.</p>
+                <p>Trainiere in beide Richtungen: Spanisch zu Deutsch oder Deutsch zu Spanisch. Waehle Niveau, Kategorie und Modus, schreibe die Antwort selbst und pruefe sofort.</p>
             </div>
             <aside class="stats">
                 <div class="stat"><b>ES ⇄ DE</b><span>beide Richtungen</span></div>
-                <div class="stat"><b>12 frei</b><span>kostenlose Vokabeln</span></div>
-                <div class="stat"><b>MXN 49</b><span>Premium-Freischaltung</span></div>
+                <div class="stat"><b>A1-B1</b><span>nach Niveau filtern</span></div>
+                <div class="stat"><b>Intern</b><span>keine sichtbare Wortliste</span></div>
             </aside>
         </section>
 
@@ -374,6 +329,15 @@
                     Kategorie
                     <select id="category">
                         <option value="all">Alle Kategorien</option>
+                    </select>
+                </label>
+                <label>
+                    Niveau
+                    <select id="level">
+                        <option value="all">Alle Niveaus</option>
+                        <option value="A1">A1</option>
+                        <option value="A2">A2</option>
+                        <option value="B1">B1</option>
                     </select>
                 </label>
                 <label>
@@ -405,16 +369,6 @@
 
                 <div class="feedback" id="feedback">Bereit. Gib deine Antwort ein oder decke die Karteikarte auf.</div>
 
-                <div class="unlock-panel" id="unlockPanel">
-                    <h3>Weiterlernen freischalten</h3>
-                    <p>Die kostenlose Version enthält 12 Vokabeln und 20 Versuche. Für die vollständige Liste und weitere Übungen wird ein kleiner Beitrag fällig.</p>
-                    <a class="payment-link" id="paymentLink" href="https://wa.me/523151109282?text=Hola%20Ralph%2C%20quiero%20activar%20el%20vocabulario%20premium%20de%20VIVE%20DEUTSCH%20MX." target="_blank" rel="noopener">Freischaltung anfragen · MXN 49</a>
-                    <div class="unlock-actions">
-                        <input id="unlockCode" type="text" autocomplete="off" placeholder="Freischaltcode eingeben" />
-                        <button class="secondary" id="unlockBtn">Freischalten</button>
-                    </div>
-                </div>
-
                 <div class="progress">
                     <div><b id="done">0</b><span>geuebt</span></div>
                     <div><b id="right">0</b><span>richtig</span></div>
@@ -426,41 +380,86 @@
     </main>
 
     <script>
-        const FREE_WORD_LIMIT = 12;
-        const FREE_ATTEMPT_LIMIT = 20;
-        const ACCESS_CODE = "VIVE49";
-
         const vocabulary = [
-            { es: "el idioma", de: "die Sprache", category: "Lernen" },
-            { es: "la clase", de: "der Unterricht", category: "Lernen" },
-            { es: "el profesor", de: "der Lehrer", category: "Lernen" },
-            { es: "la profesora", de: "die Lehrerin", category: "Lernen" },
-            { es: "el estudiante", de: "der Student", category: "Lernen" },
-            { es: "la pregunta", de: "die Frage", category: "Lernen" },
-            { es: "la respuesta", de: "die Antwort", category: "Lernen" },
-            { es: "aprender", de: "lernen", category: "Verben" },
-            { es: "hablar", de: "sprechen", category: "Verben" },
-            { es: "escuchar", de: "hoeren", category: "Verben" },
-            { es: "leer", de: "lesen", category: "Verben" },
-            { es: "escribir", de: "schreiben", category: "Verben" },
-            { es: "trabajar", de: "arbeiten", category: "Verben" },
-            { es: "vivir", de: "leben", category: "Verben" },
-            { es: "buenos dias", de: "guten Morgen", category: "Alltag" },
-            { es: "buenas tardes", de: "guten Tag", category: "Alltag" },
-            { es: "buenas noches", de: "guten Abend", category: "Alltag" },
-            { es: "por favor", de: "bitte", category: "Alltag" },
-            { es: "gracias", de: "danke", category: "Alltag" },
-            { es: "perdon", de: "Entschuldigung", category: "Alltag" },
-            { es: "el trabajo", de: "die Arbeit", category: "Deutschland" },
-            { es: "la visa", de: "das Visum", category: "Deutschland" },
-            { es: "la cita", de: "der Termin", category: "Deutschland" },
-            { es: "el documento", de: "das Dokument", category: "Deutschland" },
-            { es: "la traduccion", de: "die Uebersetzung", category: "Deutschland" },
-            { es: "el certificado", de: "das Zertifikat", category: "Deutschland" }
+            { es: "a partir de", de: "ab", category: "Alltag", level: "A1" },
+            { es: "pero", de: "aber", category: "Alltag", level: "A1" },
+            { es: "la dirección", de: "die Adresse", category: "Alltag", level: "A1" },
+            { es: "solo", de: "allein", category: "Alltag", level: "A1" },
+            { es: "viejo", de: "alt", category: "Alltag", level: "A1" },
+            { es: "ofrecer", de: "anbieten", category: "Verben", level: "A1" },
+            { es: "empezar", de: "anfangen", category: "Verben", level: "A1" },
+            { es: "llegar", de: "ankommen", category: "Verben", level: "A1" },
+            { es: "llamar por telefono", de: "anrufen", category: "Verben", level: "A1" },
+            { es: "la llamada", de: "der Anruf", category: "Alltag", level: "A1" },
+            { es: "la respuesta", de: "die Antwort", category: "Lernen", level: "A1" },
+            { es: "trabajar", de: "arbeiten", category: "Verben", level: "A1" },
+            { es: "la farmacia", de: "die Apotheke", category: "Alltag", level: "A1" },
+            { es: "la manzana", de: "der Apfel", category: "Alltag", level: "A1" },
+            { es: "la estacion", de: "der Bahnhof", category: "Reisen", level: "A1" },
+            { es: "el formulario", de: "das Formular", category: "Deutschland", level: "A1" },
+            { es: "el dinero", de: "das Geld", category: "Alltag", level: "A1" },
+            { es: "la casa", de: "das Haus", category: "Alltag", level: "A1" },
+            { es: "comprar", de: "kaufen", category: "Verben", level: "A1" },
+            { es: "leer", de: "lesen", category: "Verben", level: "A1" },
+            { es: "aprender", de: "lernen", category: "Lernen", level: "A1" },
+            { es: "la ciudad", de: "die Stadt", category: "Alltag", level: "A1" },
+            { es: "la clase", de: "der Unterricht", category: "Lernen", level: "A1" },
+            { es: "vivir", de: "wohnen", category: "Verben", level: "A1" },
+
+            { es: "entregar", de: "abgeben", category: "Verben", level: "A2" },
+            { es: "recoger", de: "abholen", category: "Verben", level: "A2" },
+            { es: "cerrar con llave", de: "abschliessen", category: "Verben", level: "A2" },
+            { es: "cambiar", de: "aendern", category: "Verben", level: "A2" },
+            { es: "el miedo", de: "die Angst", category: "Gefuehle", level: "A2" },
+            { es: "registrarse", de: "sich anmelden", category: "Deutschland", level: "A2" },
+            { es: "la conexion", de: "der Anschluss", category: "Reisen", level: "A2" },
+            { es: "mirar", de: "ansehen", category: "Verben", level: "A2" },
+            { es: "responder", de: "antworten", category: "Verben", level: "A2" },
+            { es: "el traje", de: "der Anzug", category: "Alltag", level: "A2" },
+            { es: "la formacion profesional", de: "die Ausbildung", category: "Deutschland", level: "A2" },
+            { es: "el extranjero", de: "das Ausland", category: "Deutschland", level: "A2" },
+            { es: "la autoridad", de: "die Behoerde", category: "Deutschland", level: "A2" },
+            { es: "solicitar", de: "beantragen", category: "Deutschland", level: "A2" },
+            { es: "pagar", de: "bezahlen", category: "Alltag", level: "A2" },
+            { es: "el billete", de: "die Fahrkarte", category: "Reisen", level: "A2" },
+            { es: "el equipaje", de: "das Gepaeck", category: "Reisen", level: "A2" },
+            { es: "la salud", de: "die Gesundheit", category: "Alltag", level: "A2" },
+            { es: "casado", de: "verheiratet", category: "Alltag", level: "A2" },
+            { es: "la vivienda", de: "die Wohnung", category: "Alltag", level: "A2" },
+            { es: "la moneda", de: "die Waehrung", category: "Deutschland", level: "A2" },
+            { es: "importante", de: "wichtig", category: "Alltag", level: "A2" },
+            { es: "la revista", de: "die Zeitschrift", category: "Alltag", level: "A2" },
+            { es: "satisfecho", de: "zufrieden", category: "Gefuehle", level: "A2" },
+
+            { es: "girar", de: "abbiegen", category: "Reisen", level: "B1" },
+            { es: "la imagen", de: "die Abbildung", category: "Lernen", level: "B1" },
+            { es: "la aventura", de: "das Abenteuer", category: "Alltag", level: "B1" },
+            { es: "depender", de: "abhaengen", category: "Verben", level: "B1" },
+            { es: "dependiente", de: "abhaengig", category: "Alltag", level: "B1" },
+            { es: "rechazar", de: "ablehnen", category: "Verben", level: "B1" },
+            { es: "cancelar", de: "absagen", category: "Verben", level: "B1" },
+            { es: "la finalizacion", de: "der Abschluss", category: "Deutschland", level: "B1" },
+            { es: "el remitente", de: "der Absender", category: "Deutschland", level: "B1" },
+            { es: "la intencion", de: "die Absicht", category: "Alltag", level: "B1" },
+            { es: "votar", de: "abstimmen", category: "Verben", level: "B1" },
+            { es: "el departamento", de: "die Abteilung", category: "Arbeit", level: "B1" },
+            { es: "ausente", de: "abwesend", category: "Alltag", level: "B1" },
+            { es: "prestar atencion", de: "achten auf", category: "Verben", level: "B1" },
+            { es: "el cubo de basura", de: "der Abfalleimer", category: "Alltag", level: "B1" },
+            { es: "sacar dinero", de: "abheben", category: "Alltag", level: "B1" },
+            { es: "el suscriptor", de: "das Abonnement", category: "Alltag", level: "B1" },
+            { es: "la basura", de: "der Abfall", category: "Umwelt", level: "B1" },
+            { es: "los gases de escape", de: "die Abgase", category: "Umwelt", level: "B1" },
+            { es: "la confianza", de: "das Vertrauen", category: "Gefuehle", level: "B1" },
+            { es: "la reunion", de: "das Treffen", category: "Alltag", level: "B1" },
+            { es: "el punto", de: "der Punkt", category: "Lernen", level: "B1" },
+            { es: "el camino", de: "der Weg", category: "Reisen", level: "B1" },
+            { es: "cerrar", de: "schliessen", category: "Verben", level: "B1" }
         ];
 
         const directionSelect = document.getElementById("direction");
         const categorySelect = document.getElementById("category");
+        const levelSelect = document.getElementById("level");
         const modeSelect = document.getElementById("mode");
         const promptLabel = document.getElementById("promptLabel");
         const promptWord = document.getElementById("promptWord");
@@ -473,18 +472,10 @@
         const rightEl = document.getElementById("right");
         const wrongEl = document.getElementById("wrong");
         const accuracyEl = document.getElementById("accuracy");
-        const unlockPanel = document.getElementById("unlockPanel");
-        const unlockCode = document.getElementById("unlockCode");
-        const unlockBtn = document.getElementById("unlockBtn");
 
         let current = null;
         let currentDirection = "es-de";
-        let isPremium = localStorage.getItem("viveVocabPremium") === "true";
-        let stats = {
-            done: Number(localStorage.getItem("viveVocabAttempts") || 0),
-            right: 0,
-            wrong: 0
-        };
+        let stats = { done: 0, right: 0, wrong: 0 };
 
         function normalize(value) {
             return value
@@ -508,8 +499,12 @@
 
         function filteredVocabulary() {
             const selected = categorySelect.value;
-            const available = isPremium ? vocabulary : vocabulary.slice(0, FREE_WORD_LIMIT);
-            return selected === "all" ? available : available.filter(item => item.category === selected);
+            const level = levelSelect.value;
+            return vocabulary.filter(item => {
+                const categoryMatch = selected === "all" || item.category === selected;
+                const levelMatch = level === "all" || item.level === level;
+                return categoryMatch && levelMatch;
+            });
         }
 
         function pickDirection() {
@@ -518,14 +513,14 @@
         }
 
         function nextCard() {
-            if (isLocked()) {
-                showLocked();
-                return;
-            }
             const pool = filteredVocabulary();
             if (!pool.length) {
-                feedback.className = "feedback locked";
-                feedback.textContent = "Diese Kategorie ist in der kostenlosen Version nicht enthalten.";
+                current = null;
+                promptLabel.textContent = "Auswahl";
+                promptWord.textContent = "-";
+                categoryBadge.textContent = "leer";
+                feedback.className = "feedback";
+                feedback.textContent = "Fuer diese Kombination gibt es noch keine Vokabeln.";
                 return;
             }
             current = pool[Math.floor(Math.random() * pool.length)];
@@ -548,25 +543,17 @@
             if (!current) return;
             const target = currentDirection === "es-de" ? current.de : current.es;
 
-            if (isLocked()) {
-                showLocked();
-                return;
-            }
-
             if (modeSelect.value === "flashcard") {
                 stats.done += 1;
-                localStorage.setItem("viveVocabAttempts", String(stats.done));
                 feedback.className = "feedback";
                 feedback.textContent = `Loesung: ${target}`;
                 updateStats();
-                if (isLocked()) showLocked();
                 return;
             }
 
             const typed = normalize(answerInput.value);
             const expected = normalize(target);
             stats.done += 1;
-            localStorage.setItem("viveVocabAttempts", String(stats.done));
 
             if (typed === expected) {
                 stats.right += 1;
@@ -578,7 +565,6 @@
                 feedback.textContent = `Noch einmal ueben. Richtig ist: ${target}`;
             }
             updateStats();
-            if (isLocked()) showLocked();
         }
 
         function updateStats() {
@@ -588,51 +574,14 @@
             accuracyEl.textContent = stats.done ? `${Math.round((stats.right / stats.done) * 100)}%` : "0%";
         }
 
-        function isLocked() {
-            return !isPremium && stats.done >= FREE_ATTEMPT_LIMIT;
-        }
-
-        function showLocked() {
-            unlockPanel.classList.add("visible");
-            feedback.className = "feedback locked";
-            feedback.textContent = "Die kostenlose Nutzung ist aufgebraucht. Du kannst den Trainer mit einem Freischaltcode weiter nutzen.";
-            answerInput.disabled = true;
-            checkBtn.disabled = true;
-            nextBtn.disabled = true;
-        }
-
-        function hideLocked() {
-            unlockPanel.classList.remove("visible");
-            answerInput.disabled = modeSelect.value === "flashcard";
-            checkBtn.disabled = false;
-            nextBtn.disabled = false;
-        }
-
-        function unlockPremium() {
-            if (normalize(unlockCode.value) === normalize(ACCESS_CODE)) {
-                isPremium = true;
-                localStorage.setItem("viveVocabPremium", "true");
-                hideLocked();
-                feedback.className = "feedback good";
-                feedback.textContent = "Freigeschaltet. Du hast jetzt Zugriff auf die volle Wortliste.";
-                nextCard();
-            } else {
-                feedback.className = "feedback bad";
-                feedback.textContent = "Der Freischaltcode stimmt nicht. Bitte pruefe ihn oder frage die Freischaltung an.";
-            }
-        }
-
         checkBtn.addEventListener("click", checkAnswer);
         nextBtn.addEventListener("click", nextCard);
-        unlockBtn.addEventListener("click", unlockPremium);
-        unlockCode.addEventListener("keydown", event => {
-            if (event.key === "Enter") unlockPremium();
-        });
         answerInput.addEventListener("keydown", event => {
             if (event.key === "Enter") checkAnswer();
         });
         directionSelect.addEventListener("change", nextCard);
         categorySelect.addEventListener("change", nextCard);
+        levelSelect.addEventListener("change", nextCard);
         modeSelect.addEventListener("change", nextCard);
 
         fillCategories();
