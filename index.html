@@ -102,7 +102,7 @@
                     <button class="lang-btn" data-lang="en">EN</button>
                     <button class="lang-btn" data-lang="de">DE</button>
                 </div>
-                <a href="#contact" class="btn btn-primary nav-cta" data-i18n="nav.cta">Inscríbete</a>
+                <a href="#booking" class="btn btn-primary nav-cta" data-i18n="nav.cta">Reservar clase</a>
                 <button class="menu-toggle" aria-label="Menu">
                     <span></span><span></span><span></span>
                 </button>
@@ -123,7 +123,7 @@
                 Clases de alemán por Zoom y presenciales en Zapopan Centro para niños, jóvenes, estudiantes y adultos. Grupos por edad y nivel, atención personal y materiales digitales para avanzar paso a paso.
             </p>
             <div class="hero-actions">
-                <a href="#contact" class="btn btn-primary" data-i18n="hero.cta1">Reservar entrevista gratis</a>
+                <a href="#booking" class="btn btn-primary" data-i18n="hero.cta1">Reservar entrevista gratis</a>
                 <a href="#courses" class="btn btn-ghost" data-i18n="hero.cta2">Ver grupos disponibles</a>
             </div>
             <div class="hero-stats">
@@ -397,7 +397,7 @@
                         <li data-i18n="price.p1.l3">Nivel y objetivo</li>
                         <li data-i18n="price.p1.l4">Recomendación de grupo</li>
                     </ul>
-                    <a href="#contact" class="btn btn-ghost" data-i18n="price.p1.cta">Reservar entrevista</a>
+                    <a href="#booking" class="btn btn-ghost" data-i18n="price.p1.cta">Reservar entrevista</a>
                 </div>
                 <div class="price-card price-card-featured">
                     <div class="badge" data-i18n="price.recommended">Recomendado</div>
@@ -409,7 +409,7 @@
                         <li data-i18n="price.p2.l3">Material digital incluido</li>
                         <li data-i18n="price.p2.l4">Zoom o presencial en Zapopan Centro</li>
                     </ul>
-                    <a href="#contact" class="btn btn-primary" data-i18n="price.p2.cta">Quiero un lugar</a>
+                    <a href="#booking" class="btn btn-primary" data-i18n="price.p2.cta">Quiero un lugar</a>
                 </div>
                 <div class="price-card">
                     <h3 data-i18n="price.p3.title">Clase individual</h3>
@@ -420,10 +420,53 @@
                         <li data-i18n="price.p3.l3">Conversación, examen o refuerzo</li>
                         <li data-i18n="price.p3.l4">Ideal como complemento al grupo</li>
                     </ul>
-                    <a href="#contact" class="btn btn-ghost" data-i18n="price.p3.cta">Solicitar clase</a>
+                    <a href="#booking" class="btn btn-ghost" data-i18n="price.p3.cta">Solicitar clase</a>
                 </div>
             </div>
             <p class="price-note" data-i18n="price.note">Cursos regulares y preparación de exámenes para todos los niveles A1–C1. El curso de 8 semanas incluye 16 clases desde MXN 2,900; la preparación puede ser en grupo pequeño o clase individual según objetivo.</p>
+        </div>
+    </section>
+
+    <!-- ===== BOOKING ===== -->
+    <section id="booking" class="section section-dark">
+        <div class="container booking-layout">
+            <div class="booking-main">
+                <span class="eyebrow" data-i18n="booking.eyebrow">Reserva por Setmore</span>
+                <h2 data-i18n="booking.title">Elige una clase o agenda primero una consulta</h2>
+                <p data-i18n="booking.subtitle">Setmore muestra los horarios disponibles, crea el evento en calendario y, cuando corresponde, permite pagar de forma segura con Stripe. Las clases online se realizan por Zoom.</p>
+                <div class="booking-actions">
+                    <button type="button" class="btn btn-primary setmore-open" data-i18n="booking.cta.primary">Reservar clase</button>
+                    <a href="https://ralphrudiger.setmore.com" target="_blank" rel="noopener" class="btn btn-ghost" data-i18n="booking.cta.secondary">Abrir Setmore en otra pestaña</a>
+                </div>
+                <p class="booking-note" data-i18n="booking.note">Si es tu primera vez, empieza con la entrevista gratuita para confirmar nivel, objetivo y formato antes del pago.</p>
+            </div>
+
+            <div class="booking-services" aria-label="Setmore services">
+                <article class="booking-service booking-service-featured">
+                    <span class="service-kicker" data-i18n="booking.s1.kicker">Primer paso</span>
+                    <h3 data-i18n="booking.s1.title">Entrevista inicial gratuita</h3>
+                    <p data-i18n="booking.s1.desc">Para elegir nivel, grupo, horario y modalidad.</p>
+                    <strong data-i18n="booking.s1.meta">20 min · Zoom</strong>
+                </article>
+                <article class="booking-service">
+                    <span class="service-kicker" data-i18n="booking.s2.kicker">Clase individual</span>
+                    <h3 data-i18n="booking.s2.title">Deutschunterricht 60 min</h3>
+                    <p data-i18n="booking.s2.desc">Clase flexible para conversación, refuerzo, examen o dudas concretas.</p>
+                    <strong data-i18n="booking.s2.meta">Desde MXN 390 · Zoom o Zapopan Centro</strong>
+                </article>
+                <article class="booking-service">
+                    <span class="service-kicker" data-i18n="booking.s3.kicker">Sesión intensiva</span>
+                    <h3 data-i18n="booking.s3.title">90 min / 120 min</h3>
+                    <p data-i18n="booking.s3.desc">Para preparación, revisión de tareas o avances más concentrados.</p>
+                    <strong data-i18n="booking.s3.meta">MXN 600 / MXN 800</strong>
+                </article>
+                <article class="booking-service">
+                    <span class="service-kicker" data-i18n="booking.s4.kicker">Seguimiento</span>
+                    <h3 data-i18n="booking.s4.title">Wöchentlicher oder monatlicher Unterricht</h3>
+                    <p data-i18n="booking.s4.desc">Opciones recurrentes para alumnos que ya tienen horario confirmado.</p>
+                    <strong data-i18n="booking.s4.meta">Pago por Stripe al reservar</strong>
+                </article>
+            </div>
         </div>
     </section>
 
@@ -468,7 +511,7 @@
 
             <div class="process-summary">
                 <p data-i18n="workflow.summary">Todo queda organizado: calendario de clases, pago confirmado, enlace de Zoom y materiales digitales en una sola ruta sencilla.</p>
-                <a href="#contact" class="btn btn-primary" data-i18n="workflow.cta">Empezar con entrevista gratis</a>
+                <a href="#booking" class="btn btn-primary" data-i18n="workflow.cta">Empezar con entrevista gratis</a>
             </div>
         </div>
     </section>
@@ -481,7 +524,7 @@
                 <h2 data-i18n="parents.title">Un entorno claro, seguro y acompañado</h2>
                 <p data-i18n="parents.subtitle">Las clases para niños y jóvenes necesitan más que un buen idioma: requieren estructura, comunicación con padres y reglas sencillas para que todos sepan cómo trabajamos.</p>
                 <div class="trust-actions">
-                    <a href="#contact" class="btn btn-primary" data-i18n="parents.cta1">Hablar sobre mi hijo</a>
+                    <a href="#booking" class="btn btn-primary" data-i18n="parents.cta1">Hablar sobre mi hijo</a>
                     <a href="#courses" class="btn btn-ghost" data-i18n="parents.cta2">Ver grupos por edad</a>
                 </div>
             </div>
@@ -625,7 +668,7 @@
                         <span>ralph_stoecker@live.com</span>
                     </div>
                 </a>
-                <button type="button" class="contact-item contact-item-booking" id="setmore-trigger">
+                <button type="button" class="contact-item contact-item-booking setmore-open" id="setmore-trigger">
                     <span class="contact-icon">📅</span>
                     <div>
                         <strong data-i18n="contact.booking.title">Termin buchen</strong>
@@ -677,8 +720,10 @@
     <script id="anywhere_book_now_script" src="https://assets.setmore.com/integration/book-now/live/v1/anywhere-book-now.js"></script>
     <button id="Anywhere_button_iframe" class="anywhere-book-now-button" style="display:none" data-booking-url="https://ralphrudiger.setmore.com" data-new-tab="false">Book now</button>
     <script>
-        document.getElementById('setmore-trigger').addEventListener('click', function() {
-            document.getElementById('Anywhere_button_iframe').click();
+        document.querySelectorAll('.setmore-open').forEach(function(button) {
+            button.addEventListener('click', function() {
+                document.getElementById('Anywhere_button_iframe').click();
+            });
         });
     </script>
 </body>

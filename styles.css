@@ -574,6 +574,73 @@ h4 { font-size: 1.15rem; }
     font-size: 0.95rem;
 }
 
+/* ===== BOOKING ===== */
+.booking-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: clamp(1.5rem, 4vw, 3rem);
+    align-items: start;
+}
+.booking-main {
+    position: sticky;
+    top: 110px;
+}
+.booking-main h2 {
+    margin-bottom: 1rem;
+}
+.booking-main p {
+    color: var(--gray-light);
+}
+.booking-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    margin: 2rem 0 1rem;
+}
+.booking-note {
+    max-width: 560px;
+    font-size: 0.92rem;
+}
+.booking-services {
+    display: grid;
+    gap: 1rem;
+}
+.booking-service {
+    display: grid;
+    gap: 0.7rem;
+    padding: 1.5rem;
+    background: var(--black-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: all .3s var(--ease);
+}
+.booking-service:hover {
+    transform: translateY(-4px);
+    border-color: var(--gold);
+}
+.booking-service-featured {
+    background: linear-gradient(160deg, rgba(212,162,86,0.12) 0%, var(--black-card) 64%);
+    border-color: rgba(212, 162, 86, 0.42);
+}
+.service-kicker {
+    color: var(--gold);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+.booking-service h3 {
+    font-size: 1.22rem;
+}
+.booking-service p {
+    color: var(--gray-light);
+    font-size: 0.95rem;
+}
+.booking-service strong {
+    color: var(--white);
+    font-size: 0.95rem;
+}
+
 /* ===== WORKFLOW ===== */
 .process-grid {
     display: grid;
@@ -1012,6 +1079,8 @@ h4 { font-size: 1.15rem; }
     .price-card-featured { transform: none; }
     .form-row { grid-template-columns: 1fr; }
     .process-summary { grid-template-columns: 1fr; }
+    .booking-layout { grid-template-columns: 1fr; }
+    .booking-main { position: static; }
     .trust-layout { grid-template-columns: 1fr; }
     .trust-grid { grid-template-columns: 1fr; }
     .trust-actions { flex-direction: column; }
@@ -1023,6 +1092,8 @@ h4 { font-size: 1.15rem; }
     .container { padding: 0 1.25rem; }
     .hero { padding: 7rem 1.25rem 3rem; }
     .contact-form { padding: 1.5rem; }
+    .booking-actions { flex-direction: column; }
+    .booking-actions .btn { width: 100%; }
     .whatsapp-float { width: 50px; height: 50px; bottom: 1.25rem; right: 1.25rem; }
     .logo-img { height: 36px; }
     .logo-text { display: none; }
