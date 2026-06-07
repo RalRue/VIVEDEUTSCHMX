@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vokabeltrainer Spanisch-Deutsch | VIVE DEUTSCH MX</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --black: #0b0b0b;
+            --panel: #151515;
+            --panel-soft: #1d1a17;
+            --text: #f7f3eb;
+            --muted: #b9b0a4;
+            --gold: #d4a256;
+            --gold-soft: #f0c779;
+            --green: #5ec78f;
+            --red: #f07a7a;
+            --border: rgba(212, 162, 86, 0.24);
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, system-ui, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 16% 12%, rgba(212, 162, 86, 0.14), transparent 34%),
+                linear-gradient(145deg, #090909 0%, #15110e 55%, #0b0b0b 100%);
+        }
+
+        .app {
+            width: min(1080px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 32px 0 48px;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .brand img {
+            width: 44px;
+            height: 44px;
+            border-radius: 6px;
+            object-fit: cover;
+        }
+
+        .brand strong {
+            display: block;
+            font-size: 0.95rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .brand span {
+            display: block;
+            margin-top: 3px;
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .home-link {
+            color: var(--gold-soft);
+            text-decoration: none;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 320px;
+            gap: 24px;
+            align-items: stretch;
+            margin-bottom: 24px;
+        }
+
+        .intro, .stats, .trainer, .list-panel {
+            background: rgba(21, 21, 21, 0.88);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .intro {
+            padding: clamp(24px, 5vw, 44px);
+        }
+
+        .eyebrow {
+            color: var(--gold);
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 12px 0 12px;
+            max-width: 760px;
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: clamp(2.2rem, 7vw, 4.6rem);
+            line-height: 0.98;
+            letter-spacing: 0;
+        }
+
+        .intro p {
+            max-width: 720px;
+            color: var(--muted);
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+
+        .stats {
+            display: grid;
+            gap: 1px;
+            overflow: hidden;
+        }
+
+        .stat {
+            padding: 24px;
+            background: rgba(255,255,255,0.03);
+        }
+
+        .stat b {
+            display: block;
+            color: var(--gold-soft);
+            font-size: 1.6rem;
+        }
+
+        .stat span {
+            display: block;
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .trainer {
+            padding: clamp(18px, 4vw, 30px);
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+
+        label {
+            display: grid;
+            gap: 7px;
+            color: var(--muted);
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        select, input {
+            width: 100%;
+            min-height: 46px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: #0f0f0f;
+            color: var(--text);
+            padding: 0 13px;
+            font: inherit;
+        }
+
+        .card {
+            display: grid;
+            gap: 18px;
+            min-height: 300px;
+            padding: clamp(20px, 4vw, 34px);
+            border: 1px solid rgba(212,162,86,0.18);
+            border-radius: 8px;
+            background: linear-gradient(155deg, rgba(212,162,86,0.08), rgba(255,255,255,0.02));
+        }
+
+        .prompt-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+        }
+
+        .prompt small {
+            display: block;
+            color: var(--muted);
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .prompt-word {
+            margin-top: 8px;
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: clamp(2.2rem, 8vw, 4rem);
+            line-height: 1.02;
+        }
+
+        .badge {
+            flex: 0 0 auto;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 8px 12px;
+            color: var(--gold-soft);
+            font-weight: 800;
+            font-size: 0.84rem;
+        }
+
+        .answer-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto auto;
+            gap: 10px;
+            align-items: end;
+        }
+
+        button {
+            min-height: 46px;
+            border: 0;
+            border-radius: 6px;
+            padding: 0 16px;
+            color: #0b0b0b;
+            background: var(--gold);
+            font: inherit;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        button.secondary {
+            color: var(--text);
+            background: #28231e;
+            border: 1px solid var(--border);
+        }
+
+        .feedback {
+            min-height: 56px;
+            padding: 13px 14px;
+            border-radius: 6px;
+            color: var(--muted);
+            background: rgba(255,255,255,0.04);
+        }
+
+        .feedback.good { color: var(--green); }
+        .feedback.bad { color: var(--red); }
+        .feedback.locked { color: var(--gold-soft); }
+
+        .unlock-panel {
+            display: none;
+            gap: 14px;
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: rgba(212, 162, 86, 0.08);
+        }
+
+        .unlock-panel.visible {
+            display: grid;
+        }
+
+        .unlock-panel h3 {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+
+        .unlock-panel p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .unlock-actions {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 10px;
+        }
+
+        .payment-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 46px;
+            border-radius: 6px;
+            padding: 0 16px;
+            color: #0b0b0b;
+            background: var(--gold);
+            text-decoration: none;
+            font-weight: 800;
+        }
+
+        .vocab-item.locked {
+            color: var(--muted);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vocab-item.locked b,
+        .vocab-item.locked span {
+            filter: blur(4px);
+            opacity: 0.5;
+        }
+
+        .vocab-item.locked::after {
+            content: "Premium";
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            color: var(--gold-soft);
+            font-weight: 800;
+            background: rgba(10, 10, 10, 0.38);
+        }
+
+        .progress {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .progress div {
+            padding: 12px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.04);
+        }
+
+        .progress b {
+            display: block;
+            color: var(--gold-soft);
+            font-size: 1.25rem;
+        }
+
+        .progress span {
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .list-panel {
+            margin-top: 24px;
+            padding: 24px;
+        }
+
+        .list-panel h2 {
+            margin: 0 0 14px;
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: 2rem;
+        }
+
+        .vocab-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 10px;
+        }
+
+        .vocab-item {
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.035);
+        }
+
+        .vocab-item b { color: var(--text); }
+        .vocab-item span {
+            display: block;
+            margin-top: 4px;
+            color: var(--muted);
+        }
+
+        @media (max-width: 760px) {
+            header { align-items: flex-start; }
+            .hero, .controls, .answer-grid, .progress { grid-template-columns: 1fr; }
+            .prompt-row { display: grid; }
+            button { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <main class="app">
+        <header>
+            <a class="brand" href="index.html">
+                <img src="logo.png" alt="VIVE DEUTSCH MX Logo" />
+                <span>
+                    <strong>VIVE DEUTSCH MX</strong>
+                    <span>Vokabeltrainer</span>
+                </span>
+            </a>
+            <a class="home-link" href="index.html">Zur Website</a>
+        </header>
+
+        <section class="hero">
+            <div class="intro">
+                <span class="eyebrow">Spanisch Deutsch</span>
+                <h1>Vokabeln aktiv lernen.</h1>
+                <p>Trainiere in beide Richtungen: Spanisch zu Deutsch oder Deutsch zu Spanisch. Die kostenlose Version enthaelt 12 Vokabeln und 20 Versuche. Danach kannst du den Trainer fuer einen kleinen Beitrag freischalten.</p>
+            </div>
+            <aside class="stats">
+                <div class="stat"><b>ES ⇄ DE</b><span>beide Richtungen</span></div>
+                <div class="stat"><b>12 frei</b><span>kostenlose Vokabeln</span></div>
+                <div class="stat"><b>MXN 49</b><span>Premium-Freischaltung</span></div>
+            </aside>
+        </section>
+
+        <section class="trainer">
+            <div class="controls">
+                <label>
+                    Richtung
+                    <select id="direction">
+                        <option value="es-de">Spanisch → Deutsch</option>
+                        <option value="de-es">Deutsch → Spanisch</option>
+                        <option value="mixed">Gemischt</option>
+                    </select>
+                </label>
+                <label>
+                    Kategorie
+                    <select id="category">
+                        <option value="all">Alle Kategorien</option>
+                    </select>
+                </label>
+                <label>
+                    Modus
+                    <select id="mode">
+                        <option value="type">Antwort schreiben</option>
+                        <option value="flashcard">Karteikarte</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="card">
+                <div class="prompt-row">
+                    <div class="prompt">
+                        <small id="promptLabel">Spanisch</small>
+                        <div class="prompt-word" id="promptWord">...</div>
+                    </div>
+                    <div class="badge" id="categoryBadge">Basis</div>
+                </div>
+
+                <div class="answer-grid">
+                    <label>
+                        Deine Antwort
+                        <input id="answer" type="text" autocomplete="off" placeholder="Antwort eintippen" />
+                    </label>
+                    <button id="checkBtn">Pruefen</button>
+                    <button class="secondary" id="nextBtn">Naechste</button>
+                </div>
+
+                <div class="feedback" id="feedback">Bereit. Gib deine Antwort ein oder decke die Karteikarte auf.</div>
+
+                <div class="unlock-panel" id="unlockPanel">
+                    <h3>Weiterlernen freischalten</h3>
+                    <p>Die kostenlose Version enthält 12 Vokabeln und 20 Versuche. Für die vollständige Liste und weitere Übungen wird ein kleiner Beitrag fällig.</p>
+                    <a class="payment-link" id="paymentLink" href="https://wa.me/523151109282?text=Hola%20Ralph%2C%20quiero%20activar%20el%20vocabulario%20premium%20de%20VIVE%20DEUTSCH%20MX." target="_blank" rel="noopener">Freischaltung anfragen · MXN 49</a>
+                    <div class="unlock-actions">
+                        <input id="unlockCode" type="text" autocomplete="off" placeholder="Freischaltcode eingeben" />
+                        <button class="secondary" id="unlockBtn">Freischalten</button>
+                    </div>
+                </div>
+
+                <div class="progress">
+                    <div><b id="done">0</b><span>geuebt</span></div>
+                    <div><b id="right">0</b><span>richtig</span></div>
+                    <div><b id="wrong">0</b><span>nochmal</span></div>
+                    <div><b id="accuracy">0%</b><span>Quote</span></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="list-panel">
+            <h2>Aktuelle Wortliste</h2>
+            <p>Die ersten Vokabeln sind frei. Weitere Vokabeln werden nach der Freischaltung sichtbar.</p>
+            <div class="vocab-list" id="vocabList"></div>
+        </section>
+    </main>
+
+    <script>
+        const FREE_WORD_LIMIT = 12;
+        const FREE_ATTEMPT_LIMIT = 20;
+        const ACCESS_CODE = "VIVE49";
+
+        const vocabulary = [
+            { es: "el idioma", de: "die Sprache", category: "Lernen" },
+            { es: "la clase", de: "der Unterricht", category: "Lernen" },
+            { es: "el profesor", de: "der Lehrer", category: "Lernen" },
+            { es: "la profesora", de: "die Lehrerin", category: "Lernen" },
+            { es: "el estudiante", de: "der Student", category: "Lernen" },
+            { es: "la pregunta", de: "die Frage", category: "Lernen" },
+            { es: "la respuesta", de: "die Antwort", category: "Lernen" },
+            { es: "aprender", de: "lernen", category: "Verben" },
+            { es: "hablar", de: "sprechen", category: "Verben" },
+            { es: "escuchar", de: "hoeren", category: "Verben" },
+            { es: "leer", de: "lesen", category: "Verben" },
+            { es: "escribir", de: "schreiben", category: "Verben" },
+            { es: "trabajar", de: "arbeiten", category: "Verben" },
+            { es: "vivir", de: "leben", category: "Verben" },
+            { es: "buenos dias", de: "guten Morgen", category: "Alltag" },
+            { es: "buenas tardes", de: "guten Tag", category: "Alltag" },
+            { es: "buenas noches", de: "guten Abend", category: "Alltag" },
+            { es: "por favor", de: "bitte", category: "Alltag" },
+            { es: "gracias", de: "danke", category: "Alltag" },
+            { es: "perdon", de: "Entschuldigung", category: "Alltag" },
+            { es: "el trabajo", de: "die Arbeit", category: "Deutschland" },
+            { es: "la visa", de: "das Visum", category: "Deutschland" },
+            { es: "la cita", de: "der Termin", category: "Deutschland" },
+            { es: "el documento", de: "das Dokument", category: "Deutschland" },
+            { es: "la traduccion", de: "die Uebersetzung", category: "Deutschland" },
+            { es: "el certificado", de: "das Zertifikat", category: "Deutschland" }
+        ];
+
+        const directionSelect = document.getElementById("direction");
+        const categorySelect = document.getElementById("category");
+        const modeSelect = document.getElementById("mode");
+        const promptLabel = document.getElementById("promptLabel");
+        const promptWord = document.getElementById("promptWord");
+        const categoryBadge = document.getElementById("categoryBadge");
+        const answerInput = document.getElementById("answer");
+        const checkBtn = document.getElementById("checkBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        const feedback = document.getElementById("feedback");
+        const doneEl = document.getElementById("done");
+        const rightEl = document.getElementById("right");
+        const wrongEl = document.getElementById("wrong");
+        const accuracyEl = document.getElementById("accuracy");
+        const vocabList = document.getElementById("vocabList");
+        const unlockPanel = document.getElementById("unlockPanel");
+        const unlockCode = document.getElementById("unlockCode");
+        const unlockBtn = document.getElementById("unlockBtn");
+
+        let current = null;
+        let currentDirection = "es-de";
+        let isPremium = localStorage.getItem("viveVocabPremium") === "true";
+        let stats = {
+            done: Number(localStorage.getItem("viveVocabAttempts") || 0),
+            right: 0,
+            wrong: 0
+        };
+
+        function normalize(value) {
+            return value
+                .toLowerCase()
+                .trim()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/[.,;:!?¿¡]/g, "")
+                .replace(/\s+/g, " ");
+        }
+
+        function fillCategories() {
+            const categories = [...new Set(vocabulary.map(item => item.category))].sort();
+            categories.forEach(category => {
+                const option = document.createElement("option");
+                option.value = category;
+                option.textContent = category;
+                categorySelect.appendChild(option);
+            });
+        }
+
+        function filteredVocabulary() {
+            const selected = categorySelect.value;
+            const available = isPremium ? vocabulary : vocabulary.slice(0, FREE_WORD_LIMIT);
+            return selected === "all" ? available : available.filter(item => item.category === selected);
+        }
+
+        function pickDirection() {
+            if (directionSelect.value !== "mixed") return directionSelect.value;
+            return Math.random() > 0.5 ? "es-de" : "de-es";
+        }
+
+        function nextCard() {
+            if (isLocked()) {
+                showLocked();
+                return;
+            }
+            const pool = filteredVocabulary();
+            if (!pool.length) {
+                feedback.className = "feedback locked";
+                feedback.textContent = "Diese Kategorie ist in der kostenlosen Version nicht enthalten.";
+                return;
+            }
+            current = pool[Math.floor(Math.random() * pool.length)];
+            currentDirection = pickDirection();
+            const from = currentDirection === "es-de" ? "es" : "de";
+            promptLabel.textContent = currentDirection === "es-de" ? "Spanisch" : "Deutsch";
+            promptWord.textContent = current[from];
+            categoryBadge.textContent = current.category;
+            answerInput.value = "";
+            feedback.className = "feedback";
+            feedback.textContent = modeSelect.value === "flashcard"
+                ? "Ueberlege kurz und klicke dann auf Pruefen, um die Loesung zu sehen."
+                : "Gib die passende Uebersetzung ein.";
+            answerInput.disabled = modeSelect.value === "flashcard";
+            answerInput.placeholder = modeSelect.value === "flashcard" ? "Karteikartenmodus" : "Antwort eintippen";
+            if (!answerInput.disabled) answerInput.focus();
+        }
+
+        function checkAnswer() {
+            if (!current) return;
+            const target = currentDirection === "es-de" ? current.de : current.es;
+
+            if (isLocked()) {
+                showLocked();
+                return;
+            }
+
+            if (modeSelect.value === "flashcard") {
+                stats.done += 1;
+                localStorage.setItem("viveVocabAttempts", String(stats.done));
+                feedback.className = "feedback";
+                feedback.textContent = `Loesung: ${target}`;
+                updateStats();
+                if (isLocked()) showLocked();
+                return;
+            }
+
+            const typed = normalize(answerInput.value);
+            const expected = normalize(target);
+            stats.done += 1;
+            localStorage.setItem("viveVocabAttempts", String(stats.done));
+
+            if (typed === expected) {
+                stats.right += 1;
+                feedback.className = "feedback good";
+                feedback.textContent = `Richtig: ${target}`;
+            } else {
+                stats.wrong += 1;
+                feedback.className = "feedback bad";
+                feedback.textContent = `Noch einmal ueben. Richtig ist: ${target}`;
+            }
+            updateStats();
+            if (isLocked()) showLocked();
+        }
+
+        function updateStats() {
+            doneEl.textContent = stats.done;
+            rightEl.textContent = stats.right;
+            wrongEl.textContent = stats.wrong;
+            accuracyEl.textContent = stats.done ? `${Math.round((stats.right / stats.done) * 100)}%` : "0%";
+        }
+
+        function isLocked() {
+            return !isPremium && stats.done >= FREE_ATTEMPT_LIMIT;
+        }
+
+        function showLocked() {
+            unlockPanel.classList.add("visible");
+            feedback.className = "feedback locked";
+            feedback.textContent = "Die kostenlose Nutzung ist aufgebraucht. Du kannst den Trainer mit einem Freischaltcode weiter nutzen.";
+            answerInput.disabled = true;
+            checkBtn.disabled = true;
+            nextBtn.disabled = true;
+        }
+
+        function hideLocked() {
+            unlockPanel.classList.remove("visible");
+            answerInput.disabled = modeSelect.value === "flashcard";
+            checkBtn.disabled = false;
+            nextBtn.disabled = false;
+        }
+
+        function unlockPremium() {
+            if (normalize(unlockCode.value) === normalize(ACCESS_CODE)) {
+                isPremium = true;
+                localStorage.setItem("viveVocabPremium", "true");
+                hideLocked();
+                feedback.className = "feedback good";
+                feedback.textContent = "Freigeschaltet. Du hast jetzt Zugriff auf die volle Wortliste.";
+                renderList();
+                nextCard();
+            } else {
+                feedback.className = "feedback bad";
+                feedback.textContent = "Der Freischaltcode stimmt nicht. Bitte pruefe ihn oder frage die Freischaltung an.";
+            }
+        }
+
+        function renderList() {
+            vocabList.innerHTML = vocabulary.map(item => `
+                <div class="vocab-item${!isPremium && vocabulary.indexOf(item) >= FREE_WORD_LIMIT ? " locked" : ""}">
+                    <b>${item.es}</b>
+                    <span>${item.de}</span>
+                </div>
+            `).join("");
+        }
+
+        checkBtn.addEventListener("click", checkAnswer);
+        nextBtn.addEventListener("click", nextCard);
+        unlockBtn.addEventListener("click", unlockPremium);
+        unlockCode.addEventListener("keydown", event => {
+            if (event.key === "Enter") unlockPremium();
+        });
+        answerInput.addEventListener("keydown", event => {
+            if (event.key === "Enter") checkAnswer();
+        });
+        directionSelect.addEventListener("change", nextCard);
+        categorySelect.addEventListener("change", nextCard);
+        modeSelect.addEventListener("change", nextCard);
+
+        fillCategories();
+        renderList();
+        updateStats();
+        nextCard();
+    </script>
+</body>
+</html>
