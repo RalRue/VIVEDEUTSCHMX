@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="es">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vokabeltrainer Spanisch-Deutsch | VIVE DEUTSCH MX</title>
+    <title>Entrenador de vocabulario español-alemán | VIVE DEUTSCH MX</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="analytics.js" defer></script>
     <style>
         :root {
             --black: #0b0b0b;
@@ -296,55 +297,55 @@
                 <img src="logo.png" alt="VIVE DEUTSCH MX Logo" />
                 <span>
                     <strong>VIVE DEUTSCH MX</strong>
-                    <span>Vokabeltrainer</span>
+                    <span>Vocabulario</span>
                 </span>
             </a>
-            <a class="home-link" href="index.html">Zur Website</a>
+            <a class="home-link" href="index.html">Volver al sitio</a>
         </header>
 
         <section class="hero">
             <div class="intro">
-                <span class="eyebrow">Spanisch Deutsch</span>
-                <h1>Vokabeln aktiv lernen.</h1>
-                <p>Trainiere in beide Richtungen: Spanisch zu Deutsch oder Deutsch zu Spanisch. Waehle Niveau, Kategorie und Modus, schreibe die Antwort selbst und pruefe sofort.</p>
+                <span class="eyebrow">Español · Alemán</span>
+                <h1>Practica vocabulario de forma activa.</h1>
+                <p>Entrena en ambas direcciones: español a alemán o alemán a español. Elige nivel, categoría y modo, escribe tu respuesta y revísala al instante.</p>
             </div>
             <aside class="stats">
-                <div class="stat"><b>ES ⇄ DE</b><span>beide Richtungen</span></div>
-                <div class="stat"><b>A1-B1</b><span>nach Niveau filtern</span></div>
-                <div class="stat"><b>Intern</b><span>keine sichtbare Wortliste</span></div>
+                <div class="stat"><b>ES ⇄ DE</b><span>ambas direcciones</span></div>
+                <div class="stat"><b>A1-B1</b><span>filtrar por nivel</span></div>
+                <div class="stat"><b>Interno</b><span>sin lista visible</span></div>
             </aside>
         </section>
 
         <section class="trainer">
             <div class="controls">
                 <label>
-                    Richtung
+                    Dirección
                     <select id="direction">
-                        <option value="es-de">Spanisch → Deutsch</option>
-                        <option value="de-es">Deutsch → Spanisch</option>
-                        <option value="mixed">Gemischt</option>
+                        <option value="es-de">Español → alemán</option>
+                        <option value="de-es">Alemán → español</option>
+                        <option value="mixed">Mixto</option>
                     </select>
                 </label>
                 <label>
-                    Kategorie
+                    Categoría
                     <select id="category">
-                        <option value="all">Alle Kategorien</option>
+                        <option value="all">Todas las categorías</option>
                     </select>
                 </label>
                 <label>
-                    Niveau
+                    Nivel
                     <select id="level">
-                        <option value="all">Alle Niveaus</option>
+                        <option value="all">Todos los niveles</option>
                         <option value="A1">A1</option>
                         <option value="A2">A2</option>
                         <option value="B1">B1</option>
                     </select>
                 </label>
                 <label>
-                    Modus
+                    Modo
                     <select id="mode">
-                        <option value="type">Antwort schreiben</option>
-                        <option value="flashcard">Karteikarte</option>
+                        <option value="type">Escribir respuesta</option>
+                        <option value="flashcard">Tarjeta</option>
                     </select>
                 </label>
             </div>
@@ -352,28 +353,28 @@
             <div class="card">
                 <div class="prompt-row">
                     <div class="prompt">
-                        <small id="promptLabel">Spanisch</small>
+                        <small id="promptLabel">Español</small>
                         <div class="prompt-word" id="promptWord">...</div>
                     </div>
-                    <div class="badge" id="categoryBadge">Basis</div>
+                    <div class="badge" id="categoryBadge">Básico</div>
                 </div>
 
                 <div class="answer-grid">
                     <label>
-                        Deine Antwort
-                        <input id="answer" type="text" autocomplete="off" placeholder="Antwort eintippen" />
+                        Tu respuesta
+                        <input id="answer" type="text" autocomplete="off" placeholder="Escribe tu respuesta" />
                     </label>
-                    <button id="checkBtn">Pruefen</button>
-                    <button class="secondary" id="nextBtn">Naechste</button>
+                    <button id="checkBtn">Revisar</button>
+                    <button class="secondary" id="nextBtn">Siguiente</button>
                 </div>
 
-                <div class="feedback" id="feedback">Bereit. Gib deine Antwort ein oder decke die Karteikarte auf.</div>
+                <div class="feedback" id="feedback">Listo. Escribe tu respuesta o usa el modo de tarjeta.</div>
 
                 <div class="progress">
-                    <div><b id="done">0</b><span>geuebt</span></div>
-                    <div><b id="right">0</b><span>richtig</span></div>
-                    <div><b id="wrong">0</b><span>nochmal</span></div>
-                    <div><b id="accuracy">0%</b><span>Quote</span></div>
+                    <div><b id="done">0</b><span>practicadas</span></div>
+                    <div><b id="right">0</b><span>correctas</span></div>
+                    <div><b id="wrong">0</b><span>por repasar</span></div>
+                    <div><b id="accuracy">0%</b><span>precisión</span></div>
                 </div>
             </div>
         </section>
@@ -381,114 +382,114 @@
 
     <script>
         const vocabulary = [
-            { es: "a partir de", de: "ab", category: "Alltag", level: "A1" },
-            { es: "pero", de: "aber", category: "Alltag", level: "A1" },
-            { es: "la dirección", de: "die Adresse", category: "Alltag", level: "A1" },
-            { es: "solo", de: "allein", category: "Alltag", level: "A1" },
-            { es: "viejo", de: "alt", category: "Alltag", level: "A1" },
-            { es: "ofrecer", de: "anbieten", category: "Verben", level: "A1" },
-            { es: "empezar", de: "anfangen", category: "Verben", level: "A1" },
-            { es: "llegar", de: "ankommen", category: "Verben", level: "A1" },
-            { es: "llamar por telefono", de: "anrufen", category: "Verben", level: "A1" },
-            { es: "la llamada", de: "der Anruf", category: "Alltag", level: "A1" },
-            { es: "la respuesta", de: "die Antwort", category: "Lernen", level: "A1" },
-            { es: "trabajar", de: "arbeiten", category: "Verben", level: "A1" },
-            { es: "la farmacia", de: "die Apotheke", category: "Alltag", level: "A1" },
-            { es: "la manzana", de: "der Apfel", category: "Alltag", level: "A1" },
-            { es: "la estacion", de: "der Bahnhof", category: "Reisen", level: "A1" },
-            { es: "el formulario", de: "das Formular", category: "Deutschland", level: "A1" },
-            { es: "el dinero", de: "das Geld", category: "Alltag", level: "A1" },
-            { es: "la casa", de: "das Haus", category: "Alltag", level: "A1" },
-            { es: "comprar", de: "kaufen", category: "Verben", level: "A1" },
-            { es: "leer", de: "lesen", category: "Verben", level: "A1" },
-            { es: "aprender", de: "lernen", category: "Lernen", level: "A1" },
-            { es: "la ciudad", de: "die Stadt", category: "Alltag", level: "A1" },
-            { es: "la clase", de: "der Unterricht", category: "Lernen", level: "A1" },
-            { es: "vivir", de: "wohnen", category: "Verben", level: "A1" },
+            { es: "a partir de", de: "ab", category: "Vida diaria", level: "A1" },
+            { es: "pero", de: "aber", category: "Vida diaria", level: "A1" },
+            { es: "la dirección", de: "die Adresse", category: "Vida diaria", level: "A1" },
+            { es: "solo", de: "allein", category: "Vida diaria", level: "A1" },
+            { es: "viejo", de: "alt", category: "Vida diaria", level: "A1" },
+            { es: "ofrecer", de: "anbieten", category: "Verbos", level: "A1" },
+            { es: "empezar", de: "anfangen", category: "Verbos", level: "A1" },
+            { es: "llegar", de: "ankommen", category: "Verbos", level: "A1" },
+            { es: "llamar por teléfono", de: "anrufen", category: "Verbos", level: "A1" },
+            { es: "la llamada", de: "der Anruf", category: "Vida diaria", level: "A1" },
+            { es: "la respuesta", de: "die Antwort", category: "Aprendizaje", level: "A1" },
+            { es: "trabajar", de: "arbeiten", category: "Verbos", level: "A1" },
+            { es: "la farmacia", de: "die Apotheke", category: "Vida diaria", level: "A1" },
+            { es: "la manzana", de: "der Apfel", category: "Vida diaria", level: "A1" },
+            { es: "la estación", de: "der Bahnhof", category: "Viajes", level: "A1" },
+            { es: "el formulario", de: "das Formular", category: "Alemania", level: "A1" },
+            { es: "el dinero", de: "das Geld", category: "Vida diaria", level: "A1" },
+            { es: "la casa", de: "das Haus", category: "Vida diaria", level: "A1" },
+            { es: "comprar", de: "kaufen", category: "Verbos", level: "A1" },
+            { es: "leer", de: "lesen", category: "Verbos", level: "A1" },
+            { es: "aprender", de: "lernen", category: "Aprendizaje", level: "A1" },
+            { es: "la ciudad", de: "die Stadt", category: "Vida diaria", level: "A1" },
+            { es: "la clase", de: "der Unterricht", category: "Aprendizaje", level: "A1" },
+            { es: "vivir", de: "wohnen", category: "Verbos", level: "A1" },
 
-            { es: "entregar", de: "abgeben", category: "Verben", level: "A2" },
-            { es: "recoger", de: "abholen", category: "Verben", level: "A2" },
-            { es: "cerrar con llave", de: "abschliessen", category: "Verben", level: "A2" },
-            { es: "cambiar", de: "aendern", category: "Verben", level: "A2" },
-            { es: "el miedo", de: "die Angst", category: "Gefuehle", level: "A2" },
-            { es: "registrarse", de: "sich anmelden", category: "Deutschland", level: "A2" },
-            { es: "la conexion", de: "der Anschluss", category: "Reisen", level: "A2" },
-            { es: "mirar", de: "ansehen", category: "Verben", level: "A2" },
-            { es: "responder", de: "antworten", category: "Verben", level: "A2" },
-            { es: "el traje", de: "der Anzug", category: "Alltag", level: "A2" },
-            { es: "la formacion profesional", de: "die Ausbildung", category: "Deutschland", level: "A2" },
-            { es: "el extranjero", de: "das Ausland", category: "Deutschland", level: "A2" },
-            { es: "la autoridad", de: "die Behoerde", category: "Deutschland", level: "A2" },
-            { es: "solicitar", de: "beantragen", category: "Deutschland", level: "A2" },
-            { es: "pagar", de: "bezahlen", category: "Alltag", level: "A2" },
-            { es: "el billete", de: "die Fahrkarte", category: "Reisen", level: "A2" },
-            { es: "el equipaje", de: "das Gepaeck", category: "Reisen", level: "A2" },
-            { es: "la salud", de: "die Gesundheit", category: "Alltag", level: "A2" },
-            { es: "casado", de: "verheiratet", category: "Alltag", level: "A2" },
-            { es: "la vivienda", de: "die Wohnung", category: "Alltag", level: "A2" },
-            { es: "la moneda", de: "die Waehrung", category: "Deutschland", level: "A2" },
-            { es: "importante", de: "wichtig", category: "Alltag", level: "A2" },
-            { es: "la revista", de: "die Zeitschrift", category: "Alltag", level: "A2" },
-            { es: "satisfecho", de: "zufrieden", category: "Gefuehle", level: "A2" },
+            { es: "entregar", de: "abgeben", category: "Verbos", level: "A2" },
+            { es: "recoger", de: "abholen", category: "Verbos", level: "A2" },
+            { es: "cerrar con llave", de: "abschliessen", category: "Verbos", level: "A2" },
+            { es: "cambiar", de: "aendern", category: "Verbos", level: "A2" },
+            { es: "el miedo", de: "die Angst", category: "Emociones", level: "A2" },
+            { es: "registrarse", de: "sich anmelden", category: "Alemania", level: "A2" },
+            { es: "la conexión", de: "der Anschluss", category: "Viajes", level: "A2" },
+            { es: "mirar", de: "ansehen", category: "Verbos", level: "A2" },
+            { es: "responder", de: "antworten", category: "Verbos", level: "A2" },
+            { es: "el traje", de: "der Anzug", category: "Vida diaria", level: "A2" },
+            { es: "la formación profesional", de: "die Ausbildung", category: "Alemania", level: "A2" },
+            { es: "el extranjero", de: "das Ausland", category: "Alemania", level: "A2" },
+            { es: "la autoridad", de: "die Behoerde", category: "Alemania", level: "A2" },
+            { es: "solicitar", de: "beantragen", category: "Alemania", level: "A2" },
+            { es: "pagar", de: "bezahlen", category: "Vida diaria", level: "A2" },
+            { es: "el billete", de: "die Fahrkarte", category: "Viajes", level: "A2" },
+            { es: "el equipaje", de: "das Gepaeck", category: "Viajes", level: "A2" },
+            { es: "la salud", de: "die Gesundheit", category: "Vida diaria", level: "A2" },
+            { es: "casado", de: "verheiratet", category: "Vida diaria", level: "A2" },
+            { es: "la vivienda", de: "die Wohnung", category: "Vida diaria", level: "A2" },
+            { es: "la moneda", de: "die Waehrung", category: "Alemania", level: "A2" },
+            { es: "importante", de: "wichtig", category: "Vida diaria", level: "A2" },
+            { es: "la revista", de: "die Zeitschrift", category: "Vida diaria", level: "A2" },
+            { es: "satisfecho", de: "zufrieden", category: "Emociones", level: "A2" },
 
-            { es: "girar", de: "abbiegen", category: "Reisen", level: "B1" },
-            { es: "la imagen", de: "die Abbildung", category: "Lernen", level: "B1" },
-            { es: "la aventura", de: "das Abenteuer", category: "Alltag", level: "B1" },
-            { es: "depender", de: "abhaengen", category: "Verben", level: "B1" },
-            { es: "dependiente", de: "abhaengig", category: "Alltag", level: "B1" },
-            { es: "rechazar", de: "ablehnen", category: "Verben", level: "B1" },
-            { es: "cancelar", de: "absagen", category: "Verben", level: "B1" },
-            { es: "la finalizacion", de: "der Abschluss", category: "Deutschland", level: "B1" },
-            { es: "el remitente", de: "der Absender", category: "Deutschland", level: "B1" },
-            { es: "la intencion", de: "die Absicht", category: "Alltag", level: "B1" },
-            { es: "votar", de: "abstimmen", category: "Verben", level: "B1" },
-            { es: "el departamento", de: "die Abteilung", category: "Arbeit", level: "B1" },
-            { es: "ausente", de: "abwesend", category: "Alltag", level: "B1" },
-            { es: "prestar atencion", de: "achten auf", category: "Verben", level: "B1" },
-            { es: "el cubo de basura", de: "der Abfalleimer", category: "Alltag", level: "B1" },
-            { es: "sacar dinero", de: "abheben", category: "Alltag", level: "B1" },
-            { es: "el suscriptor", de: "das Abonnement", category: "Alltag", level: "B1" },
-            { es: "la basura", de: "der Abfall", category: "Umwelt", level: "B1" },
-            { es: "los gases de escape", de: "die Abgase", category: "Umwelt", level: "B1" },
-            { es: "la confianza", de: "das Vertrauen", category: "Gefuehle", level: "B1" },
-            { es: "la reunion", de: "das Treffen", category: "Alltag", level: "B1" },
-            { es: "el punto", de: "der Punkt", category: "Lernen", level: "B1" },
-            { es: "el camino", de: "der Weg", category: "Reisen", level: "B1" },
-            { es: "cerrar", de: "schliessen", category: "Verben", level: "B1" },
-            { es: "subir", de: "einsteigen", category: "Reisen", level: "A1" },
-            { es: "la entrada", de: "der Eintritt", category: "Alltag", level: "A1" },
-            { es: "los padres", de: "die Eltern", category: "Alltag", level: "A1" },
-            { es: "recomendar", de: "empfehlen", category: "Verben", level: "A1" },
-            { es: "terminar", de: "enden", category: "Verben", level: "A1" },
-            { es: "disculpar", de: "entschuldigen", category: "Verben", level: "A1" },
-            { es: "el resultado", de: "das Ergebnis", category: "Lernen", level: "A1" },
-            { es: "explicar", de: "erklaeren", category: "Verben", level: "A1" },
-            { es: "permitir", de: "erlauben", category: "Verben", level: "A1" },
-            { es: "el adulto", de: "der Erwachsene", category: "Alltag", level: "A1" },
-            { es: "contar", de: "erzaehlen", category: "Verben", level: "A1" },
-            { es: "conducir / ir en vehiculo", de: "fahren", category: "Reisen", level: "A1" },
-            { es: "la bicicleta", de: "das Fahrrad", category: "Reisen", level: "A1" },
-            { es: "falso", de: "falsch", category: "Lernen", level: "A1" },
-            { es: "el apellido", de: "der Familienname", category: "Deutschland", level: "A1" },
-            { es: "el color", de: "die Farbe", category: "Alltag", level: "A1" },
-            { es: "celebrar", de: "feiern", category: "Alltag", level: "A1" },
-            { es: "faltar", de: "fehlen", category: "Verben", level: "A1" },
-            { es: "el error", de: "der Fehler", category: "Lernen", level: "A1" },
-            { es: "ver television", de: "fernsehen", category: "Alltag", level: "A1" },
-            { es: "listo / terminado", de: "fertig", category: "Alltag", level: "A1" },
-            { es: "la fiebre", de: "das Fieber", category: "Alltag", level: "A1" },
-            { es: "la empresa", de: "die Firma", category: "Arbeit", level: "A1" },
-            { es: "poner de pie / colocar", de: "stellen", category: "Verben", level: "A2" },
-            { es: "la calle", de: "die Strasse", category: "Alltag", level: "A1" },
-            { es: "el tranvia", de: "die Strassenbahn", category: "Reisen", level: "A1" },
-            { es: "estudiar en la universidad", de: "studieren", category: "Deutschland", level: "A1" },
-            { es: "la bolsa", de: "die Tasche", category: "Alltag", level: "A1" },
-            { es: "el tema", de: "das Thema", category: "Lernen", level: "A1" },
-            { es: "encontrarse", de: "sich treffen", category: "Verben", level: "A1" },
-            { es: "la escalera", de: "die Treppe", category: "Alltag", level: "A1" },
-            { es: "pasar la noche", de: "uebernachten", category: "Reisen", level: "A2" },
-            { es: "transferir dinero", de: "ueberweisen", category: "Deutschland", level: "A2" },
-            { es: "mudarse", de: "umziehen", category: "Alltag", level: "A2" }
+            { es: "girar", de: "abbiegen", category: "Viajes", level: "B1" },
+            { es: "la imagen", de: "die Abbildung", category: "Aprendizaje", level: "B1" },
+            { es: "la aventura", de: "das Abenteuer", category: "Vida diaria", level: "B1" },
+            { es: "depender", de: "abhaengen", category: "Verbos", level: "B1" },
+            { es: "dependiente", de: "abhaengig", category: "Vida diaria", level: "B1" },
+            { es: "rechazar", de: "ablehnen", category: "Verbos", level: "B1" },
+            { es: "cancelar", de: "absagen", category: "Verbos", level: "B1" },
+            { es: "la finalización", de: "der Abschluss", category: "Alemania", level: "B1" },
+            { es: "el remitente", de: "der Absender", category: "Alemania", level: "B1" },
+            { es: "la intención", de: "die Absicht", category: "Vida diaria", level: "B1" },
+            { es: "votar", de: "abstimmen", category: "Verbos", level: "B1" },
+            { es: "el departamento", de: "die Abteilung", category: "Trabajo", level: "B1" },
+            { es: "ausente", de: "abwesend", category: "Vida diaria", level: "B1" },
+            { es: "prestar atención", de: "achten auf", category: "Verbos", level: "B1" },
+            { es: "el cubo de basura", de: "der Abfalleimer", category: "Vida diaria", level: "B1" },
+            { es: "sacar dinero", de: "abheben", category: "Vida diaria", level: "B1" },
+            { es: "el suscriptor", de: "das Abonnement", category: "Vida diaria", level: "B1" },
+            { es: "la basura", de: "der Abfall", category: "Medio ambiente", level: "B1" },
+            { es: "los gases de escape", de: "die Abgase", category: "Medio ambiente", level: "B1" },
+            { es: "la confianza", de: "das Vertrauen", category: "Emociones", level: "B1" },
+            { es: "la reunión", de: "das Treffen", category: "Vida diaria", level: "B1" },
+            { es: "el punto", de: "der Punkt", category: "Aprendizaje", level: "B1" },
+            { es: "el camino", de: "der Weg", category: "Viajes", level: "B1" },
+            { es: "cerrar", de: "schliessen", category: "Verbos", level: "B1" },
+            { es: "subir", de: "einsteigen", category: "Viajes", level: "A1" },
+            { es: "la entrada", de: "der Eintritt", category: "Vida diaria", level: "A1" },
+            { es: "los padres", de: "die Eltern", category: "Vida diaria", level: "A1" },
+            { es: "recomendar", de: "empfehlen", category: "Verbos", level: "A1" },
+            { es: "terminar", de: "enden", category: "Verbos", level: "A1" },
+            { es: "disculpar", de: "entschuldigen", category: "Verbos", level: "A1" },
+            { es: "el resultado", de: "das Ergebnis", category: "Aprendizaje", level: "A1" },
+            { es: "explicar", de: "erklaeren", category: "Verbos", level: "A1" },
+            { es: "permitir", de: "erlauben", category: "Verbos", level: "A1" },
+            { es: "el adulto", de: "der Erwachsene", category: "Vida diaria", level: "A1" },
+            { es: "contar", de: "erzaehlen", category: "Verbos", level: "A1" },
+            { es: "conducir / ir en vehículo", de: "fahren", category: "Viajes", level: "A1" },
+            { es: "la bicicleta", de: "das Fahrrad", category: "Viajes", level: "A1" },
+            { es: "falso", de: "falsch", category: "Aprendizaje", level: "A1" },
+            { es: "el apellido", de: "der Familienname", category: "Alemania", level: "A1" },
+            { es: "el color", de: "die Farbe", category: "Vida diaria", level: "A1" },
+            { es: "celebrar", de: "feiern", category: "Vida diaria", level: "A1" },
+            { es: "faltar", de: "fehlen", category: "Verbos", level: "A1" },
+            { es: "el error", de: "der Fehler", category: "Aprendizaje", level: "A1" },
+            { es: "ver televisión", de: "fernsehen", category: "Vida diaria", level: "A1" },
+            { es: "listo / terminado", de: "fertig", category: "Vida diaria", level: "A1" },
+            { es: "la fiebre", de: "das Fieber", category: "Vida diaria", level: "A1" },
+            { es: "la empresa", de: "die Firma", category: "Trabajo", level: "A1" },
+            { es: "poner de pie / colocar", de: "stellen", category: "Verbos", level: "A2" },
+            { es: "la calle", de: "die Strasse", category: "Vida diaria", level: "A1" },
+            { es: "el tranvía", de: "die Strassenbahn", category: "Viajes", level: "A1" },
+            { es: "estudiar en la universidad", de: "studieren", category: "Alemania", level: "A1" },
+            { es: "la bolsa", de: "die Tasche", category: "Vida diaria", level: "A1" },
+            { es: "el tema", de: "das Thema", category: "Aprendizaje", level: "A1" },
+            { es: "encontrarse", de: "sich treffen", category: "Verbos", level: "A1" },
+            { es: "la escalera", de: "die Treppe", category: "Vida diaria", level: "A1" },
+            { es: "pasar la noche", de: "uebernachten", category: "Viajes", level: "A2" },
+            { es: "transferir dinero", de: "ueberweisen", category: "Alemania", level: "A2" },
+            { es: "mudarse", de: "umziehen", category: "Vida diaria", level: "A2" }
         ];
 
         const directionSelect = document.getElementById("direction");
@@ -550,26 +551,26 @@
             const pool = filteredVocabulary();
             if (!pool.length) {
                 current = null;
-                promptLabel.textContent = "Auswahl";
+                promptLabel.textContent = "Selección";
                 promptWord.textContent = "-";
-                categoryBadge.textContent = "leer";
+                categoryBadge.textContent = "vacío";
                 feedback.className = "feedback";
-                feedback.textContent = "Fuer diese Kombination gibt es noch keine Vokabeln.";
+                feedback.textContent = "Todavía no hay vocabulario para esta combinación.";
                 return;
             }
             current = pool[Math.floor(Math.random() * pool.length)];
             currentDirection = pickDirection();
             const from = currentDirection === "es-de" ? "es" : "de";
-            promptLabel.textContent = currentDirection === "es-de" ? "Spanisch" : "Deutsch";
+            promptLabel.textContent = currentDirection === "es-de" ? "Español" : "Alemán";
             promptWord.textContent = current[from];
             categoryBadge.textContent = current.category;
             answerInput.value = "";
             feedback.className = "feedback";
             feedback.textContent = modeSelect.value === "flashcard"
-                ? "Ueberlege kurz und klicke dann auf Pruefen, um die Loesung zu sehen."
-                : "Gib die passende Uebersetzung ein.";
+                ? "Piensa un momento y luego pulsa Revisar para ver la solución."
+                : "Escribe la traducción adecuada.";
             answerInput.disabled = modeSelect.value === "flashcard";
-            answerInput.placeholder = modeSelect.value === "flashcard" ? "Karteikartenmodus" : "Antwort eintippen";
+            answerInput.placeholder = modeSelect.value === "flashcard" ? "Modo tarjeta" : "Escribe tu respuesta";
             if (!answerInput.disabled) answerInput.focus();
         }
 
@@ -580,7 +581,7 @@
             if (modeSelect.value === "flashcard") {
                 stats.done += 1;
                 feedback.className = "feedback";
-                feedback.textContent = `Loesung: ${target}`;
+                feedback.textContent = `Solución: ${target}`;
                 updateStats();
                 return;
             }
@@ -592,11 +593,11 @@
             if (typed === expected) {
                 stats.right += 1;
                 feedback.className = "feedback good";
-                feedback.textContent = `Richtig: ${target}`;
+                feedback.textContent = `Correcto: ${target}`;
             } else {
                 stats.wrong += 1;
                 feedback.className = "feedback bad";
-                feedback.textContent = `Noch einmal ueben. Richtig ist: ${target}`;
+                feedback.textContent = `Repasa una vez más. La respuesta correcta es: ${target}`;
             }
             updateStats();
         }
