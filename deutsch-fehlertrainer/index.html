@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Entrenador de errores de alemán | VIVE DEUTSCH MX</title>
+    <link rel="icon" type="image/png" href="../logo.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="../analytics.js" defer></script>
+    <style>
+        :root {
+            --black: #0b0b0b;
+            --panel: #171717;
+            --panel-soft: #211d18;
+            --text: #f8f4ed;
+            --muted: #b9b0a4;
+            --gold: #d4a256;
+            --gold-soft: #f0c779;
+            --green: #68d391;
+            --red: #ff8a8a;
+            --border: rgba(212, 162, 86, 0.24);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, system-ui, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 18% 10%, rgba(212, 162, 86, 0.16), transparent 32%),
+                linear-gradient(145deg, #080808 0%, #17110d 58%, #0b0b0b 100%);
+        }
+
+        a { color: inherit; }
+
+        .app {
+            width: min(1120px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 28px 0 52px;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 26px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .brand img {
+            width: 44px;
+            height: 44px;
+            border-radius: 6px;
+            object-fit: cover;
+        }
+
+        .brand strong {
+            display: block;
+            font-size: 0.92rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .brand span {
+            display: block;
+            margin-top: 3px;
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .top-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .top-links a,
+        button {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.03);
+            color: var(--gold-soft);
+            padding: 10px 13px;
+            font: inherit;
+            font-weight: 800;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 320px;
+            gap: 22px;
+            align-items: stretch;
+            margin-bottom: 22px;
+        }
+
+        .intro,
+        .score-card,
+        .trainer,
+        .side-panel {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: rgba(23, 23, 23, 0.9);
+        }
+
+        .intro {
+            padding: clamp(24px, 5vw, 44px);
+        }
+
+        .eyebrow {
+            color: var(--gold);
+            font-size: 0.76rem;
+            font-weight: 900;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 12px 0;
+            max-width: 760px;
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: clamp(2.15rem, 7vw, 4.5rem);
+            line-height: 0.98;
+            letter-spacing: 0;
+        }
+
+        .intro p {
+            max-width: 720px;
+            color: var(--muted);
+            font-size: 1.04rem;
+            line-height: 1.7;
+        }
+
+        .score-card {
+            display: grid;
+            gap: 1px;
+            overflow: hidden;
+        }
+
+        .score-item {
+            padding: 22px;
+            background: rgba(255,255,255,0.03);
+        }
+
+        .score-item b {
+            display: block;
+            color: var(--gold-soft);
+            font-size: 1.8rem;
+        }
+
+        .score-item span {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 320px;
+            gap: 22px;
+            align-items: start;
+        }
+
+        .trainer {
+            padding: clamp(18px, 4vw, 30px);
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        select {
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: #101010;
+            color: var(--text);
+            padding: 0 12px;
+            font: inherit;
+            font-weight: 700;
+        }
+
+        .exercise {
+            display: grid;
+            gap: 18px;
+            min-height: 380px;
+            padding: clamp(20px, 4vw, 34px);
+            border: 1px solid rgba(212,162,86,0.18);
+            border-radius: 8px;
+            background: linear-gradient(155deg, rgba(212,162,86,0.08), rgba(255,255,255,0.02));
+        }
+
+        .tag-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag {
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 7px 10px;
+            color: var(--gold-soft);
+            font-size: 0.78rem;
+            font-weight: 900;
+        }
+
+        .problem small {
+            display: block;
+            color: var(--muted);
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .wrong {
+            margin: 10px 0 0;
+            color: var(--red);
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: clamp(1.75rem, 5vw, 3.1rem);
+            line-height: 1.08;
+        }
+
+        .choices {
+            display: grid;
+            gap: 10px;
+        }
+
+        .choice {
+            width: 100%;
+            min-height: 54px;
+            text-align: left;
+            color: var(--text);
+            background: rgba(255,255,255,0.04);
+        }
+
+        .choice[aria-pressed="true"] {
+            border-color: var(--gold);
+            background: rgba(212,162,86,0.12);
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .primary {
+            background: var(--gold);
+            color: #111;
+            border-color: var(--gold);
+        }
+
+        .feedback {
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.04);
+            padding: 16px;
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        .feedback strong {
+            color: var(--text);
+        }
+
+        .feedback.good {
+            border-color: rgba(104, 211, 145, 0.55);
+        }
+
+        .feedback.bad {
+            border-color: rgba(255, 138, 138, 0.55);
+        }
+
+        .side-panel {
+            padding: 22px;
+        }
+
+        .side-panel h2 {
+            margin: 0 0 10px;
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: 1.45rem;
+        }
+
+        .side-panel p,
+        .side-panel li {
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        .roadmap {
+            display: grid;
+            gap: 10px;
+            padding: 0;
+            margin: 16px 0 0;
+            list-style: none;
+        }
+
+        .roadmap li {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px;
+            background: rgba(255,255,255,0.03);
+        }
+
+        @media (max-width: 900px) {
+            .hero,
+            .layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 620px) {
+            .app {
+                width: min(100% - 24px, 1120px);
+                padding-top: 18px;
+            }
+
+            header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .top-links {
+                justify-content: flex-start;
+            }
+
+            .choice,
+            button,
+            .top-links a {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header>
+            <a class="brand" href="../index.html">
+                <img src="../logo.png" alt="VIVE DEUTSCH MX" />
+                <span>
+                    <strong>VIVE DEUTSCH MX</strong>
+                    <span>Alemán para hispanohablantes</span>
+                </span>
+            </a>
+            <nav class="top-links" aria-label="Navigation">
+                <a href="../index.html">Sitio web</a>
+                <a href="../vokabeltrainer/">Vocabulario</a>
+            </nav>
+        </header>
+
+        <section class="hero">
+            <div class="intro">
+                <span class="eyebrow">Prototipo · Entrenador de errores</span>
+                <h1>Deja de traducir palabra por palabra.</h1>
+                <p>Entrena los errores típicos que aparecen cuando pensamos en español y queremos hablar alemán. Cada ejercicio muestra el error, la forma correcta y la lógica detrás.</p>
+            </div>
+            <aside class="score-card" aria-label="Progreso">
+                <div class="score-item">
+                    <b id="done-count">0</b>
+                    <span>ejercicios vistos</span>
+                </div>
+                <div class="score-item">
+                    <b id="correct-count">0</b>
+                    <span>respuestas correctas</span>
+                </div>
+                <div class="score-item">
+                    <b id="accuracy">0%</b>
+                    <span>precisión</span>
+                </div>
+            </aside>
+        </section>
+
+        <main class="layout">
+            <section class="trainer" aria-label="Entrenador">
+                <div class="toolbar">
+                    <label>
+                        Nivel
+                        <select id="level-filter">
+                            <option value="all">Todos</option>
+                            <option value="A1">A1</option>
+                            <option value="A2">A2</option>
+                            <option value="B1">B1</option>
+                        </select>
+                    </label>
+                    <button id="reset-progress" type="button">Reiniciar progreso</button>
+                </div>
+
+                <article class="exercise">
+                    <div class="tag-row">
+                        <span class="tag" id="level-tag">A1</span>
+                        <span class="tag" id="topic-tag">Satzbau</span>
+                    </div>
+
+                    <div class="problem">
+                        <small>Error típico</small>
+                        <p class="wrong" id="wrong-sentence">Ich habe 20 Jahre.</p>
+                    </div>
+
+                    <div class="choices" id="choices"></div>
+
+                    <div class="actions">
+                        <button class="primary" id="check-answer" type="button">Comprobar</button>
+                        <button id="show-explanation" type="button">Explicación</button>
+                        <button id="next-exercise" type="button">Siguiente</button>
+                    </div>
+
+                    <div class="feedback" id="feedback">
+                        Elige la forma correcta. Después verás la explicación corta en español.
+                    </div>
+                </article>
+            </section>
+
+            <aside class="side-panel">
+                <h2>Pequeño, pero con dirección</h2>
+                <p>Este prototipo no intenta reemplazar una clase. Sirve para reconocer patrones y preparar mejores preguntas para el profesor.</p>
+                <ul class="roadmap">
+                    <li><strong>Ahora:</strong> errores típicos A1-B1</li>
+                    <li><strong>Después:</strong> artículos, casos y posición del verbo</li>
+                    <li><strong>Más tarde:</strong> modo examen y lista personal de errores</li>
+                </ul>
+            </aside>
+        </main>
+    </div>
+
+    <script>
+        const exercises = [
+            {
+                level: 'A1',
+                topic: 'Edad',
+                wrong: 'Ich habe 20 Jahre.',
+                correct: 'Ich bin 20 Jahre alt.',
+                options: ['Ich bin 20 Jahre alt.', 'Ich habe 20 Jahre alt.', 'Ich bin 20 Jahre.'],
+                explanation: 'En español se usa "tener": tengo 20 años. En alemán la edad se expresa normalmente con "sein": Ich bin 20 Jahre alt.'
+            },
+            {
+                level: 'A1',
+                topic: 'Gern / mögen',
+                wrong: 'Mir mag Deutsch.',
+                correct: 'Ich mag Deutsch.',
+                options: ['Ich mag Deutsch.', 'Mir mag Deutsch.', 'Mich gefällt Deutsch.'],
+                explanation: '"Gustar" no se traduce palabra por palabra. Con "mögen", la persona es el sujeto: Ich mag Deutsch.'
+            },
+            {
+                level: 'A1',
+                topic: 'Länder',
+                wrong: 'Ich fahre zu Deutschland.',
+                correct: 'Ich fahre nach Deutschland.',
+                options: ['Ich fahre nach Deutschland.', 'Ich fahre zu Deutschland.', 'Ich fahre in Deutschland.'],
+                explanation: 'Con países sin artículo se usa normalmente "nach": nach Deutschland, nach Mexiko, nach Spanien.'
+            },
+            {
+                level: 'A1',
+                topic: 'Verbposition',
+                wrong: 'Morgen ich lerne Deutsch.',
+                correct: 'Morgen lerne ich Deutsch.',
+                options: ['Morgen lerne ich Deutsch.', 'Morgen ich lerne Deutsch.', 'Ich morgen lerne Deutsch.'],
+                explanation: 'En una oración principal alemana el verbo conjugado ocupa la segunda posición. Si empiezas con "morgen", después va el verbo.'
+            },
+            {
+                level: 'A2',
+                topic: 'Dativ',
+                wrong: 'Ich helfe meine Mutter.',
+                correct: 'Ich helfe meiner Mutter.',
+                options: ['Ich helfe meiner Mutter.', 'Ich helfe meine Mutter.', 'Ich helfe meiner Mutters.'],
+                explanation: 'El verbo "helfen" exige dativo. Por eso: meiner Mutter, meinem Bruder, den Kindern.'
+            },
+            {
+                level: 'A2',
+                topic: 'Perfekt',
+                wrong: 'Ich bin Deutsch gelernt.',
+                correct: 'Ich habe Deutsch gelernt.',
+                options: ['Ich habe Deutsch gelernt.', 'Ich bin Deutsch gelernt.', 'Ich habe Deutsch gelernen.'],
+                explanation: 'La mayoría de los verbos usan "haben" en Perfekt. "lernen" forma el participio "gelernt".'
+            },
+            {
+                level: 'B1',
+                topic: 'Weil-Satz',
+                wrong: 'Ich lerne Deutsch, weil ich will in Deutschland arbeiten.',
+                correct: 'Ich lerne Deutsch, weil ich in Deutschland arbeiten will.',
+                options: ['Ich lerne Deutsch, weil ich in Deutschland arbeiten will.', 'Ich lerne Deutsch, weil ich will in Deutschland arbeiten.', 'Ich lerne Deutsch, weil will ich in Deutschland arbeiten.'],
+                explanation: 'En oraciones con "weil", el verbo conjugado va al final. Con verbo modal: arbeiten will.'
+            },
+            {
+                level: 'B1',
+                topic: 'Präposition',
+                wrong: 'Ich warte dich.',
+                correct: 'Ich warte auf dich.',
+                options: ['Ich warte auf dich.', 'Ich warte dich.', 'Ich warte zu dir.'],
+                explanation: 'En alemán se dice "warten auf + Akkusativ": Ich warte auf dich, auf den Bus, auf meine Freundin.'
+            }
+        ];
+
+        const state = {
+            index: 0,
+            selected: '',
+            filtered: exercises.slice(),
+            stats: JSON.parse(localStorage.getItem('viveDeutschErrorTrainerStats') || '{"done":0,"correct":0}')
+        };
+
+        const levelFilter = document.getElementById('level-filter');
+        const levelTag = document.getElementById('level-tag');
+        const topicTag = document.getElementById('topic-tag');
+        const wrongSentence = document.getElementById('wrong-sentence');
+        const choices = document.getElementById('choices');
+        const feedback = document.getElementById('feedback');
+        const doneCount = document.getElementById('done-count');
+        const correctCount = document.getElementById('correct-count');
+        const accuracy = document.getElementById('accuracy');
+
+        function saveStats() {
+            localStorage.setItem('viveDeutschErrorTrainerStats', JSON.stringify(state.stats));
+        }
+
+        function updateStats() {
+            doneCount.textContent = state.stats.done;
+            correctCount.textContent = state.stats.correct;
+            accuracy.textContent = state.stats.done ? Math.round((state.stats.correct / state.stats.done) * 100) + '%' : '0%';
+        }
+
+        function currentExercise() {
+            return state.filtered[state.index] || state.filtered[0];
+        }
+
+        function renderExercise() {
+            const exercise = currentExercise();
+            state.selected = '';
+            levelTag.textContent = exercise.level;
+            topicTag.textContent = exercise.topic;
+            wrongSentence.textContent = exercise.wrong;
+            choices.innerHTML = '';
+            feedback.className = 'feedback';
+            feedback.textContent = 'Elige la forma correcta. Después verás la explicación corta en español.';
+
+            exercise.options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'choice';
+                button.type = 'button';
+                button.textContent = option;
+                button.setAttribute('aria-pressed', 'false');
+                button.addEventListener('click', () => {
+                    state.selected = option;
+                    document.querySelectorAll('.choice').forEach(choice => choice.setAttribute('aria-pressed', 'false'));
+                    button.setAttribute('aria-pressed', 'true');
+                });
+                choices.appendChild(button);
+            });
+        }
+
+        function checkAnswer() {
+            const exercise = currentExercise();
+            if (!state.selected) {
+                feedback.className = 'feedback bad';
+                feedback.textContent = 'Primero elige una respuesta.';
+                return;
+            }
+
+            const isCorrect = state.selected === exercise.correct;
+            state.stats.done += 1;
+            if (isCorrect) state.stats.correct += 1;
+            saveStats();
+            updateStats();
+
+            feedback.className = isCorrect ? 'feedback good' : 'feedback bad';
+            feedback.innerHTML = isCorrect
+                ? '<strong>Correcto:</strong> ' + exercise.correct + '<br>' + exercise.explanation
+                : '<strong>Mejor:</strong> ' + exercise.correct + '<br>' + exercise.explanation;
+        }
+
+        function showExplanation() {
+            const exercise = currentExercise();
+            feedback.className = 'feedback';
+            feedback.innerHTML = '<strong>Forma correcta:</strong> ' + exercise.correct + '<br>' + exercise.explanation;
+        }
+
+        function nextExercise() {
+            state.index = (state.index + 1) % state.filtered.length;
+            renderExercise();
+        }
+
+        function applyFilter() {
+            const value = levelFilter.value;
+            state.filtered = value === 'all' ? exercises.slice() : exercises.filter(exercise => exercise.level === value);
+            state.index = 0;
+            renderExercise();
+        }
+
+        document.getElementById('check-answer').addEventListener('click', checkAnswer);
+        document.getElementById('show-explanation').addEventListener('click', showExplanation);
+        document.getElementById('next-exercise').addEventListener('click', nextExercise);
+        levelFilter.addEventListener('change', applyFilter);
+        document.getElementById('reset-progress').addEventListener('click', () => {
+            state.stats = { done: 0, correct: 0 };
+            saveStats();
+            updateStats();
+        });
+
+        updateStats();
+        renderExercise();
+    </script>
+</body>
+</html>
