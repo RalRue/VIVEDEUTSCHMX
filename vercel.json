@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "destination": "https://vive-deutsch-mx.vercel.app/$1",
+      "permanent": true
+    }
+  ]
+}
