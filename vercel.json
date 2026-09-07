@@ -1,25 +1,25 @@
 {
   "redirects": [
     {
-      "source": "/(.*)",
+      "source": "/:path*",
       "has": [
         {
           "type": "host",
           "value": "vivedeutschmx.vercel.app"
         }
       ],
-      "destination": "https://vive-deutsch-mx.vercel.app/$1",
+      "destination": "https://vive-deutsch-mx.vercel.app/:path*",
       "permanent": true
     },
     {
-      "source": "/(.*)",
+      "source": "/:path*",
       "has": [
         {
           "type": "host",
           "value": "vivedeutschmx-steel.vercel.app"
         }
       ],
-      "destination": "https://vive-deutsch-mx.vercel.app/$1",
+      "destination": "https://vive-deutsch-mx.vercel.app/:path*",
       "permanent": true
     }
   ]
