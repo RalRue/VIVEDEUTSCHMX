@@ -53,6 +53,12 @@ const aboutText = document.querySelector('#about .col-text');
 if (aboutImg) aboutImg.classList.add('reveal-left');
 if (aboutText) aboutText.classList.add('reveal-right');
 
+// Language services: give Angela's pillar the same calm entrance as Ralph's profile
+const angelaImg = document.querySelector('#language-services .service-portrait-frame');
+const angelaText = document.querySelector('#language-services .service-lead-copy');
+if (angelaImg) angelaImg.classList.add('reveal-left');
+if (angelaText) angelaText.classList.add('reveal-right');
+
 // Staggered grid items
 const staggerGroups = [
     '.features .feature',
