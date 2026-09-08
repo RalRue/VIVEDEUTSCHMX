@@ -555,6 +555,19 @@ h4 { font-size: 1.15rem; }
     font-size: clamp(1.9rem, 4vw, 3rem);
     line-height: 1.08;
 }
+.credential-badge {
+    display: inline-flex;
+    width: fit-content;
+    margin-top: 0.85rem;
+    padding: 0.55rem 0.85rem;
+    border: 1px solid rgba(212, 162, 86, 0.48);
+    background: rgba(212, 162, 86, 0.1);
+    color: var(--gold-light);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
 .service-lead-copy p {
     max-width: 680px;
     margin-top: 1.25rem;
