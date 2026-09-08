@@ -464,6 +464,11 @@ h4 { font-size: 1.15rem; }
     border: 1px solid var(--border);
     padding: 0.85rem;
 }
+.service-lead-feature {
+    padding: clamp(1rem, 2vw, 1.5rem);
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(255,255,255,0.035), rgba(212, 162, 86, 0.055));
+}
 .service-portrait-frame::before,
 .service-portrait-frame::after {
     content: '';
@@ -501,8 +506,11 @@ h4 { font-size: 1.15rem; }
 .service-lead-copy p {
     max-width: 680px;
     margin-top: 1.25rem;
-    margin-bottom: 1.75rem;
+    margin-bottom: 1.25rem;
     color: var(--gray-light);
+}
+.service-check-list {
+    margin: 0 0 1.75rem;
 }
 .card-featured {
     border-color: var(--gold);
