@@ -65,6 +65,7 @@ const staggerGroups = [
     '.pricing-grid .price-card',
     '.blog-grid .blog-card',
     '.hero-stats .stat',
+    '.pillar-grid .pillar-card',
     '.booking-services .booking-service',
     '.process-grid .process-card',
     '.trust-grid .trust-item',
