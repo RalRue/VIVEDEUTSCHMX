@@ -22,7 +22,10 @@ function setLanguage(lang) {
 }
 
 langButtons.forEach(btn => {
-    btn.addEventListener('click', () => setLanguage(btn.dataset.lang));
+    btn.addEventListener('click', () => {
+        setLanguage(btn.dataset.lang);
+        updateContactLinks();
+    });
 });
 
 setLanguage(currentLang);
@@ -31,22 +34,42 @@ setLanguage(currentLang);
 const contactChannels = {
     schoolWhatsApp: '523151109282',
     languageServicesWhatsApp: '523151104908',
+    schoolMessages: {
+        es: 'Hola Ralph, me interesa aprender alemán con VIVE DEUTSCH MX. Quisiera información sobre grupos o clases individuales.',
+        en: 'Hello Ralph, I am interested in learning German with VIVE DEUTSCH MX. I would like information about groups or individual lessons.',
+        de: 'Hallo Ralph, ich interessiere mich für Deutschunterricht bei VIVE DEUTSCH MX. Ich hätte gern Informationen zu Gruppen oder Einzelunterricht.',
+    },
+    languageServicesMessages: {
+        es: 'Hola Angela, me interesa una cotización de traducción, interpretación o servicios lingüísticos.',
+        en: 'Hello Angela, I am interested in a quote for translation, interpreting or language services.',
+        de: 'Hallo Angela, ich interessiere mich für ein Angebot zu Übersetzung, Dolmetschen oder Sprachdienstleistungen.',
+    },
 };
 
-document.querySelectorAll('.angela-whatsapp-link').forEach(link => {
-    const phone = link.dataset.phone || contactChannels.languageServicesWhatsApp;
-    if (!phone) return;
+function buildWhatsAppUrl(phone, message) {
+    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+}
 
-    link.href = `https://wa.me/${phone}`;
-    link.classList.remove('is-hidden');
-});
+function updateContactLinks() {
+    const lang = currentLang || 'es';
 
-document.querySelectorAll('.school-whatsapp-link').forEach(link => {
-    link.href = `https://wa.me/${contactChannels.schoolWhatsApp}`;
-});
+    document.querySelectorAll('.angela-whatsapp-link').forEach(link => {
+        const phone = link.dataset.phone || contactChannels.languageServicesWhatsApp;
+        if (!phone) return;
+
+        link.href = buildWhatsAppUrl(phone, contactChannels.languageServicesMessages[lang] || contactChannels.languageServicesMessages.es);
+        link.classList.remove('is-hidden');
+    });
+
+    document.querySelectorAll('.school-whatsapp-link').forEach(link => {
+        link.href = buildWhatsAppUrl(contactChannels.schoolWhatsApp, contactChannels.schoolMessages[lang] || contactChannels.schoolMessages.es);
+    });
+}
+
+updateContactLinks();
 
 const schoolWhatsAppFloat = document.querySelector('.school-whatsapp-float');
-const schoolSections = document.querySelectorAll('#about, #courses, #method, #pricing, #booking, #workflow, #parents, #trainer, #testimonials');
+const schoolSections = document.querySelectorAll('#hero, #about, #courses, #method, #pricing, #booking, #workflow, #parents, #trainer, #testimonials');
 
 if (schoolWhatsAppFloat && schoolSections.length) {
     const visibleSchoolSections = new Set();

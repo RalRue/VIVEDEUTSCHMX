@@ -510,6 +510,10 @@ h4 { font-size: 1.15rem; }
     align-items: center;
     margin-bottom: 3rem;
 }
+.service-media {
+    display: grid;
+    gap: 1.15rem;
+}
 .service-portrait-frame {
     position: relative;
     aspect-ratio: 4/5;
@@ -581,6 +585,10 @@ h4 { font-size: 1.15rem; }
     display: flex;
     flex-wrap: wrap;
     gap: 0.85rem;
+}
+.service-photo-cta {
+    justify-content: center;
+    width: 100%;
 }
 .card-featured {
     border-color: var(--gold);
@@ -1053,6 +1061,18 @@ h4 { font-size: 1.15rem; }
     transform: translateX(4px);
 }
 .contact-icon { font-size: 1.5rem; }
+.social-link .contact-icon {
+    width: 1.75rem;
+    height: 1.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(212, 162, 86, 0.42);
+    border-radius: 50%;
+    color: var(--gold);
+    font-size: 1rem;
+    font-weight: 800;
+}
 .contact-item div { display: flex; flex-direction: column; }
 .contact-item strong { color: var(--gold); font-size: 0.9rem; }
 .contact-item span { color: var(--gray-light); font-size: 0.9rem; }
@@ -1107,7 +1127,7 @@ h4 { font-size: 1.15rem; }
 .footer { background: var(--black-soft); padding: 4rem 0 1.5rem; border-top: 1px solid var(--border); }
 .footer-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
     gap: 3rem;
     margin-bottom: 3rem;
 }
