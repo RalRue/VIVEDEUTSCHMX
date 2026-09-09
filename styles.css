@@ -577,6 +577,11 @@ h4 { font-size: 1.15rem; }
 .service-check-list {
     margin: 0 0 1.75rem;
 }
+.service-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+}
 .card-featured {
     border-color: var(--gold);
     background: linear-gradient(135deg, var(--black-card), rgba(212, 162, 86, 0.05));
@@ -1052,6 +1057,7 @@ h4 { font-size: 1.15rem; }
 .contact-item strong { color: var(--gold); font-size: 0.9rem; }
 .contact-item span { color: var(--gray-light); font-size: 0.9rem; }
 .contact-item-booking { cursor: pointer; }
+.is-hidden { display: none !important; }
 
 .contact-form {
     background: var(--black-card);
@@ -1143,8 +1149,18 @@ h4 { font-size: 1.15rem; }
     z-index: 90;
     transition: all .3s var(--ease);
     animation: pulse 2.5s infinite;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(10px) scale(0.96);
 }
-.whatsapp-float:hover { transform: scale(1.1); }
+.whatsapp-float.visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+}
+.whatsapp-float:hover { transform: translateY(0) scale(1.1); }
 @keyframes pulse {
     0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.5); }
     70% { box-shadow: 0 0 0 18px rgba(37, 211, 102, 0); }

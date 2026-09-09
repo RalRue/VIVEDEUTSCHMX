@@ -43,7 +43,6 @@
         "name": "VIVE DEUTSCH MX",
         "description": "Grupos pequeños de alemán A1-C1 por Zoom y en Zapopan Centro, clases individuales y servicios lingüísticos entre México y Alemania, con perito traductor en Jalisco para español-alemán y alemán-español.",
         "url": "https://vive-deutsch-mx.vercel.app/",
-        "telephone": "+52-315-110-9282",
         "email": "ralph_stoecker@live.com",
         "image": "https://vive-deutsch-mx.vercel.app/ralph-business-portrait.jpg",
         "priceRange": "$$",
@@ -201,7 +200,10 @@
                         <li data-i18n="services.angela.l2">✓ Traducción, interpretación y comunicación profesional DE/ES/EN</li>
                         <li data-i18n="services.angela.l3">✓ Apoyo para documentos, reuniones y proyectos binacionales</li>
                     </ul>
-                    <a href="#contact" class="btn btn-ghost" data-i18n="services.angela.cta">Solicitar cotización</a>
+                    <div class="service-actions">
+                        <a href="#contact" class="btn btn-ghost" data-i18n="services.angela.cta">Solicitar cotización</a>
+                        <a href="#" target="_blank" rel="noopener" class="btn btn-primary angela-whatsapp-link is-hidden" data-phone="" data-i18n="services.angela.whatsapp.cta">WhatsApp Angela</a>
+                    </div>
                 </div>
             </div>
             <div class="cards service-cards">
@@ -747,11 +749,18 @@
                 <p data-i18n="contact.subtitle">Escríbenos para una cotización de traducción, interpretación o acompañamiento profesional; o reserva una entrevista para clases de alemán. Respondemos en menos de 24 horas.</p>
             </div>
             <div class="contact-info contact-info-centered">
-                <a href="https://wa.me/523151109282" target="_blank" rel="noopener" class="contact-item">
+                <a href="#" target="_blank" rel="noopener" class="contact-item school-contact school-whatsapp-link">
                     <span class="contact-icon">💬</span>
                     <div>
-                        <strong>WhatsApp</strong>
-                        <span>+52 315 110 9282</span>
+                        <strong data-i18n="contact.ralph.whatsapp.title">WhatsApp Ralph</strong>
+                        <span data-i18n="contact.ralph.whatsapp.desc">Deutschunterricht · direkter Kontakt</span>
+                    </div>
+                </a>
+                <a href="#" target="_blank" rel="noopener" class="contact-item angela-whatsapp-link is-hidden" data-phone="">
+                    <span class="contact-icon">💬</span>
+                    <div>
+                        <strong data-i18n="contact.angela.whatsapp.title">WhatsApp Angela</strong>
+                        <span data-i18n="contact.angela.whatsapp.desc">Übersetzung · Dolmetschen · Sprachdienstleistungen</span>
                     </div>
                 </a>
                 <a href="mailto:ralph_stoecker@live.com" class="contact-item">
@@ -803,7 +812,7 @@
     </footer>
 
     <!-- ===== FLOATING WHATSAPP ===== -->
-    <a href="https://wa.me/523151109282" target="_blank" rel="noopener" class="whatsapp-float" aria-label="WhatsApp">
+    <a href="#" target="_blank" rel="noopener" class="whatsapp-float school-whatsapp-float school-whatsapp-link" aria-label="WhatsApp Ralph Deutschunterricht">
         <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28">
             <path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-1.7-.8-2.8-1.5-3.9-3.4-.3-.5.3-.5.8-1.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5 1.9.8 2.6.9 3.5.7.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3zM12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.5 1.3 5L2 22l5.2-1.3c1.4.8 3.1 1.3 4.8 1.3 5.5 0 10-4.5 10-10S17.5 2 12 2z"/>
         </svg>

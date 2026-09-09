@@ -27,6 +27,50 @@ langButtons.forEach(btn => {
 
 setLanguage(currentLang);
 
+// ===== CONTACT CHANNELS =====
+const contactChannels = {
+    schoolWhatsApp: '523151109282',
+    languageServicesWhatsApp: '',
+};
+
+document.querySelectorAll('.angela-whatsapp-link').forEach(link => {
+    const phone = link.dataset.phone || contactChannels.languageServicesWhatsApp;
+    if (!phone) return;
+
+    link.href = `https://wa.me/${phone}`;
+    link.classList.remove('is-hidden');
+});
+
+document.querySelectorAll('.school-whatsapp-link').forEach(link => {
+    link.href = `https://wa.me/${contactChannels.schoolWhatsApp}`;
+});
+
+const schoolWhatsAppFloat = document.querySelector('.school-whatsapp-float');
+const schoolSections = document.querySelectorAll('#about, #courses, #method, #pricing, #booking, #workflow, #parents, #trainer, #testimonials');
+
+if (schoolWhatsAppFloat && schoolSections.length) {
+    const visibleSchoolSections = new Set();
+    const updateSchoolWhatsApp = () => {
+        schoolWhatsAppFloat.classList.toggle('visible', visibleSchoolSections.size > 0);
+    };
+
+    const schoolObserver = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                visibleSchoolSections.add(entry.target.id);
+            } else {
+                visibleSchoolSections.delete(entry.target.id);
+            }
+        });
+        updateSchoolWhatsApp();
+    }, {
+        rootMargin: '-35% 0px -45% 0px',
+        threshold: 0,
+    });
+
+    schoolSections.forEach(section => schoolObserver.observe(section));
+}
+
 // ===== NAVBAR ON SCROLL =====
 const navbar = document.getElementById('navbar');
 window.addEventListener('scroll', () => {
