@@ -30,7 +30,7 @@ setLanguage(currentLang);
 // ===== CONTACT CHANNELS =====
 const contactChannels = {
     schoolWhatsApp: '523151109282',
-    languageServicesWhatsApp: '',
+    languageServicesWhatsApp: '523151104908',
 };
 
 document.querySelectorAll('.angela-whatsapp-link').forEach(link => {
