@@ -40,9 +40,9 @@ const contactChannels = {
         de: 'Hallo Ralph, ich interessiere mich für Deutschunterricht bei VIVE DEUTSCH MX. Ich hätte gern Informationen zu Gruppen oder Einzelunterricht.',
     },
     languageServicesMessages: {
-        es: 'Hola Angela, me interesa una cotización de traducción, interpretación o servicios lingüísticos.',
-        en: 'Hello Angela, I am interested in a quote for translation, interpreting or language services.',
-        de: 'Hallo Angela, ich interessiere mich für ein Angebot zu Übersetzung, Dolmetschen oder Sprachdienstleistungen.',
+        es: 'Hola Angela, me interesa una cotización u orientación para traducción, interpretación o servicios lingüísticos con VIVE DEUTSCH MX.',
+        en: 'Hello Angela, I am interested in a quote or guidance for translation, interpreting or language services with VIVE DEUTSCH MX.',
+        de: 'Hallo Angela, ich interessiere mich für ein Angebot oder eine Orientierung zu Übersetzung, Dolmetschen oder Sprachdienstleistungen bei VIVE DEUTSCH MX.',
     },
 };
 
@@ -68,8 +68,62 @@ function updateContactLinks() {
 
 updateContactLinks();
 
+// ===== LIGHTWEIGHT GA4 CLICK TRACKING =====
+const campaignParams = new URLSearchParams(window.location.search);
+
+function campaignContext() {
+    return {
+        traffic_source: campaignParams.get('utm_source') || 'direct',
+        traffic_medium: campaignParams.get('utm_medium') || 'none',
+        campaign_id: campaignParams.get('utm_campaign') || 'none',
+        campaign_content: campaignParams.get('utm_content') || 'none',
+    };
+}
+
+function trackSiteEvent(eventName, params = {}) {
+    if (typeof window.gtag !== 'function') return;
+
+    window.gtag('event', eventName, {
+        ...campaignContext(),
+        ...params,
+    });
+}
+
+function bindClickTracking(selector, eventName, params) {
+    document.querySelectorAll(selector).forEach(element => {
+        element.addEventListener('click', () => {
+            trackSiteEvent(eventName, typeof params === 'function' ? params(element) : params);
+        });
+    });
+}
+
+bindClickTracking('.school-whatsapp-link', 'whatsapp_click', {
+    contact: 'ralph',
+    pillar: 'german_classes',
+});
+
+bindClickTracking('.angela-whatsapp-link', 'whatsapp_click', {
+    contact: 'angela',
+    pillar: 'language_services',
+});
+
+bindClickTracking('.setmore-open, a[href*="ralphrudiger.setmore.com"]', 'booking_click', {
+    provider: 'setmore',
+    pillar: 'german_classes',
+});
+
+bindClickTracking('a[href*="instagram.com/vivedeutschmx"]', 'social_profile_click', {
+    platform: 'instagram',
+});
+
+bindClickTracking('a[href*="facebook.com/vivedeutschmx"]', 'social_profile_click', {
+    platform: 'facebook',
+});
+
 const schoolWhatsAppFloat = document.querySelector('.school-whatsapp-float');
 const schoolSections = document.querySelectorAll('#hero, #about, #courses, #method, #pricing, #booking, #workflow, #parents, #trainer, #testimonials');
+const angelaWhatsAppFloat = document.querySelector('.angela-whatsapp-float');
+const languageServicesSections = document.querySelectorAll('#language-services');
 
 if (schoolWhatsAppFloat && schoolSections.length) {
     const visibleSchoolSections = new Set();
@@ -92,6 +146,29 @@ if (schoolWhatsAppFloat && schoolSections.length) {
     });
 
     schoolSections.forEach(section => schoolObserver.observe(section));
+}
+
+if (angelaWhatsAppFloat && languageServicesSections.length) {
+    const visibleLanguageServicesSections = new Set();
+    const updateAngelaWhatsApp = () => {
+        angelaWhatsAppFloat.classList.toggle('visible', visibleLanguageServicesSections.size > 0);
+    };
+
+    const languageServicesObserver = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                visibleLanguageServicesSections.add(entry.target.id);
+            } else {
+                visibleLanguageServicesSections.delete(entry.target.id);
+            }
+        });
+        updateAngelaWhatsApp();
+    }, {
+        rootMargin: '-32% 0px -42% 0px',
+        threshold: 0,
+    });
+
+    languageServicesSections.forEach(section => languageServicesObserver.observe(section));
 }
 
 // ===== NAVBAR ON SCROLL =====
