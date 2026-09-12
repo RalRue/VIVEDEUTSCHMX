@@ -40,9 +40,9 @@ const contactChannels = {
         de: 'Hallo Ralph, ich interessiere mich für Deutschunterricht bei VIVE DEUTSCH MX. Ich hätte gern Informationen zu Gruppen oder Einzelunterricht.',
     },
     languageServicesMessages: {
-        es: 'Hola Angela, me interesa una cotización u orientación para traducción, interpretación o servicios lingüísticos con VIVE DEUTSCH MX.',
-        en: 'Hello Angela, I am interested in a quote or guidance for translation, interpreting or language services with VIVE DEUTSCH MX.',
-        de: 'Hallo Angela, ich interessiere mich für ein Angebot oder eine Orientierung zu Übersetzung, Dolmetschen oder Sprachdienstleistungen bei VIVE DEUTSCH MX.',
+        es: 'Hola Angela, me interesa una cotización de traducción, interpretación o servicios lingüísticos.',
+        en: 'Hello Angela, I am interested in a quote for translation, interpreting or language services.',
+        de: 'Hallo Angela, ich interessiere mich für ein Angebot zu Übersetzung, Dolmetschen oder Sprachdienstleistungen.',
     },
 };
 
@@ -70,8 +70,6 @@ updateContactLinks();
 
 const schoolWhatsAppFloat = document.querySelector('.school-whatsapp-float');
 const schoolSections = document.querySelectorAll('#hero, #about, #courses, #method, #pricing, #booking, #workflow, #parents, #trainer, #testimonials');
-const angelaWhatsAppFloat = document.querySelector('.angela-whatsapp-float');
-const languageServicesSections = document.querySelectorAll('#language-services');
 
 if (schoolWhatsAppFloat && schoolSections.length) {
     const visibleSchoolSections = new Set();
@@ -94,29 +92,6 @@ if (schoolWhatsAppFloat && schoolSections.length) {
     });
 
     schoolSections.forEach(section => schoolObserver.observe(section));
-}
-
-if (angelaWhatsAppFloat && languageServicesSections.length) {
-    const visibleLanguageServicesSections = new Set();
-    const updateAngelaWhatsApp = () => {
-        angelaWhatsAppFloat.classList.toggle('visible', visibleLanguageServicesSections.size > 0);
-    };
-
-    const languageServicesObserver = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                visibleLanguageServicesSections.add(entry.target.id);
-            } else {
-                visibleLanguageServicesSections.delete(entry.target.id);
-            }
-        });
-        updateAngelaWhatsApp();
-    }, {
-        rootMargin: '-32% 0px -42% 0px',
-        threshold: 0,
-    });
-
-    languageServicesSections.forEach(section => languageServicesObserver.observe(section));
 }
 
 // ===== NAVBAR ON SCROLL =====
