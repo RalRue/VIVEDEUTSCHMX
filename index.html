@@ -94,7 +94,7 @@
                 <span class="logo-text">VIVE DEUTSCH MX</span>
             </a>
 
-            <ul class="nav-links">
+            <ul class="nav-links" id="primary-navigation">
                 <li><a href="#language-services" data-i18n="nav.services">Servicios</a></li>
                 <li><a href="#courses" data-i18n="nav.courses">Cursos</a></li>
                 <li><a href="#about" data-i18n="nav.about">Equipo</a></li>
@@ -104,6 +104,12 @@
                 <li><a href="#trainer" data-i18n="nav.trainer">Práctica</a></li>
                 <li><a href="#blog" data-i18n="nav.blog">Blog</a></li>
                 <li><a href="#contact" data-i18n="nav.contact">Contacto</a></li>
+                <li class="nav-menu-actions">
+                    <a href="#contact" class="nav-menu-action nav-menu-primary" data-i18n="nav.cta">Contactar / agendar</a>
+                    <a href="https://wa.me/523151109282?text=Hola%20Ralph%2C%20me%20interesa%20aprender%20alem%C3%A1n%20con%20VIVE%20DEUTSCH%20MX.%20Quisiera%20informaci%C3%B3n%20sobre%20grupos%20o%20clases%20individuales."
+                       target="_blank" rel="noopener" class="nav-menu-action nav-menu-whatsapp school-whatsapp-link"
+                       aria-label="Abrir WhatsApp de Ralph">WhatsApp</a>
+                </li>
             </ul>
 
             <div class="nav-right">
@@ -117,7 +123,7 @@
                     <button class="lang-btn" data-lang="de">DE</button>
                 </div>
                 <a href="#contact" class="btn btn-primary nav-cta" data-i18n="nav.cta">Contactar / agendar</a>
-                <button class="menu-toggle" aria-label="Menu">
+                <button class="menu-toggle" type="button" aria-label="Menú" aria-controls="primary-navigation" aria-expanded="false">
                     <span></span><span></span><span></span>
                 </button>
             </div>

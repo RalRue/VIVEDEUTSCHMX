@@ -180,11 +180,24 @@ window.addEventListener('scroll', () => {
 // ===== MOBILE MENU =====
 const menuToggle = document.querySelector('.menu-toggle');
 const navLinks = document.querySelector('.nav-links');
+
+const closeMenu = () => {
+    navLinks?.classList.remove('open');
+    menuToggle?.setAttribute('aria-expanded', 'false');
+};
+
 menuToggle?.addEventListener('click', () => {
-    navLinks.classList.toggle('open');
+    const isOpen = navLinks?.classList.toggle('open') || false;
+    menuToggle.setAttribute('aria-expanded', String(isOpen));
 });
-navLinks.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', () => navLinks.classList.remove('open'));
+navLinks?.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', closeMenu);
+});
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeMenu();
+});
+window.addEventListener('resize', () => {
+    if (window.innerWidth > 1680) closeMenu();
 });
 
 // ===== SCROLL REVEAL =====
