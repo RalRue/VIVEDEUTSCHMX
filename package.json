@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "node scripts/validate-root.js"
+  }
+}
+
