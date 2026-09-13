@@ -4,9 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Entrenador de errores de alemán | VIVE DEUTSCH MX</title>
+    <meta name="description" content="Entrena errores típicos de alemán para hispanohablantes y descubre si te conviene un grupo pequeño de VIVE DEUTSCH MX." />
     <link rel="icon" type="image/png" href="../logo.png" />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <script src="../analytics.js" defer></script>
+    <script src="../meta-pixel.js" defer></script>
     <style>
         :root {
             --black: #0b0b0b;
@@ -287,6 +289,63 @@
             border-color: rgba(255, 138, 138, 0.55);
         }
 
+        .conversion-card {
+            display: grid;
+            gap: 12px;
+            margin-top: 18px;
+            border: 1px solid rgba(104, 211, 145, 0.34);
+            border-radius: 8px;
+            background: linear-gradient(155deg, rgba(104, 211, 145, 0.12), rgba(255,255,255,0.03));
+            padding: clamp(18px, 4vw, 26px);
+        }
+
+        .conversion-card h2,
+        .conversion-card h3 {
+            margin: 0;
+            font-family: "Playfair Display", Georgia, serif;
+            line-height: 1.1;
+        }
+
+        .conversion-card p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        .signal {
+            color: var(--green);
+            font-size: 0.74rem;
+            font-weight: 900;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .conversion-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .whatsapp-cta {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 46px;
+            border: 1px solid rgba(104, 211, 145, 0.5);
+            border-radius: 6px;
+            background: #1bd15f;
+            color: #071109;
+            padding: 10px 14px;
+            font-weight: 900;
+            text-decoration: none;
+        }
+
+        .mini-note {
+            color: var(--muted);
+            font-size: 0.82rem;
+            line-height: 1.5;
+        }
+
         .side-panel {
             padding: 22px;
         }
@@ -316,6 +375,11 @@
             border-radius: 6px;
             padding: 10px;
             background: rgba(255,255,255,0.03);
+        }
+
+        .side-conversion {
+            margin-top: 18px;
+            padding: 18px;
         }
 
         @media (max-width: 900px) {
@@ -351,7 +415,7 @@
 <body>
     <div class="app">
         <header>
-            <a class="brand" href="../index.html">
+            <a class="brand" href="https://vive-deutsch-mx.vercel.app/">
                 <img src="../logo.png" alt="VIVE DEUTSCH MX" />
                 <span>
                     <strong>VIVE DEUTSCH MX</strong>
@@ -359,8 +423,8 @@
                 </span>
             </a>
             <nav class="top-links" aria-label="Navigation">
-                <a href="../index.html">Sitio web</a>
-                <a href="../vokabeltrainer/">Vocabulario</a>
+                <a href="https://vive-deutsch-mx.vercel.app/">Sitio web</a>
+                <a href="https://vive-deutsch-mx.vercel.app/vokabeltrainer/">Vocabulario</a>
             </nav>
         </header>
 
@@ -368,7 +432,7 @@
             <div class="intro">
                 <span class="eyebrow">Prototipo · Entrenador de errores</span>
                 <h1>Deja de traducir palabra por palabra.</h1>
-                <p>Entrena los errores típicos que aparecen cuando pensamos en español y queremos hablar alemán. Cada ejercicio muestra el error, la forma correcta y la lógica detrás.</p>
+                <p>Entrena errores típicos de alemán y mira si tus dudas apuntan a un grupo pequeño. Cada ejercicio muestra el error, la forma correcta y la lógica detrás.</p>
             </div>
             <aside class="score-card" aria-label="Progreso">
                 <div class="score-item">
@@ -424,16 +488,33 @@
                         Elige la forma correcta. Después verás la explicación corta en español.
                     </div>
                 </article>
+
+                <section class="conversion-card" aria-label="Siguiente paso">
+                    <span class="signal">Siguiente paso lógico</span>
+                    <h2>Convierte tus errores en un grupo real.</h2>
+                    <p id="conversion-summary">Haz tres ejercicios. Después puedes mandar tu resultado por WhatsApp y pedir una recomendación de grupo.</p>
+                    <div class="conversion-actions">
+                        <a class="whatsapp-cta group-whatsapp-cta" href="#" target="_blank" rel="noopener">Quiero un grupo de alemán</a>
+                        <button id="copy-result" type="button">Copiar resultado</button>
+                    </div>
+                    <span class="mini-note">El botón abre WhatsApp con un mensaje preparado. No mostramos tu número en la página.</span>
+                </section>
             </section>
 
             <aside class="side-panel">
                 <h2>Pequeño, pero con dirección</h2>
-                <p>Este prototipo no intenta reemplazar una clase. Sirve para reconocer patrones y preparar mejores preguntas para el profesor.</p>
+                <p>Este prototipo no intenta reemplazar una clase. Sirve para reconocer patrones y preparar mejores preguntas para entrar al grupo correcto.</p>
                 <ul class="roadmap">
                     <li><strong>Ahora:</strong> errores típicos A1-B1</li>
                     <li><strong>Después:</strong> artículos, casos y posición del verbo</li>
                     <li><strong>Más tarde:</strong> modo examen y lista personal de errores</li>
                 </ul>
+                <div class="conversion-card side-conversion">
+                    <span class="signal">Grupos pequeños</span>
+                    <h3>¿Quieres avanzar con método?</h3>
+                    <p>Usa tu resultado como punto de partida para preguntar por un grupo A1-C1.</p>
+                    <a class="whatsapp-cta group-whatsapp-cta" href="#" target="_blank" rel="noopener">Enviar a Ralph</a>
+                </div>
             </aside>
         </main>
     </div>
@@ -441,6 +522,8 @@
     <script>
         const exercises = [
             {
+                id: 'ERR-A1-001',
+                status: 'approved_for_pilot',
                 level: 'A1',
                 topic: 'Edad',
                 wrong: 'Ich habe 20 Jahre.',
@@ -449,6 +532,8 @@
                 explanation: 'En español se usa "tener": tengo 20 años. En alemán la edad se expresa normalmente con "sein": Ich bin 20 Jahre alt.'
             },
             {
+                id: 'ERR-A1-003',
+                status: 'pedagogical_review',
                 level: 'A1',
                 topic: 'Gern / mögen',
                 wrong: 'Mir mag Deutsch.',
@@ -457,6 +542,8 @@
                 explanation: '"Gustar" no se traduce palabra por palabra. Con "mögen", la persona es el sujeto: Ich mag Deutsch.'
             },
             {
+                id: 'ERR-A1-002',
+                status: 'approved_for_pilot',
                 level: 'A1',
                 topic: 'Länder',
                 wrong: 'Ich fahre zu Deutschland.',
@@ -465,6 +552,8 @@
                 explanation: 'Con países sin artículo se usa normalmente "nach": nach Deutschland, nach Mexiko, nach Spanien.'
             },
             {
+                id: 'ERR-A1-004',
+                status: 'pedagogical_review',
                 level: 'A1',
                 topic: 'Verbposition',
                 wrong: 'Morgen ich lerne Deutsch.',
@@ -473,6 +562,8 @@
                 explanation: 'En una oración principal alemana el verbo conjugado ocupa la segunda posición. Si empiezas con "morgen", después va el verbo.'
             },
             {
+                id: 'ERR-A2-001',
+                status: 'pedagogical_review',
                 level: 'A2',
                 topic: 'Dativ',
                 wrong: 'Ich helfe meine Mutter.',
@@ -481,6 +572,8 @@
                 explanation: 'El verbo "helfen" exige dativo. Por eso: meiner Mutter, meinem Bruder, den Kindern.'
             },
             {
+                id: 'ERR-A2-002',
+                status: 'pedagogical_review',
                 level: 'A2',
                 topic: 'Perfekt',
                 wrong: 'Ich bin Deutsch gelernt.',
@@ -489,6 +582,8 @@
                 explanation: 'La mayoría de los verbos usan "haben" en Perfekt. "lernen" forma el participio "gelernt".'
             },
             {
+                id: 'ERR-B1-001',
+                status: 'pedagogical_review',
                 level: 'B1',
                 topic: 'Weil-Satz',
                 wrong: 'Ich lerne Deutsch, weil ich will in Deutschland arbeiten.',
@@ -497,6 +592,8 @@
                 explanation: 'En oraciones con "weil", el verbo conjugado va al final. Con verbo modal: arbeiten will.'
             },
             {
+                id: 'ERR-B1-002',
+                status: 'pedagogical_review',
                 level: 'B1',
                 topic: 'Präposition',
                 wrong: 'Ich warte dich.',
@@ -506,11 +603,24 @@
             }
         ];
 
+        const schoolWhatsAppPhone = '523151109282';
+        const urlParams = new URLSearchParams(window.location.search);
+        const campaignId = urlParams.get('utm_campaign') || urlParams.get('campaign') || 'fehlertrainer-organic';
+        const trafficSource = urlParams.get('utm_source') || 'direct';
+        const trafficMedium = urlParams.get('utm_medium') || 'none';
+        const campaignContent = urlParams.get('utm_content') || 'none';
+
         const state = {
             index: 0,
             selected: '',
             filtered: exercises.slice(),
             stats: JSON.parse(localStorage.getItem('viveDeutschErrorTrainerStats') || '{"done":0,"correct":0}')
+        };
+        const session = {
+            started: false,
+            completed: false,
+            answeredIds: new Set(),
+            correct: 0
         };
 
         const levelFilter = document.getElementById('level-filter');
@@ -522,6 +632,54 @@
         const doneCount = document.getElementById('done-count');
         const correctCount = document.getElementById('correct-count');
         const accuracy = document.getElementById('accuracy');
+        const conversionSummary = document.getElementById('conversion-summary');
+        const groupWhatsAppLinks = document.querySelectorAll('.group-whatsapp-cta');
+        const checkAnswerButton = document.getElementById('check-answer');
+
+        function trackEvent(name, params = {}) {
+            if (typeof window.gtag === 'function') {
+                window.gtag('event', name, {
+                    ...params,
+                    campaign_id: campaignId,
+                    source: trafficSource,
+                    medium: trafficMedium,
+                    content: campaignContent
+                });
+            }
+        }
+
+        function resultText() {
+            const done = state.stats.done;
+            const correct = state.stats.correct;
+            const mistakes = Math.max(done - correct, 0);
+            const level = levelFilter.value === 'all' ? 'mezcla A1-B1' : levelFilter.value;
+
+            if (!done) {
+                return 'Todavía no tengo resultado. Quiero empezar con una recomendación de grupo.';
+            }
+
+            return `Hice el entrenador de errores de VIVE DEUTSCH MX. Nivel: ${level}. Resultado: ${correct}/${done} correctas, ${mistakes} dudas. Me interesa saber qué grupo de alemán me conviene.`;
+        }
+
+        function buildWhatsAppUrl() {
+            const message = `Hola Ralph, ${resultText()}`;
+            return `https://wa.me/${schoolWhatsAppPhone}?text=${encodeURIComponent(message)}`;
+        }
+
+        function updateGroupCta() {
+            const done = state.stats.done;
+            const correct = state.stats.correct;
+            const mistakes = Math.max(done - correct, 0);
+            const level = levelFilter.value === 'all' ? 'A1-B1' : levelFilter.value;
+
+            conversionSummary.textContent = done < 3
+                ? `Haz tres ejercicios. Llevas ${done}/3. Después puedes mandar tu resultado y pedir una recomendación de grupo.`
+                : `Tu señal actual: ${correct}/${done} correctas, ${mistakes} dudas, filtro ${level}. Ya puedes pedir una recomendación de grupo.`;
+
+            groupWhatsAppLinks.forEach(link => {
+                link.href = buildWhatsAppUrl();
+            });
+        }
 
         function saveStats() {
             localStorage.setItem('viveDeutschErrorTrainerStats', JSON.stringify(state.stats));
@@ -531,6 +689,7 @@
             doneCount.textContent = state.stats.done;
             correctCount.textContent = state.stats.correct;
             accuracy.textContent = state.stats.done ? Math.round((state.stats.correct / state.stats.done) * 100) + '%' : '0%';
+            updateGroupCta();
         }
 
         function currentExercise() {
@@ -540,6 +699,7 @@
         function renderExercise() {
             const exercise = currentExercise();
             state.selected = '';
+            checkAnswerButton.disabled = session.answeredIds.has(exercise.id);
             levelTag.textContent = exercise.level;
             topicTag.textContent = exercise.topic;
             wrongSentence.textContent = exercise.wrong;
@@ -564,6 +724,7 @@
 
         function checkAnswer() {
             const exercise = currentExercise();
+            if (session.answeredIds.has(exercise.id)) return;
             if (!state.selected) {
                 feedback.className = 'feedback bad';
                 feedback.textContent = 'Primero elige una respuesta.';
@@ -571,10 +732,36 @@
             }
 
             const isCorrect = state.selected === exercise.correct;
+            if (!session.started) {
+                session.started = true;
+                trackEvent('learning_quiz_started', {
+                    level_filter: levelFilter.value,
+                    quiz_size: Math.min(3, state.filtered.length)
+                });
+            }
+            session.answeredIds.add(exercise.id);
+            if (isCorrect) session.correct += 1;
+            checkAnswerButton.disabled = true;
             state.stats.done += 1;
             if (isCorrect) state.stats.correct += 1;
             saveStats();
             updateStats();
+            trackEvent('learning_question_answered', {
+                exercise_id: exercise.id,
+                level: exercise.level,
+                topic: exercise.topic,
+                answer_correct: isCorrect
+            });
+            const completionTarget = Math.min(3, state.filtered.length);
+            if (!session.completed && session.answeredIds.size >= completionTarget) {
+                session.completed = true;
+                trackEvent('learning_quiz_completed', {
+                    level_filter: levelFilter.value,
+                    questions_answered: session.answeredIds.size,
+                    correct: session.correct,
+                    quiz_size: completionTarget
+                });
+            }
 
             feedback.className = isCorrect ? 'feedback good' : 'feedback bad';
             feedback.innerHTML = isCorrect
@@ -597,17 +784,51 @@
             const value = levelFilter.value;
             state.filtered = value === 'all' ? exercises.slice() : exercises.filter(exercise => exercise.level === value);
             state.index = 0;
+            resetSession();
             renderExercise();
         }
 
-        document.getElementById('check-answer').addEventListener('click', checkAnswer);
+        function resetSession() {
+            session.started = false;
+            session.completed = false;
+            session.answeredIds.clear();
+            session.correct = 0;
+        }
+
+        checkAnswerButton.addEventListener('click', checkAnswer);
         document.getElementById('show-explanation').addEventListener('click', showExplanation);
         document.getElementById('next-exercise').addEventListener('click', nextExercise);
         levelFilter.addEventListener('change', applyFilter);
         document.getElementById('reset-progress').addEventListener('click', () => {
             state.stats = { done: 0, correct: 0 };
+            resetSession();
             saveStats();
             updateStats();
+            renderExercise();
+            trackEvent('learning_progress_reset');
+        });
+
+        document.getElementById('copy-result').addEventListener('click', async () => {
+            const text = `Hola Ralph, ${resultText()}`;
+            try {
+                await navigator.clipboard.writeText(text);
+                feedback.className = 'feedback good';
+                feedback.textContent = 'Resultado copiado. Ahora puedes pegarlo en WhatsApp si lo prefieres.';
+                trackEvent('learning_result_copied');
+            } catch (error) {
+                feedback.className = 'feedback';
+                feedback.textContent = text;
+            }
+        });
+
+        groupWhatsAppLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                trackEvent('learning_group_whatsapp_clicked', {
+                    done: state.stats.done,
+                    correct: state.stats.correct,
+                    level_filter: levelFilter.value
+                });
+            });
         });
 
         updateStats();

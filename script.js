@@ -22,10 +22,154 @@ function setLanguage(lang) {
 }
 
 langButtons.forEach(btn => {
-    btn.addEventListener('click', () => setLanguage(btn.dataset.lang));
+    btn.addEventListener('click', () => {
+        setLanguage(btn.dataset.lang);
+        updateContactLinks();
+    });
 });
 
 setLanguage(currentLang);
+
+// ===== CONTACT CHANNELS =====
+const contactChannels = {
+    schoolWhatsApp: '523151109282',
+    languageServicesWhatsApp: '523151104908',
+    schoolMessages: {
+        es: 'Hola Ralph, me interesa aprender alemán con VIVE DEUTSCH MX. Quisiera información sobre grupos o clases individuales.',
+        en: 'Hello Ralph, I am interested in learning German with VIVE DEUTSCH MX. I would like information about groups or individual lessons.',
+        de: 'Hallo Ralph, ich interessiere mich für Deutschunterricht bei VIVE DEUTSCH MX. Ich hätte gern Informationen zu Gruppen oder Einzelunterricht.',
+    },
+    languageServicesMessages: {
+        es: 'Hola Angela, me interesa una cotización u orientación para traducción, interpretación o servicios lingüísticos con VIVE DEUTSCH MX.',
+        en: 'Hello Angela, I am interested in a quote or guidance for translation, interpreting or language services with VIVE DEUTSCH MX.',
+        de: 'Hallo Angela, ich interessiere mich für ein Angebot oder eine Orientierung zu Übersetzung, Dolmetschen oder Sprachdienstleistungen bei VIVE DEUTSCH MX.',
+    },
+};
+
+function buildWhatsAppUrl(phone, message) {
+    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+}
+
+function updateContactLinks() {
+    const lang = currentLang || 'es';
+
+    document.querySelectorAll('.angela-whatsapp-link').forEach(link => {
+        const phone = link.dataset.phone || contactChannels.languageServicesWhatsApp;
+        if (!phone) return;
+
+        link.href = buildWhatsAppUrl(phone, contactChannels.languageServicesMessages[lang] || contactChannels.languageServicesMessages.es);
+        link.classList.remove('is-hidden');
+    });
+
+    document.querySelectorAll('.school-whatsapp-link').forEach(link => {
+        link.href = buildWhatsAppUrl(contactChannels.schoolWhatsApp, contactChannels.schoolMessages[lang] || contactChannels.schoolMessages.es);
+    });
+}
+
+updateContactLinks();
+
+// ===== LIGHTWEIGHT GA4 CLICK TRACKING =====
+const campaignParams = new URLSearchParams(window.location.search);
+
+function campaignContext() {
+    return {
+        traffic_source: campaignParams.get('utm_source') || 'direct',
+        traffic_medium: campaignParams.get('utm_medium') || 'none',
+        campaign_id: campaignParams.get('utm_campaign') || 'none',
+        campaign_content: campaignParams.get('utm_content') || 'none',
+    };
+}
+
+function trackSiteEvent(eventName, params = {}) {
+    if (typeof window.gtag !== 'function') return;
+
+    window.gtag('event', eventName, {
+        ...campaignContext(),
+        ...params,
+    });
+}
+
+function bindClickTracking(selector, eventName, params) {
+    document.querySelectorAll(selector).forEach(element => {
+        element.addEventListener('click', () => {
+            trackSiteEvent(eventName, typeof params === 'function' ? params(element) : params);
+        });
+    });
+}
+
+bindClickTracking('.school-whatsapp-link', 'whatsapp_click', {
+    contact: 'ralph',
+    pillar: 'german_classes',
+});
+
+bindClickTracking('.angela-whatsapp-link', 'whatsapp_click', {
+    contact: 'angela',
+    pillar: 'language_services',
+});
+
+bindClickTracking('.setmore-open, a[href*="ralphrudiger.setmore.com"]', 'booking_click', {
+    provider: 'setmore',
+    pillar: 'german_classes',
+});
+
+bindClickTracking('a[href*="instagram.com/vivedeutschmx"]', 'social_profile_click', {
+    platform: 'instagram',
+});
+
+bindClickTracking('a[href*="facebook.com/vivedeutschmx"]', 'social_profile_click', {
+    platform: 'facebook',
+});
+
+const schoolWhatsAppFloat = document.querySelector('.school-whatsapp-float');
+const schoolSections = document.querySelectorAll('#hero, #about, #courses, #method, #pricing, #booking, #workflow, #parents, #trainer, #testimonials');
+const angelaWhatsAppFloat = document.querySelector('.angela-whatsapp-float');
+const languageServicesSections = document.querySelectorAll('#language-services');
+
+if (schoolWhatsAppFloat && schoolSections.length) {
+    const visibleSchoolSections = new Set();
+    const updateSchoolWhatsApp = () => {
+        schoolWhatsAppFloat.classList.toggle('visible', visibleSchoolSections.size > 0);
+    };
+
+    const schoolObserver = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                visibleSchoolSections.add(entry.target.id);
+            } else {
+                visibleSchoolSections.delete(entry.target.id);
+            }
+        });
+        updateSchoolWhatsApp();
+    }, {
+        rootMargin: '-35% 0px -45% 0px',
+        threshold: 0,
+    });
+
+    schoolSections.forEach(section => schoolObserver.observe(section));
+}
+
+if (angelaWhatsAppFloat && languageServicesSections.length) {
+    const visibleLanguageServicesSections = new Set();
+    const updateAngelaWhatsApp = () => {
+        angelaWhatsAppFloat.classList.toggle('visible', visibleLanguageServicesSections.size > 0);
+    };
+
+    const languageServicesObserver = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                visibleLanguageServicesSections.add(entry.target.id);
+            } else {
+                visibleLanguageServicesSections.delete(entry.target.id);
+            }
+        });
+        updateAngelaWhatsApp();
+    }, {
+        rootMargin: '-32% 0px -42% 0px',
+        threshold: 0,
+    });
+
+    languageServicesSections.forEach(section => languageServicesObserver.observe(section));
+}
 
 // ===== NAVBAR ON SCROLL =====
 const navbar = document.getElementById('navbar');
@@ -36,11 +180,24 @@ window.addEventListener('scroll', () => {
 // ===== MOBILE MENU =====
 const menuToggle = document.querySelector('.menu-toggle');
 const navLinks = document.querySelector('.nav-links');
+
+const closeMenu = () => {
+    navLinks?.classList.remove('open');
+    menuToggle?.setAttribute('aria-expanded', 'false');
+};
+
 menuToggle?.addEventListener('click', () => {
-    navLinks.classList.toggle('open');
+    const isOpen = navLinks?.classList.toggle('open') || false;
+    menuToggle.setAttribute('aria-expanded', String(isOpen));
 });
-navLinks.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', () => navLinks.classList.remove('open'));
+navLinks?.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', closeMenu);
+});
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeMenu();
+});
+window.addEventListener('resize', () => {
+    if (window.innerWidth > 1680) closeMenu();
 });
 
 // ===== SCROLL REVEAL =====
@@ -53,12 +210,19 @@ const aboutText = document.querySelector('#about .col-text');
 if (aboutImg) aboutImg.classList.add('reveal-left');
 if (aboutText) aboutText.classList.add('reveal-right');
 
+// Language services: give Angela's pillar the same calm entrance as Ralph's profile
+const angelaImg = document.querySelector('#language-services .service-portrait-frame');
+const angelaText = document.querySelector('#language-services .service-lead-copy');
+if (angelaImg) angelaImg.classList.add('reveal-left');
+if (angelaText) angelaText.classList.add('reveal-right');
+
 // Staggered grid items
 const staggerGroups = [
     '.features .feature',
     '.pricing-grid .price-card',
     '.blog-grid .blog-card',
     '.hero-stats .stat',
+    '.pillar-grid .pillar-card',
     '.booking-services .booking-service',
     '.process-grid .process-card',
     '.trust-grid .trust-item',

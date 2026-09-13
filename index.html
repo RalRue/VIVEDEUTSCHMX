@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Clases de alemán A1–C1 en grupos pequeños por Zoom y en Zapopan Centro con Ralph Stöcker, hablante nativo. Para niños, jóvenes, estudiantes y adultos. Entrevista inicial gratis." />
+    <meta name="description" content="VIVE DEUTSCH MX ofrece grupos pequeños de alemán A1–C1 por Zoom y en Zapopan Centro, clases individuales y servicios lingüísticos entre México y Alemania, con perito traductor en Jalisco para español–alemán y alemán–español." />
     <meta name="keywords" content="clases de alemán Guadalajara, alemán online México, Deutsch lernen Guadalajara, German classes Zapopan, profesor de alemán nativo, VIVE DEUTSCH MX" />
     <meta name="author" content="Ralph Stöcker – VIVE DEUTSCH MX" />
     <meta name="robots" content="index, follow" />
@@ -13,7 +13,7 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://vive-deutsch-mx.vercel.app/" />
     <meta property="og:title" content="VIVE DEUTSCH MX · Alemán A1–C1 en Zapopan" />
-    <meta property="og:description" content="Aprende alemán A1–C1 en grupos pequeños por Zoom o en Zapopan Centro. Clases para niños, jóvenes, estudiantes y adultos con materiales digitales y atención personal." />
+    <meta property="og:description" content="Grupos pequeños de alemán, clases individuales y servicios lingüísticos entre México y Alemania, con perito traductor en Jalisco para español–alemán y alemán–español." />
     <meta property="og:image" content="https://vive-deutsch-mx.vercel.app/ralph-business-portrait.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -23,16 +23,17 @@
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="VIVE DEUTSCH MX · Alemán A1–C1 en Zapopan" />
-    <meta name="twitter:description" content="Aprende alemán A1–C1 en grupos pequeños por Zoom o en Zapopan Centro. Clases para niños, jóvenes, estudiantes y adultos con materiales digitales." />
+    <meta name="twitter:description" content="Grupos pequeños de alemán, clases individuales y servicios lingüísticos entre México y Alemania, con perito traductor en Jalisco para español–alemán y alemán–español." />
     <meta name="twitter:image" content="https://vive-deutsch-mx.vercel.app/ralph-business-portrait.jpg" />
 
-    <title>VIVE DEUTSCH MX · Alemán A1–C1 por Zoom y en Zapopan Centro | Ralph Stöcker</title>
+    <title>VIVE DEUTSCH MX · Alemán en grupos y servicios lingüísticos DE/ES/EN</title>
     <link rel="icon" type="image/png" href="logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
     <script src="analytics.js" defer></script>
+    <script src="meta-pixel.js" defer></script>
 
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -41,9 +42,8 @@
         "@type": "LocalBusiness",
         "@id": "https://vive-deutsch-mx.vercel.app/",
         "name": "VIVE DEUTSCH MX",
-        "description": "Clases de alemán A1–C1 en grupos pequeños por Zoom y en Zapopan Centro con Ralph Stöcker, hablante nativo. Para niños, jóvenes, estudiantes y adultos.",
+        "description": "Grupos pequeños de alemán A1-C1 por Zoom y en Zapopan Centro, clases individuales y servicios lingüísticos entre México y Alemania, con perito traductor en Jalisco para español-alemán y alemán-español.",
         "url": "https://vive-deutsch-mx.vercel.app/",
-        "telephone": "+52-315-110-9282",
         "email": "ralph_stoecker@live.com",
         "image": "https://vive-deutsch-mx.vercel.app/ralph-business-portrait.jpg",
         "priceRange": "$$",
@@ -63,15 +63,23 @@
             { "@type": "City", "name": "Zapopan" },
             { "@type": "Country", "name": "Mexico" }
         ],
-        "serviceType": "Clases de alemán",
+        "serviceType": "Clases de alemán, traducción español-alemán y alemán-español, interpretación y servicios lingüísticos DE/ES/EN",
         "sameAs": [
-            "https://ralphrudiger.setmore.com"
+            "https://ralphrudiger.setmore.com",
+            "https://www.instagram.com/vivedeutschmx/",
+            "https://www.facebook.com/vivedeutschmx"
         ],
         "founder": {
             "@type": "Person",
             "name": "Ralph Stöcker",
             "jobTitle": "Profesor de alemán como lengua extranjera",
             "nationality": "German",
+            "worksFor": { "@id": "https://vive-deutsch-mx.vercel.app/" }
+        },
+        "employee": {
+            "@type": "Person",
+            "name": "Angela",
+            "jobTitle": "Perito traductor en Jalisco para español-alemán y alemán-español",
             "worksFor": { "@id": "https://vive-deutsch-mx.vercel.app/" }
         }
     }
@@ -86,25 +94,36 @@
                 <span class="logo-text">VIVE DEUTSCH MX</span>
             </a>
 
-            <ul class="nav-links">
-                <li><a href="#about" data-i18n="nav.about">Sobre mí</a></li>
+            <ul class="nav-links" id="primary-navigation">
+                <li><a href="#language-services" data-i18n="nav.services">Servicios</a></li>
                 <li><a href="#courses" data-i18n="nav.courses">Cursos</a></li>
+                <li><a href="#about" data-i18n="nav.about">Equipo</a></li>
                 <li><a href="#method" data-i18n="nav.method">Método</a></li>
                 <li><a href="#testimonials" data-i18n="nav.testimonials">Testimonios</a></li>
                 <li><a href="#pricing" data-i18n="nav.pricing">Precios</a></li>
                 <li><a href="#trainer" data-i18n="nav.trainer">Práctica</a></li>
                 <li><a href="#blog" data-i18n="nav.blog">Blog</a></li>
                 <li><a href="#contact" data-i18n="nav.contact">Contacto</a></li>
+                <li class="nav-menu-actions">
+                    <a href="#contact" class="nav-menu-action nav-menu-primary" data-i18n="nav.cta">Contactar / agendar</a>
+                    <a href="https://wa.me/523151109282?text=Hola%20Ralph%2C%20me%20interesa%20aprender%20alem%C3%A1n%20con%20VIVE%20DEUTSCH%20MX.%20Quisiera%20informaci%C3%B3n%20sobre%20grupos%20o%20clases%20individuales."
+                       target="_blank" rel="noopener" class="nav-menu-action nav-menu-whatsapp school-whatsapp-link"
+                       aria-label="Abrir WhatsApp de Ralph">WhatsApp</a>
+                </li>
             </ul>
 
             <div class="nav-right">
+                <div class="nav-social-links" aria-label="Redes sociales oficiales">
+                    <a href="https://www.instagram.com/vivedeutschmx/" target="_blank" rel="noopener" class="nav-social-link" aria-label="Abrir Instagram de VIVE DEUTSCH MX" title="Instagram">Instagram</a>
+                    <a href="https://www.facebook.com/vivedeutschmx" target="_blank" rel="noopener" class="nav-social-link" aria-label="Abrir Facebook de VIVE DEUTSCH MX" title="Facebook">Facebook</a>
+                </div>
                 <div class="lang-switcher">
                     <button class="lang-btn active" data-lang="es">ES</button>
                     <button class="lang-btn" data-lang="en">EN</button>
                     <button class="lang-btn" data-lang="de">DE</button>
                 </div>
-                <a href="#booking" class="btn btn-primary nav-cta" data-i18n="nav.cta">Reservar clase</a>
-                <button class="menu-toggle" aria-label="Menu">
+                <a href="#contact" class="btn btn-primary nav-cta" data-i18n="nav.cta">Contactar / agendar</a>
+                <button class="menu-toggle" type="button" aria-label="Menú" aria-controls="primary-navigation" aria-expanded="false">
                     <span></span><span></span><span></span>
                 </button>
             </div>
@@ -115,35 +134,128 @@
     <section id="hero" class="hero">
         <div class="hero-bg"></div>
         <div class="hero-content">
-            <span class="eyebrow" data-i18n="hero.eyebrow">Alemán en grupos pequeños · Zoom y Zapopan Centro</span>
+            <span class="eyebrow" data-i18n="hero.eyebrow">Idioma · documentos · México y Alemania</span>
             <h1 class="hero-title">
-                <span data-i18n="hero.title1">Aprende alemán</span>
-                <span class="gold" data-i18n="hero.title2">en grupos pequeños.</span>
+                <span data-i18n="hero.title1">Conecta México y Alemania</span>
+                <span class="gold" data-i18n="hero.title2">con idioma, documentos y clases.</span>
             </h1>
             <p class="hero-subtitle" data-i18n="hero.subtitle">
-                Clases de alemán por Zoom y presenciales en Zapopan Centro para niños, jóvenes, estudiantes y adultos. Grupos por edad y nivel, atención personal y materiales digitales para avanzar paso a paso.
+                VIVE DEUTSCH MX reúne servicios lingüísticos profesionales DE/ES/EN, traducción, interpretación, acompañamiento intercultural y clases de alemán A1–C1 por Zoom y en Zapopan Centro.
             </p>
             <div class="hero-actions">
-                <a href="#booking" class="btn btn-primary" data-i18n="hero.cta1">Reservar entrevista gratis</a>
-                <a href="#courses" class="btn btn-ghost" data-i18n="hero.cta2">Ver grupos disponibles</a>
+                <a href="#language-services" class="btn btn-primary" data-i18n="hero.cta1">Solicitar servicios lingüísticos</a>
+                <a href="#courses" class="btn btn-ghost" data-i18n="hero.cta2">Ver clases de alemán</a>
             </div>
             <div class="hero-stats">
                 <div class="stat">
-                    <span class="stat-number">3–6</span>
-                    <span class="stat-label" data-i18n="hero.stat1">Estudiantes por grupo</span>
+                    <span class="stat-number">DE/ES/EN</span>
+                    <span class="stat-label" data-i18n="hero.stat1">Traducción e interpretación</span>
                 </div>
                 <div class="stat">
                     <span class="stat-number">A1–C1</span>
-                    <span class="stat-label" data-i18n="hero.stat2">Avance por niveles</span>
+                    <span class="stat-label" data-i18n="hero.stat2">Clases de alemán</span>
                 </div>
                 <div class="stat">
-                    <span class="stat-number">Zoom + Zapopan Centro</span>
-                    <span class="stat-label" data-i18n="hero.stat3">Online y presencial</span>
+                    <span class="stat-number">4–6</span>
+                    <span class="stat-label" data-i18n="hero.stat3">Grupos pequeños</span>
                 </div>
             </div>
         </div>
         <div class="scroll-hint">
             <span></span>
+        </div>
+    </section>
+
+    <!-- ===== BUSINESS PILLARS ===== -->
+    <section id="pillars" class="section section-pillars">
+        <div class="container">
+            <div class="section-header center">
+                <span class="eyebrow" data-i18n="pillars.eyebrow">Dos caminos claros</span>
+                <h2 data-i18n="pillars.title">Idioma y servicios profesionales en un solo lugar</h2>
+                <p data-i18n="pillars.subtitle">VIVE DEUTSCH MX combina servicios lingüísticos profesionales con enseñanza de alemán. Así el proyecto atiende necesidades reales antes, durante y después del contacto con Alemania.</p>
+            </div>
+            <div class="pillar-grid">
+                <article class="pillar-card pillar-card-primary">
+                    <span class="pillar-label" data-i18n="pillars.p1.label">Servicios lingüísticos profesionales</span>
+                    <h3 data-i18n="pillars.p1.title">Servicios lingüísticos con Angela</h3>
+                    <p data-i18n="pillars.p1.desc">Traducción, interpretación, acompañamiento profesional, documentos, comunicación empresarial, visitantes, delegaciones y proyectos entre México y Alemania.</p>
+                    <a href="#language-services" class="btn btn-primary" data-i18n="pillars.p1.cta">Ver servicios lingüísticos</a>
+                </article>
+                <article class="pillar-card">
+                    <span class="pillar-label" data-i18n="pillars.p2.label">Clases de alemán A1–C1</span>
+                    <h3 data-i18n="pillars.p2.title">Clases de alemán con Ralph</h3>
+                    <p data-i18n="pillars.p2.desc">Clases de alemán A1–C1, grupos pequeños, preparación de exámenes, conversación, objetivos profesionales y acompañamiento personal por Zoom o en Zapopan Centro.</p>
+                    <a href="#courses" class="btn btn-ghost" data-i18n="pillars.p2.cta">Ver clases de alemán</a>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== LANGUAGE SERVICES ===== -->
+    <section id="language-services" class="section section-dark">
+        <div class="container">
+            <div class="section-header center">
+                <span class="eyebrow" data-i18n="services.eyebrow">Servicios lingüísticos</span>
+                <h2 data-i18n="services.title">Servicios lingüísticos para México y Alemania</h2>
+                <p data-i18n="services.subtitle">Además del alemán, VIVE DEUTSCH MX reúne traducción, interpretación y acompañamiento intercultural para personas, empresas e instituciones.</p>
+            </div>
+            <div class="service-lead service-lead-feature">
+                <div class="service-media">
+                    <div class="service-portrait-frame image-frame">
+                        <img src="angela-language-services.png" alt="Angela, perito traductor en Jalisco para español–alemán y alemán–español" class="service-portrait" />
+                    </div>
+                    <a href="#" target="_blank" rel="noopener" class="service-whatsapp-cta angela-whatsapp-link" data-phone="" aria-label="Abrir WhatsApp de Angela">
+                        <span class="service-whatsapp-platform" aria-hidden="true">WhatsApp</span>
+                        <span data-i18n="services.angela.whatsapp.cta">WhatsApp Angela</span>
+                    </a>
+                </div>
+                <div class="service-lead-copy">
+                    <span class="eyebrow" data-i18n="services.angela.eyebrow">Área profesional independiente</span>
+                    <span class="credential-badge" data-i18n="services.angela.badge">Perito traductor · Jalisco · ES–DE / DE–ES</span>
+                    <h3 data-i18n="services.angela.title">Angela representa la línea de traducción, interpretación y acompañamiento profesional.</h3>
+                    <p data-i18n="services.angela.desc">Angela aporta la experiencia profesional de VIVE DEUTSCH MX en traducción, interpretación y comunicación especializada para documentos, empresas, instituciones, visitantes y proyectos entre México y Alemania.</p>
+                    <ul class="check-list service-check-list">
+                        <li data-i18n="services.angela.l1">✓ Perito traductor en Jalisco para español–alemán y alemán–español</li>
+                        <li data-i18n="services.angela.l2">✓ Servicios adicionales DE/ES/EN según alcance acordado</li>
+                        <li data-i18n="services.angela.l3">✓ Apoyo para documentos, reuniones y proyectos binacionales</li>
+                    </ul>
+                    <div class="service-actions">
+                        <a href="#contact" class="btn btn-ghost" data-i18n="services.angela.cta">Solicitar cotización</a>
+                    </div>
+                </div>
+            </div>
+            <div class="cards service-cards">
+                <article class="card card-featured">
+                    <div class="card-icon" aria-hidden="true">文</div>
+                    <h3 data-i18n="services.s1.title">Traducción ES–DE / DE–ES</h3>
+                    <p data-i18n="services.s1.desc">Traducciones técnicas, jurídicas y editoriales para documentos, empresas, proyectos y comunicación profesional.</p>
+                    <ul>
+                        <li data-i18n="services.s1.l1">Perito traductor en Jalisco para español–alemán y alemán–español</li>
+                        <li data-i18n="services.s1.l2">Documentos, contratos y textos especializados</li>
+                        <li data-i18n="services.s1.l3">Servicios adicionales DE/ES/EN según alcance acordado</li>
+                    </ul>
+                </article>
+                <article class="card">
+                    <div class="card-icon" aria-hidden="true">↔</div>
+                    <h3 data-i18n="services.s2.title">Interpretación y acompañamiento</h3>
+                    <p data-i18n="services.s2.desc">Apoyo lingüístico y cultural para reuniones, delegaciones, visitas profesionales y comunicación entre México y Alemania.</p>
+                    <ul>
+                        <li data-i18n="services.s2.l1">Delegaciones y reuniones</li>
+                        <li data-i18n="services.s2.l2">Contexto cultural y comunicación práctica</li>
+                        <li data-i18n="services.s2.l3">Soporte para visitantes y equipos internacionales</li>
+                    </ul>
+                </article>
+                <article class="card">
+                    <div class="card-icon" aria-hidden="true">★</div>
+                    <h3 data-i18n="services.s3.title">Hospitality y programas</h3>
+                    <p data-i18n="services.s3.desc">Organización de experiencias, reservas, gastronomía, cultura, deporte y actividades para visitantes germanohablantes o grupos binacionales.</p>
+                    <ul>
+                        <li data-i18n="services.s3.l1">Reservas y organización local</li>
+                        <li data-i18n="services.s3.l2">Cultura, deporte y eventos</li>
+                        <li data-i18n="services.s3.l3">Programas a medida para empresas y visitantes</li>
+                    </ul>
+                </article>
+            </div>
         </div>
     </section>
 
@@ -209,13 +321,13 @@
                     <p data-i18n="courses.c1.desc">Clases cortas, visuales y activas para aprender vocabulario, frases simples y pronunciación.</p>
                     <ul>
                         <li data-i18n="courses.c1.l1">7–10 años</li>
-                        <li data-i18n="courses.c1.l2">Grupos de 3–5 alumnos</li>
-                        <li data-i18n="courses.c1.l3">45 minutos por clase</li>
+                        <li data-i18n="courses.c1.l2">Grupos de 4–6 alumnos</li>
+                        <li data-i18n="courses.c1.l3">Formato adaptado a la edad y al grupo</li>
                     </ul>
                 </article>
 
                 <article class="card card-featured">
-                    <div class="badge" data-i18n="courses.popular">Más popular</div>
+                    <div class="badge" data-i18n="courses.popular">Recomendado</div>
                     <div class="card-icon" aria-hidden="true">
                         <svg class="icon-svg" viewBox="0 0 48 48">
                             <circle cx="24" cy="15" r="7"></circle>
@@ -247,9 +359,9 @@
                     <h3 data-i18n="courses.c3.title">Alemán para estudiantes</h3>
                     <p data-i18n="courses.c3.desc">Preparación para estudiar, viajar o vivir en Alemania con vocabulario práctico y cultural.</p>
                     <ul>
-                        <li data-i18n="courses.c3.l1">Universidad y DAAD</li>
+                        <li data-i18n="courses.c3.l1">Universidad, intercambio y becas</li>
                         <li data-i18n="courses.c3.l2">Grupos de 4–6 alumnos</li>
-                        <li data-i18n="courses.c3.l3">75 minutos por clase</li>
+                        <li data-i18n="courses.c3.l3">Formato adaptado al objetivo y al grupo</li>
                     </ul>
                 </article>
 
@@ -286,7 +398,7 @@
                     <p data-i18n="courses.c5.desc">Preparación para exámenes de todos los niveles A1–C1, enfocada en leer, escuchar, escribir y hablar.</p>
                     <ul>
                         <li data-i18n="courses.c5.l1">Goethe / telc · A1–C1</li>
-                        <li data-i18n="courses.c5.l2">Grupos de 3–5 alumnos</li>
+                        <li data-i18n="courses.c5.l2">Grupos de 4–6 alumnos</li>
                         <li data-i18n="courses.c5.l3">Simulaciones, estrategia y corrección</li>
                     </ul>
                 </article>
@@ -398,7 +510,7 @@
                         <li data-i18n="price.p1.l3">Nivel y objetivo</li>
                         <li data-i18n="price.p1.l4">Recomendación de grupo</li>
                     </ul>
-                    <a href="#booking" class="btn btn-ghost" data-i18n="price.p1.cta">Reservar entrevista</a>
+                    <a href="#booking" class="btn btn-ghost" data-i18n="price.p1.cta">Reservar orientación gratis</a>
                 </div>
                 <div class="price-card price-card-featured">
                     <div class="badge" data-i18n="price.recommended">Recomendado</div>
@@ -414,14 +526,14 @@
                 </div>
                 <div class="price-card">
                     <h3 data-i18n="price.p3.title">Clase individual</h3>
-                    <p class="price-amount" data-i18n="price.p3.amount">MXN 390 / 60 min</p>
+                    <p class="price-amount" data-i18n="price.p3.amount">MXN 390 / 585 / 780</p>
                     <ul>
                         <li data-i18n="price.p3.l1">Plan personalizado</li>
-                        <li data-i18n="price.p3.l2">Horario flexible</li>
-                        <li data-i18n="price.p3.l3">Conversación, examen o refuerzo</li>
+                        <li data-i18n="price.p3.l2">60 / 90 / 120 minutos</li>
+                        <li data-i18n="price.p3.l3">Conversación, examen, refuerzo o urgencias</li>
                         <li data-i18n="price.p3.l4">Ideal como complemento al grupo</li>
                     </ul>
-                    <a href="#booking" class="btn btn-ghost" data-i18n="price.p3.cta">Solicitar clase</a>
+                    <a href="#booking" class="btn btn-ghost" data-i18n="price.p3.cta">Reservar clase individual</a>
                 </div>
             </div>
             <p class="price-note" data-i18n="price.note">Los grupos tienen máximo 6 participantes. Normalmente se confirman con 6 inscritos; en algunos casos pueden iniciar desde 4 participantes si el nivel y el horario encajan. El pago por Stripe se solicita cuando el grupo queda confirmado.</p>
@@ -436,7 +548,7 @@
                 <h2 data-i18n="booking.title">Reserva una clase o inscríbete a la lista del grupo online</h2>
                 <p data-i18n="booking.subtitle">Setmore organiza la preinscripción, los horarios y las clases confirmadas. Para el grupo mensual, el pago por Stripe se solicita cuando el grupo queda confirmado.</p>
                 <div class="booking-actions">
-                    <button type="button" class="btn btn-primary setmore-open" data-i18n="booking.cta.primary">Reservar lugar</button>
+                    <button type="button" class="btn btn-primary setmore-open" data-i18n="booking.cta.primary">Preinscribirme al grupo</button>
                     <a href="https://ralphrudiger.setmore.com" target="_blank" rel="noopener" class="btn btn-ghost" data-i18n="booking.cta.secondary">Abrir Setmore en otra pestaña</a>
                 </div>
                 <p class="booking-note" data-i18n="booking.note">El grupo mensual online no inicia automáticamente: tiene máximo 6 participantes y puede confirmarse desde 4 si el grupo es viable.</p>
@@ -459,7 +571,7 @@
                     <span class="service-kicker" data-i18n="booking.s3.kicker">Sesión intensiva</span>
                     <h3 data-i18n="booking.s3.title">90 min / 120 min</h3>
                     <p data-i18n="booking.s3.desc">Para preparación, revisión de tareas o avances más concentrados.</p>
-                    <strong data-i18n="booking.s3.meta">MXN 600 / MXN 800</strong>
+                    <strong data-i18n="booking.s3.meta">MXN 585 / MXN 780</strong>
                 </article>
                 <article class="booking-service">
                     <span class="service-kicker" data-i18n="booking.s4.kicker">Grupo online</span>
@@ -511,8 +623,8 @@
             </div>
 
             <div class="process-summary">
-                <p data-i18n="workflow.summary">Todo queda organizado: calendario de clases, pago confirmado, enlace de Zoom y materiales digitales en una sola ruta sencilla.</p>
-                <a href="#booking" class="btn btn-primary" data-i18n="workflow.cta">Empezar con entrevista gratis</a>
+                <p data-i18n="workflow.summary">Todo queda organizado en un solo proceso: calendario de clases, pago confirmado, enlace de Zoom y materiales digitales.</p>
+                <a href="#booking" class="btn btn-primary" data-i18n="workflow.cta">Reservar orientación gratis</a>
             </div>
         </div>
     </section>
@@ -586,7 +698,7 @@
                 </div>
                 <div class="trainer-copy">
                     <h3 data-i18n="trainer.card.title">Aprende vocabulario de forma activa</h3>
-                    <p data-i18n="trainer.card.desc">Elige dirección, nivel y categoría. Las palabras quedan internas en el programa y aparecen como ejercicios.</p>
+                    <p data-i18n="trainer.card.desc">Elige dirección, nivel y categoría. Las palabras aparecen progresivamente como ejercicios para que practiques de forma activa.</p>
                     <ul>
                         <li data-i18n="trainer.l1">Español → alemán y alemán → español</li>
                         <li data-i18n="trainer.l2">Modo de tarjetas y revisión de respuestas escritas</li>
@@ -651,15 +763,22 @@
         <div class="container">
             <div class="section-header center">
                 <span class="eyebrow" data-i18n="contact.eyebrow">Contacto</span>
-                <h2 data-i18n="contact.title">¿Listo para empezar?</h2>
-                <p data-i18n="contact.subtitle">Agenda una entrevista inicial gratuita y vemos qué grupo o formato encaja mejor contigo. Responderé en menos de 24 horas.</p>
+                <h2 data-i18n="contact.title">¿Qué necesitas resolver?</h2>
+                <p data-i18n="contact.subtitle">Escríbenos para una cotización de traducción, interpretación o acompañamiento profesional; o reserva una entrevista para clases de alemán. Normalmente respondemos en menos de 24 horas.</p>
             </div>
             <div class="contact-info contact-info-centered">
-                <a href="https://wa.me/523151109282" target="_blank" rel="noopener" class="contact-item">
+                <a href="#" target="_blank" rel="noopener" class="contact-item school-contact school-whatsapp-link">
                     <span class="contact-icon">💬</span>
                     <div>
-                        <strong>WhatsApp</strong>
-                        <span>+52 315 110 9282</span>
+                        <strong data-i18n="contact.ralph.whatsapp.title">WhatsApp Ralph</strong>
+                        <span data-i18n="contact.ralph.whatsapp.desc">Clases de alemán · contacto directo</span>
+                    </div>
+                </a>
+                <a href="#" target="_blank" rel="noopener" class="contact-item angela-whatsapp-link" data-phone="">
+                    <span class="contact-icon">💬</span>
+                    <div>
+                        <strong data-i18n="contact.angela.whatsapp.title">WhatsApp Angela</strong>
+                        <span data-i18n="contact.angela.whatsapp.desc">Traducción · interpretación · servicios lingüísticos</span>
                     </div>
                 </a>
                 <a href="mailto:ralph_stoecker@live.com" class="contact-item">
@@ -672,10 +791,24 @@
                 <button type="button" class="contact-item contact-item-booking setmore-open" id="setmore-trigger">
                     <span class="contact-icon">📅</span>
                     <div>
-                        <strong data-i18n="contact.booking.title">Agendar cita</strong>
-                        <span data-i18n="contact.booking.desc">Primera consulta gratuita · sin compromiso</span>
+                        <strong data-i18n="contact.booking.title">Reservar entrevista</strong>
+                        <span data-i18n="contact.booking.desc">Clases de alemán · orientación gratuita</span>
                     </div>
                 </button>
+                <a href="https://www.instagram.com/vivedeutschmx/" target="_blank" rel="noopener" class="contact-item social-link instagram-link" aria-label="Abrir Instagram de VIVE DEUTSCH MX">
+                    <span class="contact-platform-label">Instagram</span>
+                    <div>
+                        <strong>Instagram</strong>
+                        <span data-i18n="contact.instagram.desc">Consejos, errores típicos y vida entre México y Alemania</span>
+                    </div>
+                </a>
+                <a href="https://www.facebook.com/vivedeutschmx" target="_blank" rel="noopener" class="contact-item social-link facebook-link" aria-label="Abrir Facebook de VIVE DEUTSCH MX">
+                    <span class="contact-platform-label">Facebook</span>
+                    <div>
+                        <strong>Facebook</strong>
+                        <span data-i18n="contact.facebook.desc">Noticias, cursos y servicios lingüísticos</span>
+                    </div>
+                </a>
             </div>
         </div>
     </section>
@@ -688,12 +821,13 @@
                     <img src="logo.png" alt="VIVE DEUTSCH MX" class="logo-img" />
                     <span class="logo-text">VIVE DEUTSCH MX</span>
                 </div>
-                <p data-i18n="footer.tagline">Alemán con pasión · Guadalajara, México</p>
+                <p data-i18n="footer.tagline">Clases de alemán y servicios lingüísticos · Guadalajara, México</p>
             </div>
             <div>
                 <h5 data-i18n="footer.nav">Navegación</h5>
-                <a href="#about" data-i18n="nav.about">Sobre mí</a>
+                <a href="#language-services" data-i18n="nav.services">Servicios</a>
                 <a href="#courses" data-i18n="nav.courses">Cursos</a>
+                <a href="#about" data-i18n="nav.about">Equipo</a>
                 <a href="#pricing" data-i18n="nav.pricing">Precios</a>
                 <a href="#trainer" data-i18n="nav.trainer">Práctica</a>
                 <a href="#contact" data-i18n="nav.contact">Contacto</a>
@@ -703,6 +837,11 @@
                 <a href="aviso-privacidad.html" data-href-es="aviso-privacidad.html" data-href-en="privacy.html" data-href-de="datenschutz.html" data-i18n="footer.privacy">Aviso de privacidad</a>
                 <a href="terminos.html" data-href-es="terminos.html" data-href-en="terms.html" data-href-de="agb.html" data-i18n="footer.terms">Términos</a>
             </div>
+            <div>
+                <h5 data-i18n="footer.social">Redes</h5>
+                <a href="https://www.instagram.com/vivedeutschmx/" target="_blank" rel="noopener">Instagram</a>
+                <a href="https://www.facebook.com/vivedeutschmx" target="_blank" rel="noopener">Facebook</a>
+            </div>
         </div>
         <div class="footer-bottom">
             <small>© <span id="year"></span> VIVE DEUTSCH MX · <span data-i18n="footer.rights">Todos los derechos reservados.</span></small>
@@ -710,16 +849,17 @@
     </footer>
 
     <!-- ===== FLOATING WHATSAPP ===== -->
-    <a href="https://wa.me/523151109282" target="_blank" rel="noopener" class="whatsapp-float" aria-label="WhatsApp">
-        <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28">
-            <path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-1.7-.8-2.8-1.5-3.9-3.4-.3-.5.3-.5.8-1.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5 1.9.8 2.6.9 3.5.7.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3zM12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.5 1.3 5L2 22l5.2-1.3c1.4.8 3.1 1.3 4.8 1.3 5.5 0 10-4.5 10-10S17.5 2 12 2z"/>
-        </svg>
+    <a href="#" target="_blank" rel="noopener" class="whatsapp-float school-whatsapp-float school-whatsapp-link" aria-label="Abrir WhatsApp Ralph Deutschunterricht">
+        <span class="whatsapp-float-label">WhatsApp</span>
+    </a>
+    <a href="#" target="_blank" rel="noopener" class="whatsapp-float angela-whatsapp-float angela-whatsapp-link" data-phone="" aria-label="Abrir WhatsApp Angela Sprachservices">
+        <span class="whatsapp-float-label">WhatsApp</span>
     </a>
 
     <script src="translations.js"></script>
     <script src="script.js"></script>
     <script id="anywhere_book_now_script" src="https://assets.setmore.com/integration/book-now/live/v1/anywhere-book-now.js"></script>
-    <button id="Anywhere_button_iframe" class="anywhere-book-now-button" style="display:none" data-booking-url="https://ralphrudiger.setmore.com" data-new-tab="false">Book now</button>
+    <button id="Anywhere_button_iframe" class="anywhere-book-now-button" style="display:none" data-booking-url="https://ralphrudiger.setmore.com" data-new-tab="false">Reservar</button>
     <script>
         document.querySelectorAll('.setmore-open').forEach(function(button) {
             button.addEventListener('click', function() {

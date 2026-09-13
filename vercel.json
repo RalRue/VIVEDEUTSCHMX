@@ -1,0 +1,30 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "node scripts/validate-root.js",
+  "outputDirectory": ".",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "vivedeutschmx.vercel.app"
+        }
+      ],
+      "destination": "https://vive-deutsch-mx.vercel.app/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "vivedeutschmx-steel.vercel.app"
+        }
+      ],
+      "destination": "https://vive-deutsch-mx.vercel.app/:path*",
+      "permanent": true
+    }
+  ]
+}
