@@ -5,6 +5,17 @@
   "outputDirectory": ".",
   "redirects": [
     {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "vivedeutschmx.vercel.app"
+        }
+      ],
+      "destination": "https://vive-deutsch-mx.vercel.app/",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "has": [
         {
@@ -13,6 +24,17 @@
         }
       ],
       "destination": "https://vive-deutsch-mx.vercel.app/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "vivedeutschmx-steel.vercel.app"
+        }
+      ],
+      "destination": "https://vive-deutsch-mx.vercel.app/",
       "permanent": true
     },
     {
