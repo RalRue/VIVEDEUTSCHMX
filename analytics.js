@@ -65,7 +65,14 @@
         script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(measurementId);
         document.head.appendChild(script);
         window.gtag('js', new Date());
-        const internalVisit = new URLSearchParams(window.location.search).get('vive_internal') === '1';
+        const internalFlag = new URLSearchParams(window.location.search).get('vive_internal');
+        let internalVisit = internalFlag === '1';
+        // Keep test visits marked across pages in this tab, without a permanent identifier.
+        try {
+            if (internalFlag === '1') sessionStorage.setItem('viveInternalVisit', '1');
+            if (internalFlag === '0') sessionStorage.removeItem('viveInternalVisit');
+            internalVisit = sessionStorage.getItem('viveInternalVisit') === '1';
+        } catch (error) { /* The URL flag still works when storage is unavailable. */ }
         if (internalVisit) window.gtag('set', { traffic_type: 'internal' });
         window.gtag('config', measurementId, {
             anonymize_ip: true,

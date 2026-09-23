@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://vive-deutsch-mx.vercel.app/sitemap.xml

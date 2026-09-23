@@ -18,7 +18,11 @@ function setLanguage(lang) {
         el.href = el.getAttribute('data-href-' + lang);
     });
 
-    langButtons.forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+    langButtons.forEach(button => {
+        const isActive = button.dataset.lang === lang;
+        button.classList.toggle('active', isActive);
+        button.setAttribute('aria-pressed', String(isActive));
+    });
 }
 
 langButtons.forEach(btn => {
@@ -107,6 +111,11 @@ bindClickTracking('.angela-whatsapp-link', 'whatsapp_click', {
     pillar: 'language_services',
 });
 
+bindClickTracking('.group-email-link', 'group_inquiry_email_click', element => ({
+    pillar: 'german_classes',
+    offer: {A1: 'a1_tue_thu_1730', A2: 'a2_interest', B1: 'b1_interest'}[element.dataset.level] || 'a1_tue_thu_1730',
+}));
+
 bindClickTracking('.setmore-open, a[href*="ralphrudiger.setmore.com"]', 'booking_click', {
     provider: 'setmore',
     pillar: 'german_classes',
@@ -190,8 +199,8 @@ menuToggle?.addEventListener('click', () => {
     const isOpen = navLinks?.classList.toggle('open') || false;
     menuToggle.setAttribute('aria-expanded', String(isOpen));
 });
-navLinks?.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', closeMenu);
+navLinks?.querySelectorAll('a, button').forEach(control => {
+    control.addEventListener('click', closeMenu);
 });
 document.addEventListener('keydown', event => {
     if (event.key === 'Escape') closeMenu();
