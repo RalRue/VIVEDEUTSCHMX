@@ -130,7 +130,7 @@ bindClickTracking('a[href*="facebook.com/vivedeutschmx"]', 'social_profile_click
 });
 
 const schoolWhatsAppFloat = document.querySelector('.school-whatsapp-float');
-const schoolSections = document.querySelectorAll('#hero, #about, #courses, #method, #pricing, #booking, #workflow, #parents, #trainer, #testimonials');
+const schoolSections = document.querySelectorAll('#hero, #about, #courses, #method, #pricing, #booking, #workflow, #parents, #trainer');
 const angelaWhatsAppFloat = document.querySelector('.angela-whatsapp-float');
 const languageServicesSections = document.querySelectorAll('#language-services');
 
@@ -241,12 +241,6 @@ staggerGroups.forEach(selector => {
         el.classList.add('reveal');
         el.style.setProperty('--reveal-delay', `${i * 120}ms`);
     });
-});
-
-// Testimonials: scale in
-document.querySelectorAll('.testimonial').forEach((el, i) => {
-    el.classList.add('reveal-scale');
-    el.style.setProperty('--reveal-delay', `${i * 100}ms`);
 });
 
 // Pricing section eyebrow + cards already handled above
