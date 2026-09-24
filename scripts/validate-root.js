@@ -37,10 +37,14 @@ assert(
 );
 
 assert(
-  homepage.includes("13 de octubre de 2026") &&
-    homepage.includes("consultar no reserva lugar ni genera cobros") &&
+  homepage.includes("Consultar un grupo no reserva lugar ni genera cobros") &&
     /href="mailto:ralph_stoecker@live\.com\?subject=Consulta%20grupo%20A1[^\"]*"[^>]*class="[^"]*group-email-link/.test(homepage),
-  "A1 start, inquiry-only checkout and email CTA must remain visible."
+  "Group inquiry and email CTA must remain visible without a checkout promise."
+);
+
+assert(
+  !/MXN\s*(?:1[,.]600|4[,.]800|1[,.]800|5[,.]400)|17:30|13 de octubre|13 October|13\. Oktober|24 clases|24 classes|24 Stunden|12 semanas lectivas|12 teaching weeks|12 Unterrichtswochen/i.test(homepage + translations),
+  "Private group prices, dates and block details must not be deployed."
 );
 
 assert(
