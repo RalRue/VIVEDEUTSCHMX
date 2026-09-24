@@ -20,6 +20,11 @@ const vocabTrainer = read(path.join("vokabeltrainer", "index.html"));
 const analytics = read("analytics.js");
 const privacyPages = ["aviso-privacidad.html", "privacy.html", "datenschutz.html"].map(read);
 const translations = read("translations.js");
+const publicPages = fs.readdirSync(root)
+  .filter((name) => /\.(?:html|js)$/.test(name))
+  .concat(["deutsch-fehlertrainer/index.html", "vokabeltrainer/index.html"])
+  .map(read)
+  .join("\n");
 
 assert(
   homepage.includes("<title>VIVE DEUTSCH MX · Alemán en grupos y servicios lingüísticos DE/ES/EN</title>"),
@@ -43,12 +48,13 @@ assert(
 );
 
 assert(
-  !/MXN\s*(?:1[,.]600|4[,.]800|1[,.]800|5[,.]400)|17:30|13 de octubre|13 October|13\. Oktober|24 clases|24 classes|24 Stunden|12 semanas lectivas|12 teaching weeks|12 Unterrichtswochen/i.test(homepage + translations),
+  !/MXN\s*(?:1[,.]600|4[,.]800|1[,.]800|5[,.]400)|(?:1[,.]600|4[,.]800|1[,.]800|5[,.]400)\s*MXN|17:30|13 de octubre|13 October|13\. Oktober|24\s*[×x]\s*60|24 clases|24 classes|24 Unterrichtsstunden|12 semanas lectivas|12 teaching weeks|12 Unterrichtswochen/i.test(publicPages),
   "Private group prices, dates and block details must not be deployed."
 );
 
 assert(
-  !/4[–-]6|menos de 24 horas|within 24 hours|innerhalb von 24 Stunden|id="testimonials"/i.test(homepage + translations) &&
+  !/4[–-]6|4 bis 6|4 to 6|4 a 6|id="testimonials"/i.test(publicPages) &&
+    !/menos de 24 horas|within 24 hours|innerhalb von 24 Stunden/i.test(homepage + translations) &&
     !/testi\.t[1-3]\./.test(translations),
   "Do not publish unconfirmed group sizes, reply times or testimonials."
 );
