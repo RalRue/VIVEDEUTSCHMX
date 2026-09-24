@@ -1420,7 +1420,9 @@ h4 { font-size: 1.15rem; }
 }
 
 @media (max-width: 600px) {
-    .pricing { grid-template-columns: 1fr; }
+    .pricing { grid-template-columns: minmax(0, 1fr); }
+    .price-card { min-width: 0; padding: 2.25rem 1.25rem; }
+    .price-card .btn { max-width: 100%; white-space: normal; text-align: center; overflow-wrap: anywhere; }
     .container { padding: 0 1.25rem; }
     .hero { padding: 7rem 1.25rem 3rem; }
     .contact-form { padding: 1.5rem; }
