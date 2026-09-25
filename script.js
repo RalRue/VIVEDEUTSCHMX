@@ -50,6 +50,12 @@ const contactChannels = {
     },
 };
 
+const groupInquiryBodies = {
+    es: level => `Hola, me interesa el grupo ${level} de VIVE DEUTSCH MX.\n\nMi nivel actual (si lo conozco):\nMi objetivo al aprender alemán:\nMis horarios disponibles:\n\n¿Podrían enviarme los detalles y las condiciones antes de reservar o pagar? Gracias.`,
+    en: level => `Hello, I am interested in the ${level} group at VIVE DEUTSCH MX.\n\nMy current level (if known):\nMy goal in learning German:\nTimes I am available:\n\nCould you send me the details and terms before I book or pay? Thank you.`,
+    de: level => `Hallo, ich interessiere mich für die Gruppe ${level} bei VIVE DEUTSCH MX.\n\nMein aktuelles Niveau (falls bekannt):\nMein Lernziel:\nMeine möglichen Zeiten:\n\nKönnt ihr mir vor einer Buchung oder Zahlung die Einzelheiten und Bedingungen zusenden? Vielen Dank.`,
+};
+
 function buildWhatsAppUrl(phone, message) {
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 }
@@ -67,6 +73,13 @@ function updateContactLinks() {
 
     document.querySelectorAll('.school-whatsapp-link').forEach(link => {
         link.href = buildWhatsAppUrl(contactChannels.schoolWhatsApp, contactChannels.schoolMessages[lang] || contactChannels.schoolMessages.es);
+    });
+
+    document.querySelectorAll('.group-email-link').forEach(link => {
+        const level = link.dataset.level || 'A1';
+        const subject = `Consulta grupo ${level} - VIVE DEUTSCH MX`;
+        const body = (groupInquiryBodies[lang] || groupInquiryBodies.es)(level);
+        link.href = `mailto:ralph_stoecker@live.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
 }
 

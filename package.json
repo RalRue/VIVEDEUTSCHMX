@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "build": "node scripts/validate-root.js && node scripts/test-reply-assistant.mjs",
+    "build": "node scripts/validate-root.js && node scripts/test-group-inquiry-links.js && node scripts/test-reply-assistant.mjs",
     "test:reply-assistant": "node scripts/test-reply-assistant.mjs",
     "smoke:reply-assistant": "node scripts/smoke-reply-assistant.mjs"
   }
