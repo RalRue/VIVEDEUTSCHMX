@@ -1039,6 +1039,8 @@ h4 { font-size: 1.15rem; }
 .trainer-copy li:last-child {
     border-bottom: none;
 }
+.trainer-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.trainer-actions .btn { max-width: 100%; white-space: normal; }
 
 /* ===== BLOG ===== */
 .blog-grid {

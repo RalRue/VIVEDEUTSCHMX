@@ -181,8 +181,8 @@ const translations = {
         'booking.s4.meta': 'Consulta horarios y disponibilidad',
 
         'trainer.eyebrow': 'Herramienta de aprendizaje',
-        'trainer.title': 'Practica vocabulario entre clases',
-        'trainer.subtitle': 'Un pequeño entrenador de vocabulario para practicar español-alemán y alemán-español. Ideal para repasar entre clases sin mostrar la lista completa de palabras.',
+        'trainer.title': 'Tu alemán entre clases',
+        'trainer.subtitle': 'Vocabulario cotidiano y errores frecuentes de A1 a B1.',
         'trainer.demo.label': 'Español → alemán',
         'trainer.demo.word': 'la clase',
         'trainer.demo.answer': 'der Unterricht',
@@ -192,6 +192,7 @@ const translations = {
         'trainer.l2': 'Modo de tarjetas y revisión de respuestas escritas',
         'trainer.l3': 'Primera lista básica para vida diaria, aprendizaje y Alemania',
         'trainer.cta': 'Abrir vocabulario',
+        'trainer.errors': 'Errores de alemán',
 
         'blog.eyebrow': 'Blog',
         'blog.title': 'Tips para aprender alemán',
@@ -455,8 +456,8 @@ const translations = {
         'booking.s4.meta': 'Ask about times and availability',
 
         'trainer.eyebrow': 'Learning tool',
-        'trainer.title': 'Practise vocabulary between lessons',
-        'trainer.subtitle': 'A small vocabulary trainer for Spanish-German and German-Spanish practice. Ideal for reviewing between lessons without displaying the full word list.',
+        'trainer.title': 'Your German between lessons',
+        'trainer.subtitle': 'Everyday vocabulary and common mistakes from A1 to B1.',
         'trainer.demo.label': 'Spanish → German',
         'trainer.demo.word': 'la clase',
         'trainer.demo.answer': 'der Unterricht',
@@ -466,6 +467,7 @@ const translations = {
         'trainer.l2': 'Flashcard mode and typed-answer checking',
         'trainer.l3': 'First basic list for daily life, learning and Germany',
         'trainer.cta': 'Open vocabulary trainer',
+        'trainer.errors': 'German error trainer',
 
         'blog.eyebrow': 'Blog',
         'blog.title': 'Tips for learning German',
@@ -729,8 +731,8 @@ const translations = {
         'booking.s4.meta': 'Zeiten und Verfügbarkeit anfragen',
 
         'trainer.eyebrow': 'Lernwerkzeug',
-        'trainer.title': 'Vokabeln zwischen den Stunden üben',
-        'trainer.subtitle': 'Ein kleiner Vokabeltrainer für Spanisch-Deutsch und Deutsch-Spanisch. Ideal zum Wiederholen zwischen den Stunden, ohne die komplette Wortliste anzuzeigen.',
+        'trainer.title': 'Dein Deutsch zwischen den Stunden',
+        'trainer.subtitle': 'Alltagswortschatz und typische Fehler von A1 bis B1.',
         'trainer.demo.label': 'Spanisch → Deutsch',
         'trainer.demo.word': 'la clase',
         'trainer.demo.answer': 'der Unterricht',
@@ -740,6 +742,7 @@ const translations = {
         'trainer.l2': 'Karteikartenmodus und Eingabeprüfung',
         'trainer.l3': 'Erste Basisliste fuer Alltag, Lernen und Deutschland',
         'trainer.cta': 'Vokabeltrainer öffnen',
+        'trainer.errors': 'Fehlertrainer öffnen',
 
         'blog.eyebrow': 'Blog',
         'blog.title': 'Tipps zum Deutschlernen',
