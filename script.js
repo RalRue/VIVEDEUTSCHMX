@@ -50,11 +50,7 @@ const contactChannels = {
     },
 };
 
-const groupInquiryBodies = {
-    es: level => `Hola, me interesa el grupo ${level} de VIVE DEUTSCH MX.\n\nMi nivel actual (si lo conozco):\nMi objetivo al aprender alemán:\nMis horarios disponibles:\n\n¿Podrían enviarme los detalles y las condiciones antes de reservar o pagar? Gracias.`,
-    en: level => `Hello, I am interested in the ${level} group at VIVE DEUTSCH MX.\n\nMy current level (if known):\nMy goal in learning German:\nTimes I am available:\n\nCould you send me the details and terms before I book or pay? Thank you.`,
-    de: level => `Hallo, ich interessiere mich für die Gruppe ${level} bei VIVE DEUTSCH MX.\n\nMein aktuelles Niveau (falls bekannt):\nMein Lernziel:\nMeine möglichen Zeiten:\n\nKönnt ihr mir vor einer Buchung oder Zahlung die Einzelheiten und Bedingungen zusenden? Vielen Dank.`,
-};
+const courseInquiryUrl = 'https://vive-deutsch-mx.vercel.app/consulta/';
 
 function buildWhatsAppUrl(phone, message) {
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
@@ -75,11 +71,8 @@ function updateContactLinks() {
         link.href = buildWhatsAppUrl(contactChannels.schoolWhatsApp, contactChannels.schoolMessages[lang] || contactChannels.schoolMessages.es);
     });
 
-    document.querySelectorAll('.group-email-link').forEach(link => {
-        const level = link.dataset.level || 'A1';
-        const subject = `Consulta grupo ${level} - VIVE DEUTSCH MX`;
-        const body = (groupInquiryBodies[lang] || groupInquiryBodies.es)(level);
-        link.href = `mailto:ralph_stoecker@live.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    document.querySelectorAll('.group-inquiry-link').forEach(link => {
+        link.href = courseInquiryUrl;
     });
 }
 
@@ -124,9 +117,9 @@ bindClickTracking('.angela-whatsapp-link', 'whatsapp_click', {
     pillar: 'language_services',
 });
 
-bindClickTracking('.group-email-link', 'group_inquiry_email_click', element => ({
+bindClickTracking('.group-inquiry-link', 'group_inquiry_form_click', element => ({
     pillar: 'german_classes',
-    offer: {A1: 'a1_tue_thu_1730', A2: 'a2_interest', B1: 'b1_interest'}[element.dataset.level] || 'a1_tue_thu_1730',
+    offer: {A1: 'a1_interest', A2: 'a2_interest', B1: 'b1_interest'}[element.dataset.level] || 'a1_interest',
 }));
 
 bindClickTracking('.setmore-open, a[href*="ralphrudiger.setmore.com"]', 'booking_click', {

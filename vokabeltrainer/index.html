@@ -246,6 +246,21 @@
             border: 1px solid var(--border);
         }
 
+        button:disabled { cursor: not-allowed; opacity: 0.55; }
+
+        .course-next {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-top: 28px;
+            padding-top: 22px;
+            border-top: 1px solid var(--border);
+        }
+
+        .course-next p { margin: 0; color: var(--muted); line-height: 1.5; }
+        .course-next a { color: var(--gold-soft); font-weight: 700; white-space: nowrap; }
+
         .feedback {
             min-height: 56px;
             padding: 13px 14px;
@@ -288,6 +303,7 @@
             .hero, .controls, .answer-grid, .progress { grid-template-columns: 1fr; }
             .prompt-row { display: grid; }
             button { width: 100%; }
+            .course-next { align-items: flex-start; flex-direction: column; }
         }
     </style>
 </head>
@@ -379,6 +395,10 @@
                 </div>
             </div>
         </section>
+        <section class="course-next" aria-label="Cursos de alemán">
+            <p>¿Quieres seguir aprendiendo con clases en vivo? Consulta qué grupo se adapta a tu nivel. Tu progreso no se envía automáticamente.</p>
+            <a id="course-inquiry" href="https://vive-deutsch-mx.vercel.app/consulta/" target="_blank" rel="noopener">Consultar un grupo</a>
+        </section>
     </main>
 
     <script>
@@ -410,8 +430,8 @@
 
             { es: "entregar", de: "abgeben", category: "Verbos", level: "A2" },
             { es: "recoger", de: "abholen", category: "Verbos", level: "A2" },
-            { es: "cerrar con llave", de: "abschliessen", category: "Verbos", level: "A2" },
-            { es: "cambiar", de: "aendern", category: "Verbos", level: "A2" },
+            { es: "cerrar con llave", de: "abschließen", category: "Verbos", level: "A2" },
+            { es: "cambiar", de: "ändern", category: "Verbos", level: "A2" },
             { es: "el miedo", de: "die Angst", category: "Emociones", level: "A2" },
             { es: "registrarse", de: "sich anmelden", category: "Alemania", level: "A2" },
             { es: "la conexión", de: "der Anschluss", category: "Viajes", level: "A2" },
@@ -420,15 +440,15 @@
             { es: "el traje", de: "der Anzug", category: "Vida diaria", level: "A2" },
             { es: "la formación profesional", de: "die Ausbildung", category: "Alemania", level: "A2" },
             { es: "el extranjero", de: "das Ausland", category: "Alemania", level: "A2" },
-            { es: "la autoridad", de: "die Behoerde", category: "Alemania", level: "A2" },
+            { es: "la autoridad", de: "die Behörde", category: "Alemania", level: "A2" },
             { es: "solicitar", de: "beantragen", category: "Alemania", level: "A2" },
             { es: "pagar", de: "bezahlen", category: "Vida diaria", level: "A2" },
             { es: "el billete", de: "die Fahrkarte", category: "Viajes", level: "A2" },
-            { es: "el equipaje", de: "das Gepaeck", category: "Viajes", level: "A2" },
+            { es: "el equipaje", de: "das Gepäck", category: "Viajes", level: "A2" },
             { es: "la salud", de: "die Gesundheit", category: "Vida diaria", level: "A2" },
             { es: "casado", de: "verheiratet", category: "Vida diaria", level: "A2" },
             { es: "la vivienda", de: "die Wohnung", category: "Vida diaria", level: "A2" },
-            { es: "la moneda", de: "die Waehrung", category: "Alemania", level: "A2" },
+            { es: "la moneda", de: "die Währung", category: "Alemania", level: "A2" },
             { es: "importante", de: "wichtig", category: "Vida diaria", level: "A2" },
             { es: "la revista", de: "die Zeitschrift", category: "Vida diaria", level: "A2" },
             { es: "satisfecho", de: "zufrieden", category: "Emociones", level: "A2" },
@@ -436,8 +456,8 @@
             { es: "girar", de: "abbiegen", category: "Viajes", level: "B1" },
             { es: "la imagen", de: "die Abbildung", category: "Aprendizaje", level: "B1" },
             { es: "la aventura", de: "das Abenteuer", category: "Vida diaria", level: "B1" },
-            { es: "depender", de: "abhaengen", category: "Verbos", level: "B1" },
-            { es: "dependiente", de: "abhaengig", category: "Vida diaria", level: "B1" },
+            { es: "depender", de: "abhängen", category: "Verbos", level: "B1" },
+            { es: "dependiente", de: "abhängig", category: "Vida diaria", level: "B1" },
             { es: "rechazar", de: "ablehnen", category: "Verbos", level: "B1" },
             { es: "cancelar", de: "absagen", category: "Verbos", level: "B1" },
             { es: "la finalización", de: "der Abschluss", category: "Alemania", level: "B1" },
@@ -449,14 +469,14 @@
             { es: "prestar atención", de: "achten auf", category: "Verbos", level: "B1" },
             { es: "el cubo de basura", de: "der Abfalleimer", category: "Vida diaria", level: "B1" },
             { es: "sacar dinero", de: "abheben", category: "Vida diaria", level: "B1" },
-            { es: "el suscriptor", de: "das Abonnement", category: "Vida diaria", level: "B1" },
+            { es: "la suscripción", de: "das Abonnement", category: "Vida diaria", level: "B1" },
             { es: "la basura", de: "der Abfall", category: "Medio ambiente", level: "B1" },
             { es: "los gases de escape", de: "die Abgase", category: "Medio ambiente", level: "B1" },
             { es: "la confianza", de: "das Vertrauen", category: "Emociones", level: "B1" },
             { es: "la reunión", de: "das Treffen", category: "Vida diaria", level: "B1" },
             { es: "el punto", de: "der Punkt", category: "Aprendizaje", level: "B1" },
             { es: "el camino", de: "der Weg", category: "Viajes", level: "B1" },
-            { es: "cerrar", de: "schliessen", category: "Verbos", level: "B1" },
+            { es: "cerrar", de: "schließen", category: "Verbos", level: "B1" },
             { es: "subir", de: "einsteigen", category: "Viajes", level: "A1" },
             { es: "la entrada", de: "der Eintritt", category: "Vida diaria", level: "A1" },
             { es: "los padres", de: "die Eltern", category: "Vida diaria", level: "A1" },
@@ -464,10 +484,10 @@
             { es: "terminar", de: "enden", category: "Verbos", level: "A1" },
             { es: "disculpar", de: "entschuldigen", category: "Verbos", level: "A1" },
             { es: "el resultado", de: "das Ergebnis", category: "Aprendizaje", level: "A1" },
-            { es: "explicar", de: "erklaeren", category: "Verbos", level: "A1" },
+            { es: "explicar", de: "erklären", category: "Verbos", level: "A1" },
             { es: "permitir", de: "erlauben", category: "Verbos", level: "A1" },
             { es: "el adulto", de: "der Erwachsene", category: "Vida diaria", level: "A1" },
-            { es: "contar", de: "erzaehlen", category: "Verbos", level: "A1" },
+            { es: "contar", de: "erzählen", category: "Verbos", level: "A1" },
             { es: "conducir / ir en vehículo", de: "fahren", category: "Viajes", level: "A1" },
             { es: "la bicicleta", de: "das Fahrrad", category: "Viajes", level: "A1" },
             { es: "falso", de: "falsch", category: "Aprendizaje", level: "A1" },
@@ -481,15 +501,15 @@
             { es: "la fiebre", de: "das Fieber", category: "Vida diaria", level: "A1" },
             { es: "la empresa", de: "die Firma", category: "Trabajo", level: "A1" },
             { es: "poner de pie / colocar", de: "stellen", category: "Verbos", level: "A2" },
-            { es: "la calle", de: "die Strasse", category: "Vida diaria", level: "A1" },
-            { es: "el tranvía", de: "die Strassenbahn", category: "Viajes", level: "A1" },
+            { es: "la calle", de: "die Straße", category: "Vida diaria", level: "A1" },
+            { es: "el tranvía", de: "die Straßenbahn", category: "Viajes", level: "A1" },
             { es: "estudiar en la universidad", de: "studieren", category: "Alemania", level: "A1" },
             { es: "la bolsa", de: "die Tasche", category: "Vida diaria", level: "A1" },
             { es: "el tema", de: "das Thema", category: "Aprendizaje", level: "A1" },
             { es: "encontrarse", de: "sich treffen", category: "Verbos", level: "A1" },
             { es: "la escalera", de: "die Treppe", category: "Vida diaria", level: "A1" },
-            { es: "pasar la noche", de: "uebernachten", category: "Viajes", level: "A2" },
-            { es: "transferir dinero", de: "ueberweisen", category: "Alemania", level: "A2" },
+            { es: "pasar la noche", de: "übernachten", category: "Viajes", level: "A2" },
+            { es: "transferir dinero", de: "überweisen", category: "Alemania", level: "A2" },
             { es: "mudarse", de: "umziehen", category: "Vida diaria", level: "A2" }
         ];
 
@@ -511,12 +531,17 @@
 
         let current = null;
         let currentDirection = "es-de";
+        let answered = false;
         let stats = { done: 0, right: 0, wrong: 0 };
 
         function normalize(value) {
             return value
                 .toLowerCase()
                 .trim()
+                .replace(/ä/g, "ae")
+                .replace(/ö/g, "oe")
+                .replace(/ü/g, "ue")
+                .replace(/ß/g, "ss")
                 .normalize("NFD")
                 .replace(/[\u0300-\u036f]/g, "")
                 .replace(/[.,;:!?¿¡]/g, "")
@@ -552,6 +577,7 @@
             const pool = filteredVocabulary();
             if (!pool.length) {
                 current = null;
+                checkBtn.disabled = true;
                 promptLabel.textContent = "Selección";
                 promptWord.textContent = "-";
                 categoryBadge.textContent = "vacío";
@@ -560,6 +586,8 @@
                 return;
             }
             current = pool[Math.floor(Math.random() * pool.length)];
+            answered = false;
+            checkBtn.disabled = false;
             currentDirection = pickDirection();
             const from = currentDirection === "es-de" ? "es" : "de";
             promptLabel.textContent = currentDirection === "es-de" ? "Español" : "Alemán";
@@ -576,10 +604,12 @@
         }
 
         function checkAnswer() {
-            if (!current) return;
+            if (!current || answered) return;
             const target = currentDirection === "es-de" ? current.de : current.es;
 
             if (modeSelect.value === "flashcard") {
+                answered = true;
+                checkBtn.disabled = true;
                 stats.done += 1;
                 feedback.className = "feedback";
                 feedback.textContent = `Solución: ${target}`;
@@ -588,10 +618,17 @@
             }
 
             const typed = normalize(answerInput.value);
-            const expected = normalize(target);
+            if (!typed) {
+                feedback.className = "feedback bad";
+                feedback.textContent = "Escribe una respuesta antes de revisar.";
+                return;
+            }
+            const expected = target.split(/\s*\/\s*/).map(normalize);
+            answered = true;
+            checkBtn.disabled = true;
             stats.done += 1;
 
-            if (typed === expected) {
+            if (expected.includes(typed)) {
                 stats.right += 1;
                 feedback.className = "feedback good";
                 feedback.textContent = `Correcto: ${target}`;
@@ -607,7 +644,8 @@
             doneEl.textContent = stats.done;
             rightEl.textContent = stats.right;
             wrongEl.textContent = stats.wrong;
-            accuracyEl.textContent = stats.done ? `${Math.round((stats.right / stats.done) * 100)}%` : "0%";
+            const assessed = stats.right + stats.wrong;
+            accuracyEl.textContent = assessed ? `${Math.round((stats.right / assessed) * 100)}%` : "0%";
         }
 
         checkBtn.addEventListener("click", checkAnswer);
@@ -619,6 +657,10 @@
         categorySelect.addEventListener("change", nextCard);
         levelSelect.addEventListener("change", nextCard);
         modeSelect.addEventListener("change", nextCard);
+
+        document.getElementById("course-inquiry").addEventListener("click", () => {
+            if (typeof window.gtag === "function") window.gtag("event", "learning_group_inquiry_clicked", {trainer: "vocabulary"});
+        });
 
         fillCategories();
         updateStats();

@@ -492,28 +492,28 @@
                 <section class="conversion-card" aria-label="Siguiente paso">
                     <span class="signal">Siguiente paso lógico</span>
                     <h2>Convierte tus errores en un grupo real.</h2>
-                    <p id="conversion-summary">Haz tres ejercicios. Después puedes mandar tu resultado por WhatsApp y pedir una recomendación de grupo.</p>
+                    <p id="conversion-summary">Practica tres ejercicios y consulta qué grupo se adapta a tu nivel.</p>
                     <div class="conversion-actions">
-                        <a class="whatsapp-cta group-whatsapp-cta" href="#" target="_blank" rel="noopener">Quiero un grupo de alemán</a>
+                        <a class="whatsapp-cta group-inquiry-cta" href="https://vive-deutsch-mx.vercel.app/consulta/" target="_blank" rel="noopener">Consultar un grupo</a>
                         <button id="copy-result" type="button">Copiar resultado</button>
                     </div>
-                    <span class="mini-note">El botón abre WhatsApp con un mensaje preparado. No mostramos tu número en la página.</span>
+                    <span class="mini-note">La consulta no reserva lugar ni genera un cargo. Tu resultado no se envía automáticamente.</span>
                 </section>
             </section>
 
             <aside class="side-panel">
-                <h2>Pequeño, pero con dirección</h2>
-                <p>Este prototipo no intenta reemplazar una clase. Sirve para reconocer patrones y preparar mejores preguntas para entrar al grupo correcto.</p>
+                <h2>Practica con intención</h2>
+                <p>Reconoce patrones y prepara tus preguntas para la clase. Esta práctica complementa el aprendizaje; no es una prueba de nivel.</p>
                 <ul class="roadmap">
-                    <li><strong>Ahora:</strong> errores típicos A1-B1</li>
-                    <li><strong>Después:</strong> artículos, casos y posición del verbo</li>
-                    <li><strong>Más tarde:</strong> modo examen y lista personal de errores</li>
+                    <li><strong>A1:</strong> edad, gustos y orden de palabras</li>
+                    <li><strong>A2:</strong> dativo y pasado</li>
+                    <li><strong>B1:</strong> razones y preposiciones</li>
                 </ul>
                 <div class="conversion-card side-conversion">
                     <span class="signal">Grupos pequeños</span>
                     <h3>¿Quieres avanzar con método?</h3>
-                    <p>Usa tu resultado como punto de partida para preguntar por un grupo A1-C1.</p>
-                    <a class="whatsapp-cta group-whatsapp-cta" href="#" target="_blank" rel="noopener">Enviar a Ralph</a>
+                    <p>Usa tu resultado como punto de partida para preguntar por un grupo A1-B1.</p>
+                    <a class="whatsapp-cta group-inquiry-cta" href="https://vive-deutsch-mx.vercel.app/consulta/" target="_blank" rel="noopener">Consultar un grupo</a>
                 </div>
             </aside>
         </main>
@@ -528,12 +528,13 @@
                 topic: 'Edad',
                 wrong: 'Ich habe 20 Jahre.',
                 correct: 'Ich bin 20 Jahre alt.',
-                options: ['Ich bin 20 Jahre alt.', 'Ich habe 20 Jahre alt.', 'Ich bin 20 Jahre.'],
+                options: ['Ich bin 20 Jahre alt.', 'Ich habe 20 Jahre alt.', 'Ich ist 20 Jahre alt.'],
                 explanation: 'En español se usa "tener": tengo 20 años. En alemán la edad se expresa normalmente con "sein": Ich bin 20 Jahre alt.'
             },
             {
                 id: 'ERR-A1-003',
-                status: 'pedagogical_review',
+                status: 'approved_for_pilot',
+                source: 'https://www.goethe.de/resources/files/pdf352/2025_wuschel_digital-v2027.pdf',
                 level: 'A1',
                 topic: 'Gern / mögen',
                 wrong: 'Mir mag Deutsch.',
@@ -553,7 +554,8 @@
             },
             {
                 id: 'ERR-A1-004',
-                status: 'pedagogical_review',
+                status: 'approved_for_pilot',
+                source: 'https://www.goethe.de/ins/de/de/prf/grm.html',
                 level: 'A1',
                 topic: 'Verbposition',
                 wrong: 'Morgen ich lerne Deutsch.',
@@ -563,7 +565,8 @@
             },
             {
                 id: 'ERR-A2-001',
-                status: 'pedagogical_review',
+                status: 'approved_for_pilot',
+                source: 'https://grammis.ids-mannheim.de/fragen/6923',
                 level: 'A2',
                 topic: 'Dativ',
                 wrong: 'Ich helfe meine Mutter.',
@@ -573,7 +576,8 @@
             },
             {
                 id: 'ERR-A2-002',
-                status: 'pedagogical_review',
+                status: 'approved_for_pilot',
+                source: 'https://lernen.goethe.de/deutschonline/A1/PDF/DE/deutschonline_Redemittel_und_Grammatik_1-18.pdf',
                 level: 'A2',
                 topic: 'Perfekt',
                 wrong: 'Ich bin Deutsch gelernt.',
@@ -583,7 +587,8 @@
             },
             {
                 id: 'ERR-B1-001',
-                status: 'pedagogical_review',
+                status: 'approved_for_pilot',
+                source: 'https://lernplattform.goethe.de/pluginfile.php/1496709/mod_folder/content/0/DTonlineA2_gesamt_K01-18_GR-RM_Rueckschau_DE.pdf',
                 level: 'B1',
                 topic: 'Weil-Satz',
                 wrong: 'Ich lerne Deutsch, weil ich will in Deutschland arbeiten.',
@@ -593,7 +598,8 @@
             },
             {
                 id: 'ERR-B1-002',
-                status: 'pedagogical_review',
+                status: 'approved_for_pilot',
+                source: 'https://grammis.ids-mannheim.de/verbs/view/401186/2',
                 level: 'B1',
                 topic: 'Präposition',
                 wrong: 'Ich warte dich.',
@@ -603,7 +609,6 @@
             }
         ];
 
-        const schoolWhatsAppPhone = '523151109282';
         const urlParams = new URLSearchParams(window.location.search);
         const campaignId = urlParams.get('utm_campaign') || urlParams.get('campaign') || 'fehlertrainer-organic';
         const trafficSource = urlParams.get('utm_source') || 'direct';
@@ -613,8 +618,8 @@
         const state = {
             index: 0,
             selected: '',
-            filtered: exercises.slice(),
-            stats: JSON.parse(localStorage.getItem('viveDeutschErrorTrainerStats') || '{"done":0,"correct":0}')
+            filtered: exercises.filter(exercise => exercise.status === 'approved_for_pilot'),
+            stats: loadStats()
         };
         const session = {
             started: false,
@@ -633,8 +638,26 @@
         const correctCount = document.getElementById('correct-count');
         const accuracy = document.getElementById('accuracy');
         const conversionSummary = document.getElementById('conversion-summary');
-        const groupWhatsAppLinks = document.querySelectorAll('.group-whatsapp-cta');
+        const groupInquiryLinks = document.querySelectorAll('.group-inquiry-cta');
         const checkAnswerButton = document.getElementById('check-answer');
+
+        function loadStats() {
+            try {
+                const saved = JSON.parse(localStorage.getItem('viveDeutschErrorTrainerStats'));
+                if (saved && Number.isSafeInteger(saved.done) && Number.isSafeInteger(saved.correct) &&
+                    saved.done >= 0 && saved.correct >= 0 && saved.correct <= saved.done) return saved;
+            } catch {}
+            return {done: 0, correct: 0};
+        }
+
+        function shuffledOptions(options) {
+            const result = options.slice();
+            for (let i = result.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [result[i], result[j]] = [result[j], result[i]];
+            }
+            return result;
+        }
 
         function trackEvent(name, params = {}) {
             if (typeof window.gtag === 'function') {
@@ -661,11 +684,6 @@
             return `Hice el entrenador de errores de VIVE DEUTSCH MX. Nivel: ${level}. Resultado: ${correct}/${done} correctas, ${mistakes} dudas. Me interesa saber qué grupo de alemán me conviene.`;
         }
 
-        function buildWhatsAppUrl() {
-            const message = `Hola Ralph, ${resultText()}`;
-            return `https://wa.me/${schoolWhatsAppPhone}?text=${encodeURIComponent(message)}`;
-        }
-
         function updateGroupCta() {
             const done = state.stats.done;
             const correct = state.stats.correct;
@@ -673,12 +691,8 @@
             const level = levelFilter.value === 'all' ? 'A1-B1' : levelFilter.value;
 
             conversionSummary.textContent = done < 3
-                ? `Haz tres ejercicios. Llevas ${done}/3. Después puedes mandar tu resultado y pedir una recomendación de grupo.`
-                : `Tu señal actual: ${correct}/${done} correctas, ${mistakes} dudas, filtro ${level}. Ya puedes pedir una recomendación de grupo.`;
-
-            groupWhatsAppLinks.forEach(link => {
-                link.href = buildWhatsAppUrl();
-            });
+                ? `Haz tres ejercicios. Llevas ${done}/3. Después puedes consultar qué grupo se adapta a tu nivel.`
+                : `Tu práctica actual: ${correct}/${done} correctas, ${mistakes} dudas, filtro ${level}. Puedes consultar por un grupo.`;
         }
 
         function saveStats() {
@@ -707,7 +721,7 @@
             feedback.className = 'feedback';
             feedback.textContent = 'Elige la forma correcta. Después verás la explicación corta en español.';
 
-            exercise.options.forEach(option => {
+            shuffledOptions(exercise.options).forEach(option => {
                 const button = document.createElement('button');
                 button.className = 'choice';
                 button.type = 'button';
@@ -749,8 +763,7 @@
             trackEvent('learning_question_answered', {
                 exercise_id: exercise.id,
                 level: exercise.level,
-                topic: exercise.topic,
-                answer_correct: isCorrect
+                topic: exercise.topic
             });
             const completionTarget = Math.min(3, state.filtered.length);
             if (!session.completed && session.answeredIds.size >= completionTarget) {
@@ -758,7 +771,6 @@
                 trackEvent('learning_quiz_completed', {
                     level_filter: levelFilter.value,
                     questions_answered: session.answeredIds.size,
-                    correct: session.correct,
                     quiz_size: completionTarget
                 });
             }
@@ -782,7 +794,7 @@
 
         function applyFilter() {
             const value = levelFilter.value;
-            state.filtered = value === 'all' ? exercises.slice() : exercises.filter(exercise => exercise.level === value);
+            state.filtered = exercises.filter(exercise => exercise.status === 'approved_for_pilot' && (value === 'all' || exercise.level === value));
             state.index = 0;
             resetSession();
             renderExercise();
@@ -809,11 +821,11 @@
         });
 
         document.getElementById('copy-result').addEventListener('click', async () => {
-            const text = `Hola Ralph, ${resultText()}`;
+            const text = resultText();
             try {
                 await navigator.clipboard.writeText(text);
                 feedback.className = 'feedback good';
-                feedback.textContent = 'Resultado copiado. Ahora puedes pegarlo en WhatsApp si lo prefieres.';
+                feedback.textContent = 'Resultado copiado. Tú decides si deseas compartirlo.';
                 trackEvent('learning_result_copied');
             } catch (error) {
                 feedback.className = 'feedback';
@@ -821,11 +833,9 @@
             }
         });
 
-        groupWhatsAppLinks.forEach(link => {
+        groupInquiryLinks.forEach(link => {
             link.addEventListener('click', () => {
-                trackEvent('learning_group_whatsapp_clicked', {
-                    done: state.stats.done,
-                    correct: state.stats.correct,
+                trackEvent('learning_group_inquiry_clicked', {
                     level_filter: levelFilter.value
                 });
             });

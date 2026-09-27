@@ -11,7 +11,7 @@ const links = ['A1', 'A2', 'B1'].map(level => ({dataset: {level}, href: ''}));
 const document = {
     documentElement: {lang: ''},
     querySelectorAll(selector) {
-        return selector === '.group-email-link' ? links : [];
+        return selector === '.group-inquiry-link' ? links : [];
     },
 };
 const context = vm.createContext({
@@ -21,25 +21,17 @@ const context = vm.createContext({
 });
 vm.runInContext(source.slice(0, boundary), context);
 
-for (const [lang, expectedPhrase] of [
-    ['es', 'Mi nivel actual'],
-    ['en', 'My current level'],
-    ['de', 'Mein aktuelles Niveau'],
-]) {
+for (const lang of ['es', 'en', 'de']) {
     vm.runInContext(`setLanguage(${JSON.stringify(lang)}); updateContactLinks();`, context);
     assert.equal(document.documentElement.lang, lang);
 
     for (const link of links) {
         const url = new URL(link.href);
-        assert.equal(url.protocol, 'mailto:');
-        assert.equal(url.pathname, 'ralph_stoecker@live.com');
-        assert.equal(url.searchParams.get('subject'), `Consulta grupo ${link.dataset.level} - VIVE DEUTSCH MX`);
-        const body = url.searchParams.get('body');
-        assert.ok(body.includes(link.dataset.level));
-        assert.ok(body.includes(expectedPhrase));
-        assert.ok(body.includes('\n'));
-        assert.ok(!body.includes('4,800') && !body.includes('4.800'));
+        assert.equal(url.protocol, 'https:');
+        assert.equal(url.hostname, 'vive-deutsch-mx.vercel.app');
+        assert.equal(url.pathname, '/consulta/');
+        assert.equal(url.search, '');
     }
 }
 
-console.log('Group inquiry mailto links passed for A1/A2/B1 in ES/EN/DE.');
+console.log('Group inquiry form links passed for A1/A2/B1 in ES/EN/DE.');

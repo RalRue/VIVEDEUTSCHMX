@@ -43,8 +43,8 @@ assert(
 
 assert(
   homepage.includes("Consultar un grupo no reserva lugar ni genera cobros") &&
-    /href="mailto:ralph_stoecker@live\.com\?subject=Consulta%20grupo%20A1[^\"]*"[^>]*class="[^"]*group-email-link/.test(homepage),
-  "Group inquiry and email CTA must remain visible without a checkout promise."
+    homepage.includes('href="https://vive-deutsch-mx.vercel.app/consulta/" class="btn btn-primary group-inquiry-link"'),
+  "Group inquiry form must remain visible without a checkout promise."
 );
 
 assert(
@@ -84,6 +84,20 @@ assert(
 assert(
   errorTrainer.includes("learning_quiz_started") && errorTrainer.includes("learning_quiz_completed"),
   "The error trainer must keep start and completion analytics events."
+);
+
+assert(
+  errorTrainer.includes("exercise.status === 'approved_for_pilot'") &&
+    errorTrainer.includes("group-inquiry-cta") &&
+    !errorTrainer.includes("group-whatsapp-cta"),
+  "Only approved error exercises and the shared inquiry route may be public."
+);
+
+assert(
+  vocabTrainer.includes('id="course-inquiry"') &&
+    vocabTrainer.includes("if (!current || answered) return") &&
+    vocabTrainer.includes('de: "die Straße"'),
+  "Vocabulary trainer must link to shared inquiry and count each card once."
 );
 
 if (!homepage.includes('id="contact-form"')) {

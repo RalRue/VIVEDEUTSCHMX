@@ -1,9 +1,19 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "buildCommand": "node scripts/validate-root.js",
+  "buildCommand": "npm run build",
   "outputDirectory": ".",
   "redirects": [
+    {
+      "source": "/consulta",
+      "destination": "https://docs.google.com/forms/d/e/1FAIpQLSfXo1RTAaFalBqZXxGly-Zx7HG0OgKbTmMpGoeRqLtEFMiAPg/viewform",
+      "permanent": false
+    },
+    {
+      "source": "/consulta/",
+      "destination": "https://docs.google.com/forms/d/e/1FAIpQLSfXo1RTAaFalBqZXxGly-Zx7HG0OgKbTmMpGoeRqLtEFMiAPg/viewform",
+      "permanent": false
+    },
     {
       "source": "/",
       "has": [
