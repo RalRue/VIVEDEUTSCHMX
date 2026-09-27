@@ -78,14 +78,11 @@
             color: var(--gold-soft);
             text-decoration: none;
             font-weight: 700;
-            white-space: nowrap;
+            white-space: normal;
         }
 
         .hero {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) 320px;
-            gap: 24px;
-            align-items: stretch;
+            display: block;
             margin-bottom: 24px;
         }
 
@@ -96,7 +93,9 @@
         }
 
         .intro {
-            padding: clamp(24px, 5vw, 44px);
+            padding: 0;
+            border: 0;
+            background: transparent;
         }
 
         .eyebrow {
@@ -111,8 +110,9 @@
             margin: 12px 0 12px;
             max-width: 760px;
             font-family: "Playfair Display", Georgia, serif;
-            font-size: clamp(2.2rem, 7vw, 4.6rem);
-            line-height: 0.98;
+            font-size: 2.2rem;
+            line-height: 1.15;
+            overflow-wrap: anywhere;
             letter-spacing: 0;
         }
 
@@ -148,7 +148,9 @@
         }
 
         .trainer {
-            padding: clamp(18px, 4vw, 30px);
+            padding: 0;
+            border: 0;
+            background: transparent;
         }
 
         .controls {
@@ -169,6 +171,7 @@
         }
 
         select, input {
+            min-width: 0;
             width: 100%;
             min-height: 46px;
             border: 1px solid var(--border);
@@ -207,8 +210,9 @@
         .prompt-word {
             margin-top: 8px;
             font-family: "Playfair Display", Georgia, serif;
-            font-size: clamp(2.2rem, 8vw, 4rem);
-            line-height: 1.02;
+            font-size: 2rem;
+            line-height: 1.15;
+            overflow-wrap: anywhere;
         }
 
         .badge {
@@ -261,6 +265,9 @@
         .course-next p { margin: 0; color: var(--muted); line-height: 1.5; }
         .course-next a { color: var(--gold-soft); font-weight: 700; white-space: nowrap; }
 
+        .intro, .trainer, .card, .prompt, .controls > label, .answer-grid > label { min-width: 0; }
+        .brand strong, .eyebrow, label, .prompt small, .progress span { letter-spacing: 0; }
+
         .feedback {
             min-height: 56px;
             padding: 13px 14px;
@@ -300,7 +307,8 @@
 
         @media (max-width: 760px) {
             header { align-items: flex-start; }
-            .hero, .controls, .answer-grid, .progress { grid-template-columns: 1fr; }
+            .controls, .answer-grid { grid-template-columns: minmax(0, 1fr); }
+            .progress { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .prompt-row { display: grid; }
             button { width: 100%; }
             .course-next { align-items: flex-start; flex-direction: column; }
@@ -323,14 +331,9 @@
         <section class="hero">
             <div class="intro">
                 <span class="eyebrow">Español · Alemán</span>
-                <h1>Practica vocabulario de forma activa.</h1>
-                <p>Entrena en ambas direcciones: español a alemán o alemán a español. Elige nivel, categoría y modo, escribe tu respuesta y revísala al instante.</p>
+                <h1>Vocabulario</h1>
+                <p>Alemán para la vida diaria, los viajes y el trabajo.</p>
             </div>
-            <aside class="stats">
-                <div class="stat"><b>ES ⇄ DE</b><span>ambas direcciones</span></div>
-                <div class="stat"><b>A1-B1</b><span>filtrar por nivel</span></div>
-                <div class="stat"><b>Práctica activa</b><span>sin respuestas visibles</span></div>
-            </aside>
         </section>
 
         <section class="trainer">
