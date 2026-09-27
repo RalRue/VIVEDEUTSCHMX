@@ -107,9 +107,7 @@
             margin-bottom: 22px;
         }
 
-        .intro,
         .score-card,
-        .trainer,
         .side-panel {
             border: 1px solid var(--border);
             border-radius: 8px;
@@ -117,7 +115,7 @@
         }
 
         .intro {
-            padding: clamp(24px, 5vw, 44px);
+            padding: 8px 0;
         }
 
         .eyebrow {
@@ -132,8 +130,9 @@
             margin: 12px 0;
             max-width: 760px;
             font-family: "Playfair Display", Georgia, serif;
-            font-size: clamp(2.15rem, 7vw, 4.5rem);
-            line-height: 0.98;
+            font-size: 2.2rem;
+            line-height: 1.15;
+            overflow-wrap: anywhere;
             letter-spacing: 0;
         }
 
@@ -146,19 +145,20 @@
 
         .score-card {
             display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 1px;
             overflow: hidden;
         }
 
         .score-item {
-            padding: 22px;
+            padding: 12px;
             background: rgba(255,255,255,0.03);
         }
 
         .score-item b {
             display: block;
             color: var(--gold-soft);
-            font-size: 1.8rem;
+            font-size: 1.4rem;
         }
 
         .score-item span {
@@ -174,8 +174,12 @@
         }
 
         .trainer {
-            padding: clamp(18px, 4vw, 30px);
+            padding: 0;
+            min-width: 0;
         }
+
+        .intro, .exercise, .side-panel { min-width: 0; }
+        .brand strong, .eyebrow, .exercise-label, .conversion-label { letter-spacing: 0; }
 
         .toolbar {
             display: flex;
@@ -405,8 +409,8 @@
             }
 
             .choice,
-            button,
-            .top-links a {
+            .actions button,
+            .conversion-actions button {
                 width: 100%;
             }
         }
@@ -430,9 +434,9 @@
 
         <section class="hero">
             <div class="intro">
-                <span class="eyebrow">Prototipo · Entrenador de errores</span>
-                <h1>Deja de traducir palabra por palabra.</h1>
-                <p>Entrena errores típicos de alemán y mira si tus dudas apuntan a un grupo pequeño. Cada ejercicio muestra el error, la forma correcta y la lógica detrás.</p>
+                <span class="eyebrow">A1 · A2 · B1</span>
+                <h1>Errores de alemán</h1>
+                <p>Gramática y expresiones del alemán cotidiano.</p>
             </div>
             <aside class="score-card" aria-label="Progreso">
                 <div class="score-item">
