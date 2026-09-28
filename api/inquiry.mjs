@@ -1,4 +1,4 @@
-import { createHmac } from 'node:crypto';
+import { createHash, createHmac } from 'node:crypto';
 
 const ORIGIN = 'https://vive-deutsch-mx.vercel.app';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -55,6 +55,7 @@ export function createHandler({env = process.env, send = fetch, now = Date.now, 
       }
       const result = await response.json();
       if (result.ok !== true || result.stored !== true || result.id !== data.id) {
+        if (isPreview) report('preview_key_check_' + createHash('sha256').update(secret).digest('hex').slice(0, 16));
         report('upstream_storage_not_confirmed'); return reply(502, {ok: false});
       }
       // No contact, course, or learning answers leave through the success response.
