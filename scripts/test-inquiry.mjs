@@ -11,12 +11,13 @@ const body = {id, name:'PRUEBA VIVE', email:'test-vive@example.com', course:'A1'
 const env = {VIVE_INQUIRY_ENABLED:'true', VIVE_INQUIRY_MODE:'test', VIVE_INQUIRY_RECEIVER_URL:'https://script.google.com/macros/s/test/exec', VIVE_INQUIRY_SECRET:'s'.repeat(64)};
 let sent = 0;
 let envelope;
+const diagnostics = [];
 const send = async (url, options) => { sent++; envelope=JSON.parse(options.body); return {ok:true,json:async()=>({ok:true,stored:true,id})}; };
 async function invoke(changes={}, deps={}) {
   let status, result; const headers={};
   const res={setHeader:(k,v)=>headers[k]=v,status(n){status=n;return this;},json(v){result=v;return v;}};
   const req={method:'POST',headers:{origin:'https://vive-deutsch-mx.vercel.app','content-type':'application/json'},body,...changes};
-  await createHandler({env,send,now:()=>1000,...deps})(req,res);
+  await createHandler({env,send,now:()=>1000,report:code=>diagnostics.push(code),...deps})(req,res);
   return {status,result,headers};
 }
 assert.ok(validate(body));
@@ -24,6 +25,8 @@ for (const invalid of [{...body,privacy:false},{...body,id:'bad'},{...body,email
 assert.equal((await invoke()).status,200);
 assert.equal(envelope.signature,createHmac('sha256',env.VIVE_INQUIRY_SECRET).update('1000.'+envelope.payload).digest('hex'));
 assert.equal(JSON.parse(envelope.payload).test,true);
+assert.equal((await invoke({}, {env:{...env,VIVE_INQUIRY_SECRET:' '+env.VIVE_INQUIRY_SECRET+'\r\n'}})).status,200);
+assert.equal(envelope.signature,createHmac('sha256',env.VIVE_INQUIRY_SECRET).update('1000.'+envelope.payload).digest('hex'));
 assert.equal((await invoke({method:'GET'})).status,405);
 assert.equal((await invoke({headers:{origin:'https://evil.example','content-type':'application/json'}})).status,403);
 const previewEnv = {...env, VERCEL_ENV:'preview', VERCEL_URL:'vive-preview.vercel.app', VERCEL_BRANCH_URL:'vive-git-test.vercel.app', VIVE_INQUIRY_MODE:'live'};
@@ -46,6 +49,9 @@ assert.equal((await invoke({}, {env:{}})).status,503);
 assert.equal((await invoke({}, {send:async()=>({ok:true,json:async()=>({ok:true,stored:false,id})})})).status,502);
 assert.equal((await invoke({}, {send:async()=>({ok:true,json:async()=>({ok:true,stored:true,id:'wrong'})})})).status,502);
 assert.equal((await invoke({}, {send:async()=>{throw new Error('secret details');}})).status,502);
+assert.equal((await invoke({}, {send:async()=>({ok:false,status:403})})).status,502);
+assert.equal((await invoke({}, {send:async()=>({ok:true,headers:{get:()=> 'text/html'}})})).status,502);
+assert.deepEqual(diagnostics,['upstream_storage_not_confirmed','upstream_storage_not_confirmed','upstream_network_or_parse','upstream_http_403','upstream_non_json']);
 const successful = (await invoke({}, {env:{...env,VIVE_INQUIRY_MODE:'live'}})).result;
 assert.deepEqual(Object.keys(successful).sort(),['duplicate','id','ok','stored','test']);
 assert.equal(JSON.stringify(successful).includes('example.com'),false);

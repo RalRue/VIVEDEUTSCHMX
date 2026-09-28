@@ -18,7 +18,7 @@ export function validate(body) {
     analytics: body.analytics, marketing: body.marketing, test: false};
 }
 
-export function createHandler({env = process.env, send = fetch, now = Date.now} = {}) {
+export function createHandler({env = process.env, send = fetch, now = Date.now, report = code => console.warn('Inquiry receiver:', code)} = {}) {
   return async function handler(req, res) {
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -39,7 +39,7 @@ export function createHandler({env = process.env, send = fetch, now = Date.now} 
     const data = validate(body);
     if (!data) return reply(400, {ok: false});
     const endpoint = env.VIVE_INQUIRY_RECEIVER_URL;
-    const secret = env.VIVE_INQUIRY_SECRET;
+    const secret = env.VIVE_INQUIRY_SECRET?.trim();
     if (env.VIVE_INQUIRY_ENABLED !== 'true' || !secret || secret.length < 40 ||
         !/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(endpoint || '')) return reply(503, {ok: false});
     data.test = isPreview || env.VIVE_INQUIRY_MODE !== 'live';
@@ -49,12 +49,17 @@ export function createHandler({env = process.env, send = fetch, now = Date.now} 
     try {
       const response = await send(endpoint, {method: 'POST', headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({timestamp, payload, signature}), signal: AbortSignal.timeout(20000), redirect: 'follow'});
-      if (!response.ok) return reply(502, {ok: false});
+      if (!response.ok) { report('upstream_http_' + response.status); return reply(502, {ok: false}); }
+      if (!String(response.headers?.get('content-type') || 'application/json').includes('application/json')) {
+        report('upstream_non_json'); return reply(502, {ok: false});
+      }
       const result = await response.json();
-      if (result.ok !== true || result.stored !== true || result.id !== data.id) return reply(502, {ok: false});
+      if (result.ok !== true || result.stored !== true || result.id !== data.id) {
+        report('upstream_storage_not_confirmed'); return reply(502, {ok: false});
+      }
       // No contact, course, or learning answers leave through the success response.
       return reply(200, {ok: true, stored: true, id: data.id, duplicate: result.duplicate === true, test: data.test});
-    } catch { return reply(502, {ok: false}); }
+    } catch { report('upstream_network_or_parse'); return reply(502, {ok: false}); }
   };
 }
 
