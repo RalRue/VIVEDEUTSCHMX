@@ -39,10 +39,8 @@ for (const origin of ['https://vive-preview.vercel.app','https://vive-git-test.v
 assert.equal((await invoke({headers:{origin:'https://other.vercel.app','content-type':'application/json'}},{env:previewEnv})).status,403);
 assert.equal((await invoke({headers:{origin:'https://vive-preview.vercel.app','content-type':'application/json'}},{env:{...previewEnv,VERCEL_ENV:'production'}})).status,403);
 const routing = JSON.parse(readFileSync(new URL('../vercel.json',import.meta.url),'utf8'));
-for (const route of routing.redirects.filter(route=>route.source==='/consulta'||route.source==='/consulta/')) {
-  assert.deepEqual(route.has,[{type:'host',value:'vive-deutsch-mx.vercel.app'}]);
-  assert.ok(route.destination.startsWith('https://docs.google.com/forms/'));
-}
+assert.equal(routing.redirects.filter(route=>route.source==='/consulta'||route.source==='/consulta/').length,0,
+  'The approved inquiry form must not redirect to an external form.');
 assert.equal((await invoke({body:'{'})).status,400);
 assert.equal((await invoke({body:' '.repeat(8001)})).status,413);
 assert.equal((await invoke({}, {env:{}})).status,503);
