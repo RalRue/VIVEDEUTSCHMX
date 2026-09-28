@@ -25,6 +25,13 @@ for (const invalid of [{...body,privacy:false},{...body,id:'bad'},{...body,email
 assert.equal((await invoke()).status,200);
 assert.equal(envelope.signature,createHmac('sha256',env.VIVE_INQUIRY_SECRET).update('1000.'+envelope.payload).digest('hex'));
 assert.equal(JSON.parse(envelope.payload).test,true);
+const accented = {...body, name:'PRUEBA ESPAÑOL', experience:'Ya estudié alemán',
+  goal:'Aprender alemán para viajar a México y Berlín \u{1f642}', schedule:'Martes, después de las 17:30'};
+assert.equal((await invoke({body:accented})).status,200);
+assert.match(envelope.payload,/^[\x00-\x7f]*$/);
+assert.equal(envelope.signature,createHmac('sha256',env.VIVE_INQUIRY_SECRET).update('1000.'+envelope.payload).digest('hex'));
+assert.equal(JSON.parse(envelope.payload).name,accented.name);
+assert.equal(JSON.parse(envelope.payload).goal,accented.goal);
 assert.equal((await invoke({}, {env:{...env,VIVE_INQUIRY_SECRET:' '+env.VIVE_INQUIRY_SECRET+'\r\n'}})).status,200);
 assert.equal(envelope.signature,createHmac('sha256',env.VIVE_INQUIRY_SECRET).update('1000.'+envelope.payload).digest('hex'));
 assert.equal((await invoke({method:'GET'})).status,405);

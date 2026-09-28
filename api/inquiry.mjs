@@ -43,7 +43,9 @@ export function createHandler({env = process.env, send = fetch, now = Date.now, 
     if (env.VIVE_INQUIRY_ENABLED !== 'true' || !secret || secret.length < 40 ||
         !/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(endpoint || '')) return reply(503, {ok: false});
     data.test = isPreview || env.VIVE_INQUIRY_MODE !== 'live';
-    const payload = JSON.stringify(data);
+    // Apps Script can decode raw non-ASCII POST bytes differently before HMAC verification.
+    const payload = JSON.stringify(data).replace(/[^\x00-\x7f]/g,
+      char => '\\u' + char.charCodeAt(0).toString(16).padStart(4, '0'));
     const timestamp = now();
     const signature = createHmac('sha256', secret).update(timestamp + '.' + payload).digest('hex');
     try {
