@@ -57,6 +57,8 @@ assert.equal(measurementPlan(successful,{analytics:true,marketing:true}).length,
 assert.equal(measurementPlan(successful,{analytics:false,marketing:false}).length,0);
 for (const state of [{...successful,stored:false},{...successful,test:true},{...successful,duplicate:true},{...successful,ok:false}]) assert.equal(measurementPlan(state,{analytics:true,marketing:true}).length,0);
 const html = readFileSync(new URL('../consulta/index.html',import.meta.url),'utf8');
+assert.ok(html.includes('href="/consulta/inquiry.css"'));
+assert.ok(html.includes('src="/consulta/inquiry.js"'));
 assert.equal(safeAttribution('?email=private@example.com&utm_source=private@example.com&utm_content=student_answer').size,0);
 assert.equal(safeAttribution('?utm_source=ig&utm_content=mini01&utm_campaign=a1_minilecciones_sep2026').size,3);
 assert.equal(safeAttribution('?fbclid=private@example.com').size,0);
