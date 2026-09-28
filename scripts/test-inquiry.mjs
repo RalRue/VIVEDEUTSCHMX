@@ -60,6 +60,8 @@ assert.ok(!/analytics\.js|meta-pixel\.js|googletagmanager|fbevents/.test(html));
 assert.ok(!/checked/.test(html));
 assert.ok(html.includes('type="email"'));
 const ui = readFileSync(new URL('../consulta/inquiry.js',import.meta.url),'utf8');
+assert.ok(ui.includes("fetch('/api/inquiry'"));
+assert.ok(ui.includes("credentials: 'same-origin'"));
 assert.ok(ui.indexOf('form.remove()')<ui.lastIndexOf('sendMeasurement('));
 console.log('Inquiry API, fail-closed storage, signed requests, privacy, test exclusion and measurement gates: PASS');
 

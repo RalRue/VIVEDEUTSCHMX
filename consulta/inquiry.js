@@ -18,7 +18,7 @@ form.addEventListener('submit', async event => {
     privacy: fields.has('privacy'), ...consent};
   try {
     const response = await fetch('/api/inquiry', {method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(body), credentials: 'omit', signal: AbortSignal.timeout(25000)});
+      body: JSON.stringify(body), credentials: 'same-origin', signal: AbortSignal.timeout(25000)});
     const result = await response.json();
     if (!response.ok || result.ok !== true || result.stored !== true || result.id !== requestId) throw new Error('not-confirmed');
     // Remove PII and any unexpected URL parameters before loading measurement libraries.
