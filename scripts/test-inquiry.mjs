@@ -102,6 +102,7 @@ assert.equal(rows.length,1); assert.equal(mails.length,0);
 assert.deepEqual(notices,['test_no_mail','test_no_mail']);
 assert.equal(receive({}, {...body,id:'b7c0df76-ed93-41a7-ae44-782647999104',name:'David\nTest',test:false}).stored,true);
 assert.equal(mails.length,1);
+assert.equal(mails[0][0],'ralph_stoecker@live.com');
 assert.match(mails[0][1],/^VIVE \| Neue A1-Anfrage: David Test$/);
 assert.match(mails[0][2],/Private Liste: .*gid=1631814367/);
 assert.match(mails[0][2],/Noch keine Buchung, keine Platzzusage und keine Zahlung/);
