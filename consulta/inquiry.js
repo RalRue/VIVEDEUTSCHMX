@@ -5,20 +5,28 @@ const status = document.querySelector('#status');
 const button = form.querySelector('button[type=submit]');
 let requestId = crypto.randomUUID();
 let busy = false;
+let attemptedBody = null;
 const attribution = safeAttribution(location.search);
 
 form.addEventListener('submit', async event => {
   event.preventDefault();
   if (busy || !form.reportValidity()) return;
-  busy = true; button.disabled = true; button.textContent = 'Enviando…'; status.textContent = '';
   const fields = new FormData(form);
   const consent = {analytics: fields.has('analytics'), marketing: fields.has('marketing')};
   const body = {id: requestId, name: fields.get('name'), email: fields.get('email'), course: fields.get('course'),
     experience: fields.get('experience'), goal: fields.get('goal'), schedule: fields.get('schedule'), website: fields.get('website'),
     privacy: fields.has('privacy'), ...consent};
+  const serialized = JSON.stringify(body);
+  // A timed-out request may already be stored; never acknowledge changed data as its duplicate.
+  if (attemptedBody !== null && attemptedBody !== serialized) {
+    status.textContent = 'El primer envío podría estar guardado. Estos cambios no se han enviado. Para corregir tus datos, escribe a ralph_stoecker@live.com. Si deseas reintentar el mismo envío, restablece los datos originales.';
+    return;
+  }
+  attemptedBody = serialized;
+  busy = true; button.disabled = true; button.textContent = 'Enviando…'; status.textContent = '';
   try {
     const response = await fetch('/api/inquiry', {method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(body), credentials: 'same-origin', signal: AbortSignal.timeout(25000)});
+      body: serialized, credentials: 'same-origin', signal: AbortSignal.timeout(25000)});
     const result = await response.json();
     if (!response.ok || result.ok !== true || result.stored !== true || result.id !== requestId) throw new Error('not-confirmed');
     // Remove PII and any unexpected URL parameters before loading measurement libraries.

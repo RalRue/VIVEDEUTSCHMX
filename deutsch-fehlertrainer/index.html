@@ -700,7 +700,9 @@
         }
 
         function saveStats() {
-            localStorage.setItem('viveDeutschErrorTrainerStats', JSON.stringify(state.stats));
+            try {
+                localStorage.setItem('viveDeutschErrorTrainerStats', JSON.stringify(state.stats));
+            } catch { /* Feedback must remain usable when local storage is unavailable. */ }
         }
 
         function updateStats() {

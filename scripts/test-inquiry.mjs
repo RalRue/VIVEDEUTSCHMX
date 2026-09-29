@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {createHmac} from 'node:crypto';
-import {readFileSync} from 'node:fs';
+import {readFileSync, existsSync} from 'node:fs';
 import vm from 'node:vm';
 import {createHandler, validate} from '../api/inquiry.mjs';
 import {measurementPlan, safeAttribution} from '../consulta/measurement.mjs';
@@ -79,6 +79,9 @@ assert.ok(ui.indexOf('form.remove()')<ui.lastIndexOf('sendMeasurement('));
 console.log('Inquiry API, fail-closed storage, signed requests, privacy, test exclusion and measurement gates: PASS');
 
 // An actual persistence acknowledgment, not an HTTP 200 or button click, gates success.
+const receiverPath = new URL('../../../outputs/VIVE-DEUTSCH-MX-Projekt/operations/private/inquiry-apps-script/Code.gs',import.meta.url);
+if (process.argv.includes('--require-receiver')) assert.ok(existsSync(receiverPath), 'Private receiver source is required for the operations check');
+if (existsSync(receiverPath)) {
 let rows=[], props={}, mails=[];
 let notices=[];
 const sheet={setFrozenRows(){},appendRow:r=>rows.push(r),getLastRow:()=>rows.length,
@@ -130,3 +133,6 @@ assert.equal(context.doGet().ok,false);
 assert.equal(context.cell_('=IMPORTXML("bad")').startsWith("'"),true);
 assert.equal(context.cell_('+123').startsWith("'"),true);
 console.log('Private receiver: signature, expiry, deduplication, write readback, notification and formula-injection guard: PASS');
+} else {
+  console.log('Private receiver source is not shipped to the website; receiver tests run in the private operations check.');
+}

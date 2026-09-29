@@ -67,4 +67,13 @@ for (const level of ['A1', 'A2', 'B1']) {
     assert.ok(errors.run('state.filtered.length') > 0);
 }
 assert.ok(!errors.events.some(event => /answer_correct|\"correct\"/.test(JSON.stringify(event))), 'Scores must stay out of analytics');
+const blockedStorage = setup('deutsch-fehlertrainer/index.html');
+blockedStorage.run('localStorage.setItem = () => { throw new Error("QuotaExceededError"); };');
+const feedbackBefore = blockedStorage.run('feedback.innerHTML');
+assert.doesNotThrow(() => blockedStorage.run('state.selected = currentExercise().correct; checkAnswer();'));
+assert.equal(blockedStorage.run('state.stats.correct'), 1);
+assert.notEqual(blockedStorage.run('feedback.innerHTML'), feedbackBefore);
+assert.equal(blockedStorage.run('checkAnswerButton.disabled'), true);
+blockedStorage.run('checkAnswer();');
+assert.equal(blockedStorage.run('state.stats.done'), 1, 'Storage failure must not permit double counting');
 console.log('TRAINERS_TEST=PASS: scoring, empty input, transliteration, variants, review gate, local progress and analytics privacy');
