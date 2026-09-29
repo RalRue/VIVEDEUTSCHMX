@@ -79,25 +79,50 @@ assert.ok(ui.indexOf('form.remove()')<ui.lastIndexOf('sendMeasurement('));
 console.log('Inquiry API, fail-closed storage, signed requests, privacy, test exclusion and measurement gates: PASS');
 
 // An actual persistence acknowledgment, not an HTTP 200 or button click, gates success.
-let rows=[], props={}, mailCount=0;
+let rows=[], props={}, mails=[];
+let notices=[];
 const sheet={setFrozenRows(){},appendRow:r=>rows.push(r),getLastRow:()=>rows.length,
-  getRange(range){return {createTextFinder:value=>({matchEntireCell(){return this;},findNext:()=>rows.find(r=>r[0]===value)||null}),getDisplayValue:()=>rows.at(-1)[0],setValue:()=>{}};}};
+  getRange(range){return {createTextFinder:value=>({matchEntireCell(){return this;},findNext:()=>rows.find(r=>r[0]===value)||null}),getDisplayValue:()=>rows.at(-1)[0],setValue:value=>notices.push(value)};}};
 const receiver=readFileSync(new URL('../../../outputs/VIVE-DEUTSCH-MX-Projekt/operations/private/inquiry-apps-script/Code.gs',import.meta.url),'utf8');
 const context=vm.createContext({Date,JSON,Number,String,Math,
   SpreadsheetApp:{openById:()=>({getSheetByName:()=>sheet}),flush(){}},
-  MailApp:{sendEmail(){mailCount++;}},
+  MailApp:{sendEmail(...args){mails.push(args);}},
   PropertiesService:{getScriptProperties:()=>({getProperty:k=>k==='VIVE_INQUIRY_SECRET'?env.VIVE_INQUIRY_SECRET:props[k],setProperties:o=>Object.assign(props,o)})},
   Utilities:{computeHmacSha256Signature:(message,key)=>Array.from(createHmac('sha256',key).update(message).digest())},
   LockService:{getScriptLock:()=>({tryLock:()=>true,releaseLock(){}})},
   ContentService:{MimeType:{JSON:'json'},createTextOutput:v=>({setMimeType:()=>JSON.parse(v)})}});
 vm.runInContext(receiver,context);
-function receive(overrides={}){
-  const payload=JSON.stringify({...validate(body),test:true}); const timestamp=Date.now();
+function receive(overrides={}, data={}){
+  const payload=JSON.stringify({...validate(body),test:true,...data}); const timestamp=Date.now();
   return context.doPost({postData:{contents:JSON.stringify({timestamp,payload,signature:createHmac('sha256',env.VIVE_INQUIRY_SECRET).update(timestamp+'.'+payload).digest('hex'),...overrides})}});
 }
 assert.equal(receive().stored,true);
 assert.equal(receive().duplicate,true);
-assert.equal(rows.length,1); assert.equal(mailCount,1);
+assert.equal(rows.length,1); assert.equal(mails.length,0);
+assert.deepEqual(notices,['test_no_mail','test_no_mail']);
+assert.equal(receive({}, {...body,id:'b7c0df76-ed93-41a7-ae44-782647999104',name:'David\nTest',test:false}).stored,true);
+assert.equal(mails.length,1);
+assert.match(mails[0][1],/^VIVE \| Neue A1-Anfrage: David Test$/);
+assert.match(mails[0][2],/Private Liste: .*gid=1631814367/);
+assert.match(mails[0][2],/Noch keine Buchung, keine Platzzusage und keine Zahlung/);
+assert.deepEqual(notices,['test_no_mail','test_no_mail','off','sent']);
+props.VIVE_AUTO_RECEIPT_ENABLED='true';
+const autoId='a7c0df76-ed93-41a7-ae44-782647999104';
+assert.equal(receive({}, {...body,id:autoId,name:'Marlen Caballero',email:'marlen@example.com',test:false}).stored,true);
+assert.equal(mails.length,3);
+assert.equal(mails[1][0],'marlen@example.com');
+assert.match(mails[1][1],/^Recibimos tu consulta de alemán/);
+assert.match(mails[1][2],/Hola, Marlen:/);
+assert.match(mails[1][2],/Cuando confirmemos los días y horarios/);
+assert.doesNotMatch(mails[1][2],/17:30|4,800|1,600/);
+assert.equal(mails[1][3].replyTo,'ralph_stoecker@live.com');
+assert.match(mails[2][2],/Autoantwort: sent/);
+assert.equal(receive({}, {...body,id:autoId,name:'Marlen Caballero',email:'marlen@example.com',test:false}).duplicate,true);
+assert.equal(mails.length,3);
+assert.deepEqual(notices,['test_no_mail','test_no_mail','off','sent','sent','sent']);
+assert.equal(receive({}, {...body,id:'b8c0df76-ed93-41a7-ae44-782647999104',email:'marlen@example.com',test:false}).stored,true);
+assert.equal(mails.length,4);
+assert.match(mails[3][2],/Autoantwort: recently_sent/);
 assert.equal(receive({signature:'bad'}).ok,false);
 assert.equal(receive({timestamp:0}).ok,false);
 assert.equal(context.doGet().ok,false);
