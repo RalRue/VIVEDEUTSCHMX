@@ -3175,21 +3175,21 @@
         function trackEvent() { /* Trainer answers, progress and learner interactions stay local. */ }
 
         function resultText() {
-            const done = state.stats.done;
-            const correct = state.stats.correct;
+            const done = session.answeredIds.size;
+            const correct = session.correct;
             const mistakes = Math.max(done - correct, 0);
             const level = levelFilter.value === 'all' ? 'mezcla A1-B1' : levelFilter.value;
 
             if (!done) {
-                return 'Todavía no tengo resultado. Quiero empezar con una recomendación de grupo.';
+                return `Todavía no tengo resultado de esta sesión. Filtro de práctica: ${level}. Quiero empezar con una recomendación de grupo.`;
             }
 
-            return `Hice el entrenador de errores de VIVE DEUTSCH MX. Nivel: ${level}. Resultado: ${correct}/${done} correctas, ${mistakes} dudas. Me interesa saber qué grupo de alemán me conviene.`;
+            return `Practiqué con el entrenador de errores de VIVE DEUTSCH MX. Filtro de práctica: ${level}. En esta sesión: ${correct}/${done} correctas, ${mistakes} dudas. Esta práctica no determina mi nivel. Me interesa saber qué grupo de alemán me conviene.`;
         }
 
         function updateGroupCta() {
-            const done = state.stats.done;
-            const correct = state.stats.correct;
+            const done = session.answeredIds.size;
+            const correct = session.correct;
             const mistakes = Math.max(done - correct, 0);
             const level = levelFilter.value === 'all' ? 'A1-B1' : levelFilter.value;
 
@@ -3208,11 +3208,11 @@
             doneCount.textContent = state.stats.done;
             correctCount.textContent = state.stats.correct;
             accuracy.textContent = state.stats.done ? Math.round((state.stats.correct / state.stats.done) * 100) + '%' : '0%';
-            updateGroupCta();
             updateSessionProgress();
         }
 
         function updateSessionProgress() {
+            updateGroupCta();
             document.getElementById('session-progress').textContent = session.completed
                 ? 'Sesión terminada: ' + session.correct + '/' + Math.min(3, state.filtered.length) + ' correctas. Puedes seguir practicando o iniciar una nueva sesión.'
                 : 'Sesión de 3: ' + session.answeredIds.size + '/' + Math.min(3, state.filtered.length) + ' respuestas evaluadas. ' + state.filtered.length + ' tareas en este filtro.';

@@ -99,3 +99,17 @@ assert.equal(expanded.run('state.filtered.length'), 0);
 assert.equal(expanded.run('checkAnswerButton.disabled'), true);
 assert.equal(expanded.events.length, 0, 'Learner interactions stay out of analytics');
 console.log('EXPANDED_TRAINER_TEST=PASS: 23 cards, 30 supplementary tasks, 53 stable IDs and answer keys, reveal lock, filters, empty combinations, no learner analytics');
+
+const filteredResult = setup('deutsch-fehlertrainer/index.html');
+filteredResult.run('levelFilter.value = "A1"; applyFilter(); state.selected = currentExercise().correct; checkAnswer();');
+assert.match(filteredResult.run('resultText()'), /Filtro de práctica: A1.*En esta sesión: 1\/1/);
+filteredResult.run('levelFilter.value = "B1"; applyFilter();');
+assert.equal(filteredResult.run('state.stats.done'), 1, 'Historical progress must remain available');
+assert.match(filteredResult.run('resultText()'), /no tengo resultado de esta sesión/);
+assert.doesNotMatch(filteredResult.run('resultText()'), /1\/1|Nivel:/, 'A previous A1 answer must not become a B1 result');
+assert.match(filteredResult.nodes.get('conversion-summary').textContent, /Llevas 0\/3/);
+filteredResult.run('state.selected = currentExercise().correct; checkAnswer();');
+assert.match(filteredResult.run('resultText()'), /Filtro de práctica: B1.*En esta sesión: 1\/1/);
+filteredResult.run('resetSession(); renderExercise();');
+assert.match(filteredResult.run('resultText()'), /no tengo resultado de esta sesión/);
+console.log('TRAINER_RESULT_SCOPE_TEST=PASS: current session and practice filter never relabel historical answers as a level result');
