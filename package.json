@@ -1,8 +1,10 @@
 {
   "private": true,
   "scripts": {
-    "build": "node scripts/validate-root.js && node scripts/test-group-inquiry-links.js && node scripts/test-trainers.js && node scripts/test-reply-assistant.mjs && node scripts/test-inquiry.mjs && node scripts/test-inquiry-ui.mjs",
+    "build": "node scripts/validate-root.js && node scripts/test-group-inquiry-links.js && node scripts/test-trainers.js && node scripts/test-reply-assistant.mjs && node scripts/test-inquiry.mjs && node scripts/test-inquiry-ui.mjs && npm run test:placement",
     "test:inquiry": "node scripts/test-inquiry.mjs && node scripts/test-inquiry-ui.mjs",
+    "test:placement": "node scripts/test-placement.cjs && node scripts/test-placement-api.mjs && node scripts/test-placement-ui.cjs",
+    "test:placement:private": "node scripts/test-placement-receiver.mjs",
     "test:reply-assistant": "node scripts/test-reply-assistant.mjs",
     "smoke:reply-assistant": "node scripts/smoke-reply-assistant.mjs"
   }

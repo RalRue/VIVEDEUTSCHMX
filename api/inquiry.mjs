@@ -1,4 +1,5 @@
 import { createHmac } from 'node:crypto';
+import {issueToken} from './_placement.mjs';
 
 const ORIGIN = 'https://vive-deutsch-mx.vercel.app';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -60,7 +61,8 @@ export function createHandler({env = process.env, send = fetch, now = Date.now, 
         report('upstream_storage_not_confirmed'); return reply(502, {ok: false});
       }
       // No contact, course, or learning answers leave through the success response.
-      return reply(200, {ok: true, stored: true, id: data.id, duplicate: result.duplicate === true, test: data.test});
+      const placement = env.VIVE_PLACEMENT_ENABLED === 'true' ? {placementToken: issueToken(data.id, data.test, secret, now())} : {};
+      return reply(200, {ok: true, stored: true, id: data.id, duplicate: result.duplicate === true, test: data.test, ...placement});
     } catch { report('upstream_network_or_parse'); return reply(502, {ok: false}); }
   };
 }

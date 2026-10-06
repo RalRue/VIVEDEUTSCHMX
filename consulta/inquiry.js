@@ -37,6 +37,14 @@ form.addEventListener('submit', async event => {
     document.body.dataset.test = String(result.test);
     document.querySelector('#success').hidden = false;
     document.querySelector('#success').focus();
+    if (typeof result.placementToken === 'string' && /^[A-Za-z0-9_-]+\.[a-f0-9]{64}$/.test(result.placementToken)) {
+      const access = result.placementToken;
+      const link = document.querySelector('#placement-link');
+      link.href = '/consulta/nivel/';
+      // Keep the capability out of the DOM while optional measurement libraries are loaded.
+      link.onclick = event => { event.preventDefault(); location.assign('/consulta/nivel/#' + access); };
+      document.querySelector('#placement-pilot').hidden = false;
+    }
     status.textContent = '';
     try { sendMeasurement(result, consent, attribution); } catch { /* Measurement must never undo confirmed receipt. */ }
   } catch {

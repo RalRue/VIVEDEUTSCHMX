@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {createHmac} from 'node:crypto';
 import {readFileSync, existsSync} from 'node:fs';
 import vm from 'node:vm';
+import {sheetValues,sheetDisplay,sheetWriteMethods} from './synthetic-sheet.cjs';
 import {createHandler, validate} from '../api/inquiry.mjs';
 import {measurementPlan, safeAttribution} from '../consulta/measurement.mjs';
 
@@ -82,10 +83,15 @@ console.log('Inquiry API, fail-closed storage, signed requests, privacy, test ex
 const receiverPath = new URL('../../../outputs/VIVE-DEUTSCH-MX-Projekt/operations/private/inquiry-apps-script/Code.gs',import.meta.url);
 if (process.argv.includes('--require-receiver')) assert.ok(existsSync(receiverPath), 'Private receiver source is required for the operations check');
 if (existsSync(receiverPath)) {
-let rows=[], props={}, mails=[];
-let notices=[];
-const sheet={setFrozenRows(){},appendRow:r=>rows.push(r),getLastRow:()=>rows.length,
-  getRange(range){return {createTextFinder:value=>({matchEntireCell(){return this;},findNext:()=>rows.find(r=>r[0]===value)||null}),getDisplayValue:()=>rows.at(-1)[0],setValue:value=>notices.push(value)};}};
+let rows=[], props={}, mails=[],formats=[];
+let notices=[],inquiryFormulaColumn=null;
+const sheet={setFrozenRows(){},appendRow:r=>rows.push(r),getLastRow:()=>rows.length,getMaxRows:()=>1000,
+  getRange(row,col=1,numRows=1,numCols=1){return {...sheetWriteMethods(rows,row,col,numCols,formats),
+    createTextFinder:value=>({matchEntireCell(){return this;},findNext:()=>{const i=rows.findIndex(r=>r[0]===value);return i<0?null:{getRow:()=>i+1};}}),
+    getDisplayValue:()=>sheetDisplay(rows[row-1],col-1,1)[0],
+    getDisplayValues:()=>[sheetDisplay(rows[row-1],col-1,numCols,formats[row-1])],getValues:()=>[sheetValues(rows[row-1],col-1,numCols)],
+    getFormulas:()=>[Array.from({length:numCols},(_,i)=>col-1+i===inquiryFormulaColumn?'=DATE(2026,9,27)':'')],
+    setValue:value=>notices.push(value)};}};
 const receiver=readFileSync(new URL('../../../outputs/VIVE-DEUTSCH-MX-Projekt/operations/private/inquiry-apps-script/Code.gs',import.meta.url),'utf8');
 const context=vm.createContext({Date,JSON,Number,String,Math,
   SpreadsheetApp:{openById:()=>({getSheetByName:()=>sheet}),flush(){}},
@@ -101,6 +107,7 @@ function receive(overrides={}, data={}){
 }
 assert.equal(receive().stored,true);
 assert.equal(receive().duplicate,true);
+assert.equal(receive({}, {email:'changed@example.invalid'}).conflict,true,'Changed inquiry cannot mint access to the original row');
 assert.equal(rows.length,1); assert.equal(mails.length,0);
 assert.deepEqual(notices,['test_no_mail','test_no_mail']);
 assert.equal(receive({}, {...body,id:'b7c0df76-ed93-41a7-ae44-782647999104',name:'David\nTest',test:false}).stored,true);
@@ -133,6 +140,29 @@ assert.equal(context.doGet().ok,false);
 assert.equal(context.cell_('=IMPORTXML("bad")').startsWith("'"),true);
 assert.equal(context.cell_('+123').startsWith("'"),true);
 console.log('Private receiver: signature, expiry, deduplication, write readback, notification and formula-injection guard: PASS');
+// The observed historical privacy schema: serial 46292, DATE yyyy-mm-dd.
+assert.equal(typeof rows[0][8],'string');assert.equal(rows[0][8],'2026-09-27');assert.equal(formats[0][8],'@');
+const historicalPrivacy=new Date(Date.UTC(1899,11,30)+46292*86400000+6*3600000);
+assert.equal(historicalPrivacy.toISOString(),'2026-09-27T06:00:00.000Z');
+rows[0][8]=historicalPrivacy;formats[0][8]='yyyy-mm-dd';
+const historicalBefore=JSON.stringify({rows,formats});assert.equal(receive().duplicate,true);
+assert.equal(JSON.stringify({rows,formats}),historicalBefore,'Historical privacy DATE is accepted without changing its value or format');
+inquiryFormulaColumn=8;assert.equal(receive().conflict,true,'Matching privacy DATE formula remains rejected');inquiryFormulaColumn=null;
+rows[0][8]=new Date(historicalPrivacy.getTime()+86400000);assert.equal(receive().conflict,true,'Wrong privacy date rejected');
+rows[0][8]=historicalPrivacy;formats[0][8]='dd.MM.yyyy';assert.equal(receive().conflict,true,'Unobserved privacy date format rejected');
+formats[0][8]='yyyy-mm-dd';
+const textInquiry={...body,id:'c7c0df76-ed93-41a7-ae44-782647999104',name:'001',goal:'2026-09-27',schedule:'TRUE'};
+assert.equal(receive({},textInquiry).stored,true);const textRow=rows.at(-1),textFormats=formats.at(-1);
+for(const [column,value] of [[2,'001'],[6,'2026-09-27'],[7,'TRUE'],[8,'2026-09-27']]){
+  assert.equal(textRow[column],value);assert.equal(typeof textRow[column],'string');assert.equal(textFormats[column],'@');
+}
+textRow[6]=historicalPrivacy;textFormats[6]='yyyy-mm-dd';
+assert.equal(sheetDisplay(textRow,6,1,textFormats)[0],'2026-09-27');
+assert.equal(receive({},textInquiry).conflict,true,'Calendar-looking learner text is never normalized to a date');
+textRow[6]=textInquiry.goal;textFormats[6]='@';
+const noCoercionBefore=JSON.stringify({rows,formats});assert.equal(receive({},textInquiry).duplicate,true);
+assert.equal(JSON.stringify({rows,formats}),noCoercionBefore,'Exact retry does not rewrite stored schema or learner text');
+console.log('INQUIRY SCHEMA/TEXT PASS: observed privacy serial 46292 DATE accepted read-only; wrong date/format rejected; schema strings, leading zeros, calendar-looking text and TRUE retained; no learner Date coercion');
 } else {
   console.log('Private receiver source is not shipped to the website; receiver tests run in the private operations check.');
 }

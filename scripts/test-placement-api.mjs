@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict';
+import {createHmac} from 'node:crypto';
+import {issueToken,verifyToken,validatePlacement,VERSION,LEGACY_VERSION,KEYS,readingScores} from '../api/_placement.mjs';
+import {createHandler} from '../api/placement.mjs';
+const secret='synthetic-only-'.repeat(5),now=Date.now(),parent='ca30b8bc-743b-44f9-bae8-a5296ab89c9b',id='ba30b8bc-743b-44f9-bae8-a5296ab89c9b';
+const env={VIVE_PLACEMENT_ENABLED:'true',VIVE_INQUIRY_MODE:'test',VIVE_INQUIRY_SECRET:secret,VIVE_INQUIRY_RECEIVER_URL:'https://script.google.com/macros/s/synthetic/exec'};
+const modern={id,token:issueToken(parent,true,secret,now),version:VERSION,consent:true,path:'test',writingTask:0,answers:structuredClone(KEYS[VERSION]),writing:['Hallo, ich heiße Test.','','']};
+let signedPayload,sends=0;
+const send=async(url,opts)=>{sends++;assert.equal(url,env.VIVE_INQUIRY_RECEIVER_URL);const e=JSON.parse(opts.body);assert.equal(e.signature,createHmac('sha256',secret).update(e.timestamp+'.'+e.payload).digest('hex'));signedPayload=JSON.parse(e.payload);assert.equal('token' in signedPayload,false);return {ok:true,headers:{get:()=> 'application/json'},json:async()=>({ok:true,stored:true,id:signedPayload.id,inquiryId:signedPayload.inquiryId})};};
+async function call(body=modern,req={},deps={}){let status,result,headers={};await createHandler({env,send,now:()=>now,...deps})({method:'POST',headers:{origin:'https://vive-deutsch-mx.vercel.app','content-type':'application/json'},body,...req},{setHeader:(k,v)=>headers[k]=v,status(n){status=n;return this;},json(v){result=v;}});return {status,result,headers};}
+const ok=await call();assert.equal(ok.status,200);assert.equal(ok.headers['Cache-Control'],'no-store');assert.equal(ok.result.version,VERSION);assert.equal(ok.result.test,true);assert.deepEqual(ok.result.reading,readingScores(modern.answers,VERSION));assert.equal(signedPayload.consent,true);assert.equal(signedPayload.writingStatus,'pending_teacher_review');assert.equal(signedPayload.listening,'not_assessed');assert.equal(signedPayload.speaking,'not_assessed');
+assert.equal('answers' in ok.result,false);assert.equal('token' in ok.result,false);assert.equal('writing' in ok.result,false);
+for(const patch of [{consent:false},{version:'future'},{path:'auto-B1'},{writingTask:1},{writing:['x','second','']},{writing:['x'.repeat(1801),'','']},{answers:[]},{score:100},{answers:Array.from({length:3},()=>[3,3,3,3]),writing:['','',''],writingTask:null}])assert.equal((await call({...modern,...patch})).status,400);
+for(const token of ['bad',issueToken(parent,true,secret,now-86400000),issueToken(parent,true,secret,now,LEGACY_VERSION)])assert.equal((await call({...modern,token})).status,401);
+assert.equal(verifyToken(modern.token,secret,now).expires-now,86400000);assert.equal(verifyToken(modern.token,secret,now+86400000),null);
+assert.equal(verifyToken(modern.token+'x',secret,now),null);assert.equal(verifyToken(modern.token,'z'.repeat(64),now),null);
+assert.equal((await call(modern,{method:'GET'})).status,405);assert.equal((await call(modern,{headers:{origin:'https://evil.example','content-type':'application/json'}})).status,403);assert.equal((await call(modern,{headers:{origin:'https://vive-deutsch-mx.vercel.app','content-type':'text/plain'}})).status,415);
+assert.equal((await call(modern,{}, {env:{...env,VIVE_PLACEMENT_ENABLED:'false'}})).status,503);assert.equal((await call(' '.repeat(24001))).status,413);assert.equal((await call('{')).status,400);
+for(const result of [{ok:true,stored:false,id,inquiryId:parent},{ok:true,stored:true,id:'wrong',inquiryId:parent},{ok:true,stored:true,id,inquiryId:'wrong'}])assert.equal((await call(modern,{}, {send:async()=>({ok:true,json:async()=>result})})).status,502);
+assert.equal((await call(modern,{}, {send:async()=>{throw Error('synthetic lost receipt');}})).status,502);
+assert.equal((await call(modern,{}, {send:async()=>({ok:true,headers:{get:()=> 'text/html'},json:async()=>({ok:true,stored:true,id,inquiryId:parent})})})).status,502);
+assert.equal((await call(modern,{}, {send:async()=>({ok:true,json:async()=>({ok:false,conflict:true})})})).status,409);
+const beginner={...modern,path:'beginner',answers:Array.from({length:3},()=>[null,null,null,null]),writing:['','',''],writingTask:null};assert.equal((await call(beginner)).status,200);assert.deepEqual((await call(beginner)).result.reading,[]);assert.equal(signedPayload.writingStatus,'not_assessed');
+const legacy={id,token:issueToken(parent,true,secret,now,LEGACY_VERSION),version:LEGACY_VERSION,consent:true,answers:KEYS[LEGACY_VERSION],writing:['','','']};assert.equal((await call(legacy)).status,200);assert.deepEqual((await call(legacy)).result.reading.map(s=>s.correct),[4,4,4]);assert.equal('consent' in signedPayload,false,'Historic signed payload remains unchanged');
+assert.equal((await call(modern,{}, {env:{...env,VERCEL_ENV:'preview',VIVE_INQUIRY_MODE:'live'}})).result.test,true);
+assert.throws(()=>readingScores([], 'future'));assert.equal(validatePlacement({...modern,token:modern.token,consent:false}),null);
+console.log('PLACEMENT PUBLIC API PASS: private version keys; HMAC/24h/version scope; consent; one writing sample; no answer/token response; beginner; original legacy contract; origin/flags/storage/content-type/conflict; preview TEST. No private fixture required.');
