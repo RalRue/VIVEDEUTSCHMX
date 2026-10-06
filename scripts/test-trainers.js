@@ -14,7 +14,7 @@ function setup(file, saved = null) {
     function node(id) {
         if (!nodes.has(id)) nodes.set(id, {
             value: ({direction: 'es-de', mode: 'type'})[id] || 'all',
-            textContent: '', innerHTML: '', disabled: false, children: [],
+            textContent: '', innerHTML: '', disabled: false, children: [], style: {},
             addEventListener() {}, setAttribute() {}, focus() {},
             appendChild(child) { this.children.push(child); }
         });
@@ -77,3 +77,25 @@ assert.equal(blockedStorage.run('checkAnswerButton.disabled'), true);
 blockedStorage.run('checkAnswer();');
 assert.equal(blockedStorage.run('state.stats.done'), 1, 'Storage failure must not permit double counting');
 console.log('TRAINERS_TEST=PASS: scoring, empty input, transliteration, variants, review gate, local progress and analytics privacy');
+
+const expanded = setup('deutsch-fehlertrainer/index.html');
+assert.equal(expanded.run('exercises.length'), 53);
+assert.equal(expanded.run("exercises.filter(e => e.kind === 'practice').length"), 30);
+assert.equal(expanded.run('new Set(exercises.map(e => e.id)).size'), 53);
+expanded.run('showExplanation(); state.selected = currentExercise().correct; checkAnswer();');
+assert.equal(expanded.run('state.stats.done'), 0, 'Revealed answers must not count');
+for (let index = 0; index < 53; index++) {
+    expanded.run(`resetSession(); state.index = ${index}; renderExercise(); state.selected = currentExercise().correct; checkAnswer(); checkAnswer();`);
+    assert.equal(expanded.run('session.correct'), 1, 'Every published answer key must score once');
+    assert.equal(expanded.run('state.stats.done'), index + 1);
+    assert.ok(expanded.run('feedback.innerHTML.includes(currentExercise().explanation)'));
+}
+expanded.run('kindFilter.value = "practice"; applyFilter();');
+assert.equal(expanded.run('state.filtered.length'), 30);
+expanded.run('kindFilter.value = "card"; applyFilter();');
+assert.equal(expanded.run('state.filtered.length'), 23);
+expanded.run('topicFilter.value = "missing"; applyFilter(); checkAnswer(); showExplanation(); nextExercise();');
+assert.equal(expanded.run('state.filtered.length'), 0);
+assert.equal(expanded.run('checkAnswerButton.disabled'), true);
+assert.equal(expanded.events.length, 0, 'Learner interactions stay out of analytics');
+console.log('EXPANDED_TRAINER_TEST=PASS: 23 cards, 30 supplementary tasks, 53 stable IDs and answer keys, reveal lock, filters, empty combinations, no learner analytics');

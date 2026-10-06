@@ -24,6 +24,11 @@
         }
 
         * { box-sizing: border-box; }
+        .context { margin: 0; padding: 14px; border-left: 3px solid var(--gold); line-height: 1.65; }
+        .wrong, .choice, .mini-note { overflow-wrap: anywhere; }
+        select { max-width: 100%; }
+        button:disabled { opacity: .55; cursor: default; }
+        #exercise-context:empty, #exercise-note:empty, #exercise-sources:empty { display:none; }
 
         body {
             margin: 0;
@@ -441,7 +446,7 @@
             <aside class="score-card" aria-label="Progreso">
                 <div class="score-item">
                     <b id="done-count">0</b>
-                    <span>ejercicios vistos</span>
+                    <span>respuestas evaluadas</span>
                 </div>
                 <div class="score-item">
                     <b id="correct-count">0</b>
@@ -466,21 +471,29 @@
                             <option value="B1">B1</option>
                         </select>
                     </label>
+                    <label>Práctica <select id="exercise-kind"><option value="all">Todas las tareas</option><option value="card">Tarjetas principales</option><option value="practice">Ejercicios adicionales</option></select></label>
+                    <label>Tema <select id="topic-filter"><option value="all">Todos</option></select></label>
+                    <button id="restart-session" type="button">Nueva sesión de 3</button>
                     <button id="reset-progress" type="button">Reiniciar progreso</button>
                 </div>
 
+                <p class="mini-note" id="catalog-summary">23 tarjetas principales · 30 ejercicios adicionales · 53 tareas</p>
+                <p class="mini-note" id="session-progress" aria-live="polite"></p>
                 <article class="exercise">
                     <div class="tag-row">
                         <span class="tag" id="level-tag">A1</span>
                         <span class="tag" id="topic-tag">Satzbau</span>
                     </div>
 
+                    <p id="exercise-context" class="context"></p>
+                    <p id="exercise-note" class="mini-note"></p>
                     <div class="problem">
-                        <small>Error típico</small>
+                        <small id="problem-label">Error típico</small>
                         <p class="wrong" id="wrong-sentence">Ich habe 20 Jahre.</p>
                     </div>
 
                     <div class="choices" id="choices"></div>
+                    <p id="exercise-sources" class="mini-note"></p>
 
                     <div class="actions">
                         <button class="primary" id="check-answer" type="button">Comprobar</button>
@@ -488,7 +501,7 @@
                         <button id="next-exercise" type="button">Siguiente</button>
                     </div>
 
-                    <div class="feedback" id="feedback">
+                    <div class="feedback" id="feedback" aria-live="polite">
                         Elige la forma correcta. Después verás la explicación corta en español.
                     </div>
                 </article>
@@ -613,11 +626,2502 @@
             }
         ];
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const campaignId = urlParams.get('utm_campaign') || urlParams.get('campaign') || 'fehlertrainer-organic';
-        const trafficSource = urlParams.get('utm_source') || 'direct';
-        const trafficMedium = urlParams.get('utm_medium') || 'none';
-        const campaignContent = urlParams.get('utm_content') || 'none';
+        const trainerRelease = "2026-10-06-packages-1-2";
+        exercises.push(...[
+  {
+    "candidate_id": "CAND-20261005-A1-ORIGIN-RESIDENCE",
+    "level": "A1",
+    "topic": "Herkunft und Wohnort",
+    "learning_goal_de": "Bei der Vorstellung Herkunft mit kommen aus und Wohnort mit wohnen in unterscheiden.",
+    "context_es_mx": "Vives actualmente en Puebla. Te preguntan dónde vives, no de dónde eres.",
+    "wrong": "Ich wohne aus Puebla.",
+    "correct": "Ich wohne in Puebla.",
+    "options": [
+      "Ich wohne aus Puebla.",
+      "Ich wohne in Puebla.",
+      "Ich wohne nach Puebla."
+    ],
+    "explanation": "Para decir dónde vives, usa wohnen in. Para decir de dónde eres, usa kommen aus. Aprende las dos expresiones completas.",
+    "interference_hypothesis_de": "Mögliche Unsicherheit beim Zuordnen spanischer Herkunfts- und Ortsausdrücke; keine empirisch belegte spanischspezifische Häufigkeitsbehauptung.",
+    "context_and_ambiguity_de": "Herkunft, aktueller Wohnort und Reiseziel müssen ausdrücklich getrennt werden. Puebla ist hier eine Stadt. Nicht behaupten, dass kommen immer aus verlangt: kommen hat weitere Verwendungen. Länder mit Artikel separat behandeln.",
+    "source_ids": [
+      "goethe_a1_1"
+    ],
+    "exercises": [
+      {
+        "id": "origin-1",
+        "type": "single_choice",
+        "prompt_es_mx": "Eres de México. Completa la presentación: Ich komme ___ Mexiko.",
+        "options": [
+          "in",
+          "aus",
+          "nach"
+        ],
+        "correct": "aus",
+        "feedback_es_mx": "Para el origen: kommen aus."
+      },
+      {
+        "id": "origin-2",
+        "type": "single_choice",
+        "prompt_es_mx": "Tu casa está en Leipzig. Completa: Ich wohne ___ Leipzig.",
+        "options": [
+          "aus",
+          "nach",
+          "in"
+        ],
+        "correct": "in",
+        "feedback_es_mx": "Para el lugar donde vives: wohnen in."
+      }
+    ],
+    "accepted_free_responses_if_added": [
+      "Ich wohne in Puebla.",
+      "In Puebla."
+    ],
+    "deduplication": "Neu gegenüber den acht öffentlich ausgelesenen Items; nicht identisch mit nach Deutschland (Reiseziel).",
+    "status": "approved_for_pilot",
+    "source": "https://lernen.goethe.de/deutschonline/A1/PDF/EN/A1_deutschonline_course_vocabulary_1.pdf",
+    "level_basis": "Didaktische Einordnung anhand der angegebenen Primärmaterialien; kein empirisches Lernendenfehler-Ranking.",
+    "context_required": true,
+    "id": "ERR-A1-005",
+    "sourceStatus": "pedagogical_review",
+    "package_id": "vive-fehlertrainer-candidates-20261005",
+    "package_sha256": "dc8508cb8e448cdb6596a656c8013e6b0b01be3cc08e5bdeb2707f484d39cad7",
+    "sources": [
+      {
+        "title": "Goethe-Institut: Deutsch Online A1, Glossary Chapter 1",
+        "url": "https://lernen.goethe.de/deutschonline/A1/PDF/EN/A1_deutschonline_course_vocabulary_1.pdf",
+        "location": "PDF S. 3–6; heißen, woher/kommen/aus, wo/wohnen/in und höfliche Anrede",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "A1-Zuordnung und standardsprachliche Vorstellungsmuster; kein Fehlerhäufigkeitsbeleg"
+      }
+    ],
+    "note_es_mx": "",
+    "kind": "card"
+  },
+  {
+    "id": "ERR-A1-005-EX1",
+    "type": "single_choice",
+    "prompt_es_mx": "Eres de México. Completa la presentación: Ich komme ___ Mexiko.",
+    "options": [
+      "in",
+      "aus",
+      "nach"
+    ],
+    "correct": "aus",
+    "feedback_es_mx": "Para el origen: kommen aus.",
+    "source_exercise_id": "origin-1",
+    "parent_id": "ERR-A1-005",
+    "candidate_id": "CAND-20261005-A1-ORIGIN-RESIDENCE",
+    "status": "approved_for_pilot",
+    "sourceStatus": "pedagogical_review",
+    "level": "A1",
+    "topic": "Herkunft und Wohnort",
+    "kind": "practice",
+    "wrong": "Eres de México. Completa la presentación: Ich komme ___ Mexiko.",
+    "context_es_mx": "Eres de México. Completa la presentación: Ich komme ___ Mexiko.",
+    "explanation": "Para el origen: kommen aus.",
+    "sources": [
+      {
+        "title": "Goethe-Institut: Deutsch Online A1, Glossary Chapter 1",
+        "url": "https://lernen.goethe.de/deutschonline/A1/PDF/EN/A1_deutschonline_course_vocabulary_1.pdf",
+        "location": "PDF S. 3–6; heißen, woher/kommen/aus, wo/wohnen/in und höfliche Anrede",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "A1-Zuordnung und standardsprachliche Vorstellungsmuster; kein Fehlerhäufigkeitsbeleg"
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "",
+    "package_id": "vive-fehlertrainer-candidates-20261005",
+    "package_sha256": "dc8508cb8e448cdb6596a656c8013e6b0b01be3cc08e5bdeb2707f484d39cad7"
+  },
+  {
+    "id": "ERR-A1-005-EX2",
+    "type": "single_choice",
+    "prompt_es_mx": "Tu casa está en Leipzig. Completa: Ich wohne ___ Leipzig.",
+    "options": [
+      "aus",
+      "nach",
+      "in"
+    ],
+    "correct": "in",
+    "feedback_es_mx": "Para el lugar donde vives: wohnen in.",
+    "source_exercise_id": "origin-2",
+    "parent_id": "ERR-A1-005",
+    "candidate_id": "CAND-20261005-A1-ORIGIN-RESIDENCE",
+    "status": "approved_for_pilot",
+    "sourceStatus": "pedagogical_review",
+    "level": "A1",
+    "topic": "Herkunft und Wohnort",
+    "kind": "practice",
+    "wrong": "Tu casa está en Leipzig. Completa: Ich wohne ___ Leipzig.",
+    "context_es_mx": "Tu casa está en Leipzig. Completa: Ich wohne ___ Leipzig.",
+    "explanation": "Para el lugar donde vives: wohnen in.",
+    "sources": [
+      {
+        "title": "Goethe-Institut: Deutsch Online A1, Glossary Chapter 1",
+        "url": "https://lernen.goethe.de/deutschonline/A1/PDF/EN/A1_deutschonline_course_vocabulary_1.pdf",
+        "location": "PDF S. 3–6; heißen, woher/kommen/aus, wo/wohnen/in und höfliche Anrede",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "A1-Zuordnung und standardsprachliche Vorstellungsmuster; kein Fehlerhäufigkeitsbeleg"
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "",
+    "package_id": "vive-fehlertrainer-candidates-20261005",
+    "package_sha256": "dc8508cb8e448cdb6596a656c8013e6b0b01be3cc08e5bdeb2707f484d39cad7"
+  },
+  {
+    "candidate_id": "CAND-20261005-A1-DIRECT-W-QUESTION",
+    "level": "A1",
+    "topic": "Direkte W-Fragen",
+    "learning_goal_de": "Eine neutrale direkte Frage nach dem Wohnort mit W-Wort + finitem Verb + Subjekt bilden.",
+    "context_es_mx": "En la recepción de una escuela preguntas por primera vez y de manera directa dónde vive una persona. La tratas de usted.",
+    "wrong": "Wo Sie wohnen?",
+    "correct": "Wo wohnen Sie?",
+    "options": [
+      "Wo Sie wohnen?",
+      "Wo wohnen Sie?",
+      "Wo wohnt Sie?"
+    ],
+    "explanation": "En esta pregunta directa, wo va primero y wohnen va después: Wo wohnen Sie? Aquí Sie significa usted y se combina con wohnen.",
+    "interference_hypothesis_de": "Mögliche Übertragung einer aus dem Spanischen verfügbaren Wortstellung; Diagnosehypothese, keine Häufigkeitsangabe.",
+    "context_and_ambiguity_de": "Nur neutrale direkte Erstfrage bewerten. Wo Sie wohnen kann als eingebetteter Satz oder zitierte Nachfrage vorkommen. Nicht pauschal alle Frageäußerungen mit Aussagesatzstellung als falsch deklarieren. Bei Sie höfliche Anrede explizit festlegen.",
+    "source_ids": [
+      "goethe_a1_1",
+      "ids_questions"
+    ],
+    "exercises": [
+      {
+        "id": "question-1",
+        "type": "single_choice",
+        "prompt_es_mx": "Preguntas por primera vez y de manera directa a una compañera de dónde es. La tratas de tú. Elige la pregunta.",
+        "options": [
+          "Woher du kommst?",
+          "Woher kommst du?",
+          "Woher kommen du?"
+        ],
+        "correct": "Woher kommst du?",
+        "feedback_es_mx": "En la pregunta directa: woher + kommst + du."
+      },
+      {
+        "id": "question-2",
+        "type": "single_choice",
+        "prompt_es_mx": "Preguntas por primera vez el nombre de un participante y lo tratas de usted.",
+        "options": [
+          "Wie heißen Sie?",
+          "Wie Sie heißen?",
+          "Wie heißt Sie?"
+        ],
+        "correct": "Wie heißen Sie?",
+        "feedback_es_mx": "La forma de usted usa heißen; el verbo sigue a wie."
+      }
+    ],
+    "accepted_free_responses_if_added": [
+      "Wo wohnen Sie?"
+    ],
+    "deduplication": "Neues Frage-Lernziel; A1-004 behandelt dagegen V2 im Aussagesatz.",
+    "status": "approved_for_pilot",
+    "source": "https://lernen.goethe.de/deutschonline/A1/PDF/EN/A1_deutschonline_course_vocabulary_1.pdf",
+    "level_basis": "Didaktische Einordnung anhand der angegebenen Primärmaterialien; kein empirisches Lernendenfehler-Ranking.",
+    "context_required": true,
+    "id": "ERR-A1-006",
+    "sourceStatus": "pedagogical_review",
+    "package_id": "vive-fehlertrainer-candidates-20261005",
+    "package_sha256": "dc8508cb8e448cdb6596a656c8013e6b0b01be3cc08e5bdeb2707f484d39cad7",
+    "sources": [
+      {
+        "title": "Goethe-Institut: Deutsch Online A1, Glossary Chapter 1",
+        "url": "https://lernen.goethe.de/deutschonline/A1/PDF/EN/A1_deutschonline_course_vocabulary_1.pdf",
+        "location": "PDF S. 3–6; heißen, woher/kommen/aus, wo/wohnen/in und höfliche Anrede",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "A1-Zuordnung und standardsprachliche Vorstellungsmuster; kein Fehlerhäufigkeitsbeleg"
+      },
+      {
+        "title": "IDS grammis: Frage-Modus",
+        "url": "https://grammis.ids-mannheim.de/terms/view/470",
+        "location": "Erläuterungen und Sonderformen",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "Neutrale Frageformen sowie Abgrenzung von Bestätigungs- und Echofragen"
+      }
+    ],
+    "note_es_mx": "",
+    "kind": "card"
+  },
+  {
+    "id": "ERR-A1-006-EX1",
+    "type": "single_choice",
+    "prompt_es_mx": "Preguntas por primera vez y de manera directa a una compañera de dónde es. La tratas de tú. Elige la pregunta.",
+    "options": [
+      "Woher du kommst?",
+      "Woher kommst du?",
+      "Woher kommen du?"
+    ],
+    "correct": "Woher kommst du?",
+    "feedback_es_mx": "En la pregunta directa: woher + kommst + du.",
+    "source_exercise_id": "question-1",
+    "parent_id": "ERR-A1-006",
+    "candidate_id": "CAND-20261005-A1-DIRECT-W-QUESTION",
+    "status": "approved_for_pilot",
+    "sourceStatus": "pedagogical_review",
+    "level": "A1",
+    "topic": "Direkte W-Fragen",
+    "kind": "practice",
+    "wrong": "Preguntas por primera vez y de manera directa a una compañera de dónde es. La tratas de tú. Elige la pregunta.",
+    "context_es_mx": "Preguntas por primera vez y de manera directa a una compañera de dónde es. La tratas de tú. Elige la pregunta.",
+    "explanation": "En la pregunta directa: woher + kommst + du.",
+    "sources": [
+      {
+        "title": "Goethe-Institut: Deutsch Online A1, Glossary Chapter 1",
+        "url": "https://lernen.goethe.de/deutschonline/A1/PDF/EN/A1_deutschonline_course_vocabulary_1.pdf",
+        "location": "PDF S. 3–6; heißen, woher/kommen/aus, wo/wohnen/in und höfliche Anrede",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "A1-Zuordnung und standardsprachliche Vorstellungsmuster; kein Fehlerhäufigkeitsbeleg"
+      },
+      {
+        "title": "IDS grammis: Frage-Modus",
+        "url": "https://grammis.ids-mannheim.de/terms/view/470",
+        "location": "Erläuterungen und Sonderformen",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "Neutrale Frageformen sowie Abgrenzung von Bestätigungs- und Echofragen"
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "",
+    "package_id": "vive-fehlertrainer-candidates-20261005",
+    "package_sha256": "dc8508cb8e448cdb6596a656c8013e6b0b01be3cc08e5bdeb2707f484d39cad7"
+  },
+  {
+    "id": "ERR-A1-006-EX2",
+    "type": "single_choice",
+    "prompt_es_mx": "Preguntas por primera vez el nombre de un participante y lo tratas de usted.",
+    "options": [
+      "Wie heißen Sie?",
+      "Wie Sie heißen?",
+      "Wie heißt Sie?"
+    ],
+    "correct": "Wie heißen Sie?",
+    "feedback_es_mx": "La forma de usted usa heißen; el verbo sigue a wie.",
+    "source_exercise_id": "question-2",
+    "parent_id": "ERR-A1-006",
+    "candidate_id": "CAND-20261005-A1-DIRECT-W-QUESTION",
+    "status": "approved_for_pilot",
+    "sourceStatus": "pedagogical_review",
+    "level": "A1",
+    "topic": "Direkte W-Fragen",
+    "kind": "practice",
+    "wrong": "Preguntas por primera vez el nombre de un participante y lo tratas de usted.",
+    "context_es_mx": "Preguntas por primera vez el nombre de un participante y lo tratas de usted.",
+    "explanation": "La forma de usted usa heißen; el verbo sigue a wie.",
+    "sources": [
+      {
+        "title": "Goethe-Institut: Deutsch Online A1, Glossary Chapter 1",
+        "url": "https://lernen.goethe.de/deutschonline/A1/PDF/EN/A1_deutschonline_course_vocabulary_1.pdf",
+        "location": "PDF S. 3–6; heißen, woher/kommen/aus, wo/wohnen/in und höfliche Anrede",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "A1-Zuordnung und standardsprachliche Vorstellungsmuster; kein Fehlerhäufigkeitsbeleg"
+      },
+      {
+        "title": "IDS grammis: Frage-Modus",
+        "url": "https://grammis.ids-mannheim.de/terms/view/470",
+        "location": "Erläuterungen und Sonderformen",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "Neutrale Frageformen sowie Abgrenzung von Bestätigungs- und Echofragen"
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "",
+    "package_id": "vive-fehlertrainer-candidates-20261005",
+    "package_sha256": "dc8508cb8e448cdb6596a656c8013e6b0b01be3cc08e5bdeb2707f484d39cad7"
+  },
+  {
+    "candidate_id": "CAND-20261005-A1-REPEAT-MODAL",
+    "level": "A1",
+    "topic": "Um Wiederholung bitten",
+    "learning_goal_de": "Mit Können Sie … bitte + Infinitiv ohne zu höflich um sprachliche Hilfe bitten.",
+    "context_es_mx": "No entendiste una pregunta en la inscripción. Quieres que la persona la repita y la tratas de usted.",
+    "wrong": "Können Sie die Frage bitte zu wiederholen?",
+    "correct": "Können Sie die Frage bitte wiederholen?",
+    "options": [
+      "Können Sie die Frage bitte zu wiederholen?",
+      "Können Sie die Frage bitte wiederholt?",
+      "Können Sie die Frage bitte wiederholen?"
+    ],
+    "explanation": "Después de können, usa el infinitivo sin zu: wiederholen. Para pedir ayuda de forma amable: Können Sie die Frage bitte wiederholen?",
+    "interference_hypothesis_de": "Kein belastbarer spezifischer Spanischtransfer behauptet; zu kann auch eine innersprachliche Übergeneralisierung sein.",
+    "context_and_ambiguity_de": "Andere gültige Bitten wie Wie bitte?, Bitte noch einmal oder Könnten Sie … nicht als falsch werten. Der Fehler ist hier das zusätzliche zu, nicht eine angeblich einzig mögliche Position von bitte. Nominales Nachfeld als Distraktor vermeiden.",
+    "source_ids": [
+      "goethe_a1_2",
+      "ids_modal"
+    ],
+    "exercises": [
+      {
+        "id": "repeat-1",
+        "type": "single_choice",
+        "prompt_es_mx": "No entendiste el apellido. Completa: Können Sie Ihren Namen bitte ___?",
+        "options": [
+          "buchstabieren",
+          "zu buchstabieren",
+          "buchstabiert"
+        ],
+        "correct": "buchstabieren",
+        "feedback_es_mx": "Con können va el infinitivo sin zu."
+      },
+      {
+        "id": "repeat-2",
+        "type": "single_choice",
+        "prompt_es_mx": "La persona habla muy rápido. Completa: Können Sie bitte langsamer ___?",
+        "options": [
+          "zu sprechen",
+          "gesprochen",
+          "sprechen"
+        ],
+        "correct": "sprechen",
+        "feedback_es_mx": "Können Sie bitte langsamer sprechen? es una petición útil."
+      }
+    ],
+    "accepted_free_responses_if_added": [
+      "Können Sie die Frage bitte wiederholen?",
+      "Können Sie bitte die Frage wiederholen?",
+      "Könnten Sie die Frage bitte wiederholen?",
+      "Wie bitte?",
+      "Bitte noch einmal."
+    ],
+    "deduplication": "Neues kommunikatives Lernziel; unterscheidet sich von weil + Modalverb.",
+    "status": "approved_for_pilot",
+    "source": "https://lernen.goethe.de/deutschonline/A1/PDF/EN/A1_deutschonline_course_vocabulary_2.pdf",
+    "level_basis": "Didaktische Einordnung anhand der angegebenen Primärmaterialien; kein empirisches Lernendenfehler-Ranking.",
+    "context_required": true,
+    "id": "ERR-A1-007",
+    "sourceStatus": "pedagogical_review",
+    "package_id": "vive-fehlertrainer-candidates-20261005",
+    "package_sha256": "dc8508cb8e448cdb6596a656c8013e6b0b01be3cc08e5bdeb2707f484d39cad7",
+    "sources": [
+      {
+        "title": "Goethe-Institut: Deutsch Online A1, Glossary Chapter 2",
+        "url": "https://lernen.goethe.de/deutschonline/A1/PDF/EN/A1_deutschonline_course_vocabulary_2.pdf",
+        "location": "PDF S. 6, Sequenz 3",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "A1-Wiederholungs-, Buchstabier- und Verlangsamungsbitten"
+      },
+      {
+        "title": "IDS grammis: Modalverben im Verbalkomplex",
+        "url": "https://grammis.ids-mannheim.de/kontrastive-grammatik/3363",
+        "location": "Merkmale der Modalverben",
+        "verified": "search_full_relevant_excerpt_2026-10-05",
+        "supports": "Modalverben regieren reinen Infinitiv ohne zu"
+      }
+    ],
+    "note_es_mx": "",
+    "kind": "card"
+  },
+  {
+    "id": "ERR-A1-007-EX1",
+    "type": "single_choice",
+    "prompt_es_mx": "No entendiste el apellido. Completa: Können Sie Ihren Namen bitte ___?",
+    "options": [
+      "buchstabieren",
+      "zu buchstabieren",
+      "buchstabiert"
+    ],
+    "correct": "buchstabieren",
+    "feedback_es_mx": "Con können va el infinitivo sin zu.",
+    "source_exercise_id": "repeat-1",
+    "parent_id": "ERR-A1-007",
+    "candidate_id": "CAND-20261005-A1-REPEAT-MODAL",
+    "status": "approved_for_pilot",
+    "sourceStatus": "pedagogical_review",
+    "level": "A1",
+    "topic": "Um Wiederholung bitten",
+    "kind": "practice",
+    "wrong": "No entendiste el apellido. Completa: Können Sie Ihren Namen bitte ___?",
+    "context_es_mx": "No entendiste el apellido. Completa: Können Sie Ihren Namen bitte ___?",
+    "explanation": "Con können va el infinitivo sin zu.",
+    "sources": [
+      {
+        "title": "Goethe-Institut: Deutsch Online A1, Glossary Chapter 2",
+        "url": "https://lernen.goethe.de/deutschonline/A1/PDF/EN/A1_deutschonline_course_vocabulary_2.pdf",
+        "location": "PDF S. 6, Sequenz 3",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "A1-Wiederholungs-, Buchstabier- und Verlangsamungsbitten"
+      },
+      {
+        "title": "IDS grammis: Modalverben im Verbalkomplex",
+        "url": "https://grammis.ids-mannheim.de/kontrastive-grammatik/3363",
+        "location": "Merkmale der Modalverben",
+        "verified": "search_full_relevant_excerpt_2026-10-05",
+        "supports": "Modalverben regieren reinen Infinitiv ohne zu"
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "",
+    "package_id": "vive-fehlertrainer-candidates-20261005",
+    "package_sha256": "dc8508cb8e448cdb6596a656c8013e6b0b01be3cc08e5bdeb2707f484d39cad7"
+  },
+  {
+    "id": "ERR-A1-007-EX2",
+    "type": "single_choice",
+    "prompt_es_mx": "La persona habla muy rápido. Completa: Können Sie bitte langsamer ___?",
+    "options": [
+      "zu sprechen",
+      "gesprochen",
+      "sprechen"
+    ],
+    "correct": "sprechen",
+    "feedback_es_mx": "Können Sie bitte langsamer sprechen? es una petición útil.",
+    "source_exercise_id": "repeat-2",
+    "parent_id": "ERR-A1-007",
+    "candidate_id": "CAND-20261005-A1-REPEAT-MODAL",
+    "status": "approved_for_pilot",
+    "sourceStatus": "pedagogical_review",
+    "level": "A1",
+    "topic": "Um Wiederholung bitten",
+    "kind": "practice",
+    "wrong": "La persona habla muy rápido. Completa: Können Sie bitte langsamer ___?",
+    "context_es_mx": "La persona habla muy rápido. Completa: Können Sie bitte langsamer ___?",
+    "explanation": "Können Sie bitte langsamer sprechen? es una petición útil.",
+    "sources": [
+      {
+        "title": "Goethe-Institut: Deutsch Online A1, Glossary Chapter 2",
+        "url": "https://lernen.goethe.de/deutschonline/A1/PDF/EN/A1_deutschonline_course_vocabulary_2.pdf",
+        "location": "PDF S. 6, Sequenz 3",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "A1-Wiederholungs-, Buchstabier- und Verlangsamungsbitten"
+      },
+      {
+        "title": "IDS grammis: Modalverben im Verbalkomplex",
+        "url": "https://grammis.ids-mannheim.de/kontrastive-grammatik/3363",
+        "location": "Merkmale der Modalverben",
+        "verified": "search_full_relevant_excerpt_2026-10-05",
+        "supports": "Modalverben regieren reinen Infinitiv ohne zu"
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "",
+    "package_id": "vive-fehlertrainer-candidates-20261005",
+    "package_sha256": "dc8508cb8e448cdb6596a656c8013e6b0b01be3cc08e5bdeb2707f484d39cad7"
+  },
+  {
+    "candidate_id": "CAND-20261005-A1-NAME-HEISSEN",
+    "level": "A1",
+    "topic": "Sich mit Namen vorstellen",
+    "learning_goal_de": "Den eigenen Namen mit ich heiße ohne Reflexivpronomen nennen.",
+    "context_es_mx": "Te llamas Elena y te presentas al inicio del curso. Usa el verbo heißen.",
+    "wrong": "Ich heiße mich Elena.",
+    "correct": "Ich heiße Elena.",
+    "options": [
+      "Ich heiße mich Elena.",
+      "Ich heiße Elena.",
+      "Ich heißt Elena."
+    ],
+    "explanation": "Para presentarte con heißen, di Ich heiße Elena. No agregues mich. Aunque en español dices me llamo, esta expresión alemana tiene otra estructura.",
+    "interference_hypothesis_de": "Plausible Übertragung von me llamo auf heißen; ausdrücklich Hypothese, nicht durch Häufigkeitsdaten belegt.",
+    "context_and_ambiguity_de": "Heutige standardsprachliche Namensvorstellung mit heißen, nicht nennen oder sich vorstellen. Ich nenne mich Elena, Ich bin Elena und Mein Name ist Elena sind andere gültige Muster und dürfen nicht pauschal als Fehler gelten.",
+    "source_ids": [
+      "goethe_a1_1"
+    ],
+    "exercises": [
+      {
+        "id": "name-1",
+        "type": "single_choice",
+        "prompt_es_mx": "Te llamas Diego. Elige la presentación con heißen.",
+        "options": [
+          "Ich heiße Diego.",
+          "Ich heiße mich Diego.",
+          "Ich heißen Diego."
+        ],
+        "correct": "Ich heiße Diego.",
+        "feedback_es_mx": "Ich se combina con heiße, sin mich."
+      },
+      {
+        "id": "name-2",
+        "type": "single_choice",
+        "prompt_es_mx": "Presentas a tu compañera: Sie ___ Valeria. Elige la forma de heißen.",
+        "options": [
+          "heiße sich",
+          "heißen",
+          "heißt"
+        ],
+        "correct": "heißt",
+        "feedback_es_mx": "Para sie en singular: Sie heißt Valeria."
+      }
+    ],
+    "accepted_free_responses_if_added": [
+      "Ich heiße Elena."
+    ],
+    "deduplication": "Neues Namensmuster; nicht Alter mit sein.",
+    "status": "approved_for_pilot",
+    "source": "https://lernen.goethe.de/deutschonline/A1/PDF/EN/A1_deutschonline_course_vocabulary_1.pdf",
+    "level_basis": "Didaktische Einordnung anhand der angegebenen Primärmaterialien; kein empirisches Lernendenfehler-Ranking.",
+    "context_required": true,
+    "id": "ERR-A1-008",
+    "sourceStatus": "pedagogical_review",
+    "package_id": "vive-fehlertrainer-candidates-20261005",
+    "package_sha256": "dc8508cb8e448cdb6596a656c8013e6b0b01be3cc08e5bdeb2707f484d39cad7",
+    "sources": [
+      {
+        "title": "Goethe-Institut: Deutsch Online A1, Glossary Chapter 1",
+        "url": "https://lernen.goethe.de/deutschonline/A1/PDF/EN/A1_deutschonline_course_vocabulary_1.pdf",
+        "location": "PDF S. 3–6; heißen, woher/kommen/aus, wo/wohnen/in und höfliche Anrede",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "A1-Zuordnung und standardsprachliche Vorstellungsmuster; kein Fehlerhäufigkeitsbeleg"
+      }
+    ],
+    "note_es_mx": "",
+    "kind": "card"
+  },
+  {
+    "id": "ERR-A1-008-EX1",
+    "type": "single_choice",
+    "prompt_es_mx": "Te llamas Diego. Elige la presentación con heißen.",
+    "options": [
+      "Ich heiße Diego.",
+      "Ich heiße mich Diego.",
+      "Ich heißen Diego."
+    ],
+    "correct": "Ich heiße Diego.",
+    "feedback_es_mx": "Ich se combina con heiße, sin mich.",
+    "source_exercise_id": "name-1",
+    "parent_id": "ERR-A1-008",
+    "candidate_id": "CAND-20261005-A1-NAME-HEISSEN",
+    "status": "approved_for_pilot",
+    "sourceStatus": "pedagogical_review",
+    "level": "A1",
+    "topic": "Sich mit Namen vorstellen",
+    "kind": "practice",
+    "wrong": "Te llamas Diego. Elige la presentación con heißen.",
+    "context_es_mx": "Te llamas Diego. Elige la presentación con heißen.",
+    "explanation": "Ich se combina con heiße, sin mich.",
+    "sources": [
+      {
+        "title": "Goethe-Institut: Deutsch Online A1, Glossary Chapter 1",
+        "url": "https://lernen.goethe.de/deutschonline/A1/PDF/EN/A1_deutschonline_course_vocabulary_1.pdf",
+        "location": "PDF S. 3–6; heißen, woher/kommen/aus, wo/wohnen/in und höfliche Anrede",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "A1-Zuordnung und standardsprachliche Vorstellungsmuster; kein Fehlerhäufigkeitsbeleg"
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "",
+    "package_id": "vive-fehlertrainer-candidates-20261005",
+    "package_sha256": "dc8508cb8e448cdb6596a656c8013e6b0b01be3cc08e5bdeb2707f484d39cad7"
+  },
+  {
+    "id": "ERR-A1-008-EX2",
+    "type": "single_choice",
+    "prompt_es_mx": "Presentas a tu compañera: Sie ___ Valeria. Elige la forma de heißen.",
+    "options": [
+      "heiße sich",
+      "heißen",
+      "heißt"
+    ],
+    "correct": "heißt",
+    "feedback_es_mx": "Para sie en singular: Sie heißt Valeria.",
+    "source_exercise_id": "name-2",
+    "parent_id": "ERR-A1-008",
+    "candidate_id": "CAND-20261005-A1-NAME-HEISSEN",
+    "status": "approved_for_pilot",
+    "sourceStatus": "pedagogical_review",
+    "level": "A1",
+    "topic": "Sich mit Namen vorstellen",
+    "kind": "practice",
+    "wrong": "Presentas a tu compañera: Sie ___ Valeria. Elige la forma de heißen.",
+    "context_es_mx": "Presentas a tu compañera: Sie ___ Valeria. Elige la forma de heißen.",
+    "explanation": "Para sie en singular: Sie heißt Valeria.",
+    "sources": [
+      {
+        "title": "Goethe-Institut: Deutsch Online A1, Glossary Chapter 1",
+        "url": "https://lernen.goethe.de/deutschonline/A1/PDF/EN/A1_deutschonline_course_vocabulary_1.pdf",
+        "location": "PDF S. 3–6; heißen, woher/kommen/aus, wo/wohnen/in und höfliche Anrede",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "A1-Zuordnung und standardsprachliche Vorstellungsmuster; kein Fehlerhäufigkeitsbeleg"
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "",
+    "package_id": "vive-fehlertrainer-candidates-20261005",
+    "package_sha256": "dc8508cb8e448cdb6596a656c8013e6b0b01be3cc08e5bdeb2707f484d39cad7"
+  },
+  {
+    "candidate_id": "CAND-20261005-A2-SEIT-DATIVE",
+    "level": "A2",
+    "topic": "Lerndauer mit seit",
+    "learning_goal_de": "Nach der temporalen Präposition seit den Dativ in Zeitangaben verwenden.",
+    "context_es_mx": "Empezaste a aprender alemán hace un mes y sigues aprendiendo. Hablas de cuánto tiempo llevas.",
+    "wrong": "Ich lerne seit einen Monat Deutsch.",
+    "correct": "Ich lerne seit einem Monat Deutsch.",
+    "options": [
+      "Ich lerne seit einen Monat Deutsch.",
+      "Ich lerne seit einem Monat Deutsch.",
+      "Ich lerne seit ein Monat Deutsch."
+    ],
+    "explanation": "Seit puede expresar desde hace cuando algo sigue ocurriendo. Esta preposición lleva dativo: ein Monat cambia a einem Monat. Aquí dices que empezaste hace un mes y sigues aprendiendo.",
+    "interference_hypothesis_de": "Kasusmarkierung nach Präpositionen kann für Spanischsprachige ungewohnt sein; keine belegte Häufigkeitsrangfolge oder monokausale Transfererklärung.",
+    "context_and_ambiguity_de": "Fortdauerndes Lernen explizit nennen. Keine Regel seit immer mit Präsens lehren: andere Zeitbezüge und Tempora sind möglich. Jahreszahlen und Adverbien wie seit 2024/seit gestern brauchen keinen Artikel. Zweite Übung prüft zusätzlich Dativ-Plural-n.",
+    "source_ids": [
+      "hueber_a2"
+    ],
+    "exercises": [
+      {
+        "id": "seit-1",
+        "type": "single_choice",
+        "prompt_es_mx": "Trabajas aquí desde hace una semana y continúas. Completa: Ich arbeite seit ___ Woche hier.",
+        "options": [
+          "eine",
+          "einer",
+          "einen"
+        ],
+        "correct": "einer",
+        "feedback_es_mx": "Die Woche es femenino: seit einer Woche."
+      },
+      {
+        "id": "seit-2",
+        "type": "single_choice",
+        "prompt_es_mx": "Vives en Bonn desde hace dos meses y sigues ahí. Completa: Ich wohne seit zwei ___ in Bonn.",
+        "options": [
+          "Monate",
+          "Monat",
+          "Monaten"
+        ],
+        "correct": "Monaten",
+        "feedback_es_mx": "Después de seit va dativo: seit zwei Monaten. En dativo plural, Monate lleva una -n adicional."
+      }
+    ],
+    "accepted_free_responses_if_added": [
+      "Ich lerne seit einem Monat Deutsch.",
+      "Seit einem Monat lerne ich Deutsch."
+    ],
+    "deduplication": "Neu; ersetzt verworfenen warten-auf-Kandidaten, der ERR-B1-002 duplizieren würde.",
+    "status": "approved_for_pilot",
+    "source": "https://edit.hueber.de/media/36/msn_a2-grammatik-uebersicht.pdf",
+    "level_basis": "Didaktische Einordnung anhand der angegebenen Primärmaterialien; kein empirisches Lernendenfehler-Ranking.",
+    "context_required": true,
+    "id": "ERR-A2-003",
+    "sourceStatus": "pedagogical_review",
+    "package_id": "vive-fehlertrainer-candidates-20261005",
+    "package_sha256": "dc8508cb8e448cdb6596a656c8013e6b0b01be3cc08e5bdeb2707f484d39cad7",
+    "sources": [
+      {
+        "title": "Hueber: Menschen A2 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/msn_a2-grammatik-uebersicht.pdf",
+        "location": "PDF S. 4: temporale Präpositionen L06; S. 6: indirekte Fragen L16",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "seit + Dativ als A2-Inhalt; indirekte Fragen bereits A2, daher B1 hier Festigung, kein exklusiver B1-Erwerbsbeginn"
+      }
+    ],
+    "note_es_mx": "",
+    "kind": "card"
+  },
+  {
+    "id": "ERR-A2-003-EX1",
+    "type": "single_choice",
+    "prompt_es_mx": "Trabajas aquí desde hace una semana y continúas. Completa: Ich arbeite seit ___ Woche hier.",
+    "options": [
+      "eine",
+      "einer",
+      "einen"
+    ],
+    "correct": "einer",
+    "feedback_es_mx": "Die Woche es femenino: seit einer Woche.",
+    "source_exercise_id": "seit-1",
+    "parent_id": "ERR-A2-003",
+    "candidate_id": "CAND-20261005-A2-SEIT-DATIVE",
+    "status": "approved_for_pilot",
+    "sourceStatus": "pedagogical_review",
+    "level": "A2",
+    "topic": "Lerndauer mit seit",
+    "kind": "practice",
+    "wrong": "Trabajas aquí desde hace una semana y continúas. Completa: Ich arbeite seit ___ Woche hier.",
+    "context_es_mx": "Trabajas aquí desde hace una semana y continúas. Completa: Ich arbeite seit ___ Woche hier.",
+    "explanation": "Die Woche es femenino: seit einer Woche.",
+    "sources": [
+      {
+        "title": "Hueber: Menschen A2 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/msn_a2-grammatik-uebersicht.pdf",
+        "location": "PDF S. 4: temporale Präpositionen L06; S. 6: indirekte Fragen L16",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "seit + Dativ als A2-Inhalt; indirekte Fragen bereits A2, daher B1 hier Festigung, kein exklusiver B1-Erwerbsbeginn"
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "",
+    "package_id": "vive-fehlertrainer-candidates-20261005",
+    "package_sha256": "dc8508cb8e448cdb6596a656c8013e6b0b01be3cc08e5bdeb2707f484d39cad7"
+  },
+  {
+    "id": "ERR-A2-003-EX2",
+    "type": "single_choice",
+    "prompt_es_mx": "Vives en Bonn desde hace dos meses y sigues ahí. Completa: Ich wohne seit zwei ___ in Bonn.",
+    "options": [
+      "Monate",
+      "Monat",
+      "Monaten"
+    ],
+    "correct": "Monaten",
+    "feedback_es_mx": "Después de seit va dativo: seit zwei Monaten. En dativo plural, Monate lleva una -n adicional.",
+    "source_exercise_id": "seit-2",
+    "parent_id": "ERR-A2-003",
+    "candidate_id": "CAND-20261005-A2-SEIT-DATIVE",
+    "status": "approved_for_pilot",
+    "sourceStatus": "pedagogical_review",
+    "level": "A2",
+    "topic": "Lerndauer mit seit",
+    "kind": "practice",
+    "wrong": "Vives en Bonn desde hace dos meses y sigues ahí. Completa: Ich wohne seit zwei ___ in Bonn.",
+    "context_es_mx": "Vives en Bonn desde hace dos meses y sigues ahí. Completa: Ich wohne seit zwei ___ in Bonn.",
+    "explanation": "Después de seit va dativo: seit zwei Monaten. En dativo plural, Monate lleva una -n adicional.",
+    "sources": [
+      {
+        "title": "Hueber: Menschen A2 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/msn_a2-grammatik-uebersicht.pdf",
+        "location": "PDF S. 4: temporale Präpositionen L06; S. 6: indirekte Fragen L16",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "seit + Dativ als A2-Inhalt; indirekte Fragen bereits A2, daher B1 hier Festigung, kein exklusiver B1-Erwerbsbeginn"
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "",
+    "package_id": "vive-fehlertrainer-candidates-20261005",
+    "package_sha256": "dc8508cb8e448cdb6596a656c8013e6b0b01be3cc08e5bdeb2707f484d39cad7"
+  },
+  {
+    "candidate_id": "CAND-20261005-B1-INDIRECT-QUESTION",
+    "level": "B1",
+    "level_note_de": "Festigung auf B1; Strukturen werden z. B. in Menschen bereits A2/L16 eingeführt. GER schreibt keine exklusive Grammatikprogression vor.",
+    "topic": "Indirekt nach Kursinformationen fragen",
+    "learning_goal_de": "Eine Orts- oder Zeitfrage in Können Sie mir sagen … einbetten und das finite Verb an das Nebensatzende setzen.",
+    "context_es_mx": "Preguntas en la recepción dónde se realiza el curso. Une la pregunta con Können Sie mir sagen en una sola oración.",
+    "wrong": "Können Sie mir sagen, wo findet der Kurs statt?",
+    "correct": "Können Sie mir sagen, wo der Kurs stattfindet?",
+    "options": [
+      "Können Sie mir sagen, wo findet der Kurs statt?",
+      "Können Sie mir sagen, wo der Kurs stattfindet?",
+      "Können Sie mir sagen, wo der Kurs findet statt?"
+    ],
+    "explanation": "Si integras la pregunta después de Können Sie mir sagen, el verbo va al final de esa parte: wo der Kurs stattfindet. En este caso, statt y findet se escriben juntos.",
+    "interference_hypothesis_de": "Mögliche Übernahme der direkten Frageform oder einer spanischen Reihenfolge; keine gesicherte Fehlerursache behauptet.",
+    "context_and_ambiguity_de": "Explizit eine integrierte indirekte Frage verlangen. Können Sie mir sagen: Wo findet der Kurs statt? kann als Einleitung plus separate direkte Frage funktionieren; nicht mit Doppelpunkt/Anführungszeichen als falsche Alternative anbieten. Bei Kursort keinen tatsächlichen Standort erfinden.",
+    "source_ids": [
+      "ids_subordinate",
+      "hueber_a2",
+      "hueber_b1"
+    ],
+    "exercises": [
+      {
+        "id": "indirect-1",
+        "type": "single_choice",
+        "prompt_es_mx": "Integra la pregunta sobre el horario: Wissen Sie, ___?",
+        "options": [
+          "wann beginnt der Kurs",
+          "wann der Kurs beginnt",
+          "wann der Kurs beginnen"
+        ],
+        "correct": "wann der Kurs beginnt",
+        "feedback_es_mx": "En la pregunta integrada, beginnt va al final."
+      },
+      {
+        "id": "indirect-2",
+        "type": "single_choice",
+        "prompt_es_mx": "Integra la pregunta sobre el lugar: Können Sie mir sagen, ___?",
+        "options": [
+          "wo ist der Unterrichtsraum",
+          "wo der Unterrichtsraum sein",
+          "wo der Unterrichtsraum ist"
+        ],
+        "correct": "wo der Unterrichtsraum ist",
+        "feedback_es_mx": "El verbo ist va al final de la parte que empieza con wo."
+      }
+    ],
+    "accepted_free_responses_if_added": [
+      "Können Sie mir sagen, wo der Kurs stattfindet?",
+      "Könnten Sie mir sagen, wo der Kurs stattfindet?"
+    ],
+    "deduplication": "Neues indirektes Frage-Lernziel; Nähe zu ERR-B1-001 (weil) allein ist kein Duplikat.",
+    "status": "approved_for_pilot",
+    "source": "https://grammis.ids-mannheim.de/sgt/2256",
+    "level_basis": "Didaktische Einordnung anhand der angegebenen Primärmaterialien; kein empirisches Lernendenfehler-Ranking.",
+    "context_required": true,
+    "id": "ERR-B1-003",
+    "sourceStatus": "pedagogical_review",
+    "package_id": "vive-fehlertrainer-candidates-20261005",
+    "package_sha256": "dc8508cb8e448cdb6596a656c8013e6b0b01be3cc08e5bdeb2707f484d39cad7",
+    "sources": [
+      {
+        "title": "IDS grammis: Nebensatz",
+        "url": "https://grammis.ids-mannheim.de/sgt/2256",
+        "location": "Definition, Erläuterungen und indirekte Fragesätze",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "Eingeleitete finite Nebensätze prototypisch Verbletztstellung; indirekte Fragen als Nebensätze"
+      },
+      {
+        "title": "Hueber: Menschen A2 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/msn_a2-grammatik-uebersicht.pdf",
+        "location": "PDF S. 4: temporale Präpositionen L06; S. 6: indirekte Fragen L16",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "seit + Dativ als A2-Inhalt; indirekte Fragen bereits A2, daher B1 hier Festigung, kein exklusiver B1-Erwerbsbeginn"
+      },
+      {
+        "title": "Hueber: Menschen B1, Unterrichtsplan Lektion 19",
+        "url": "https://edit.hueber.de/media/36/msn-b1-2-unterrichtsplan-L19.pdf",
+        "location": "PDF S. 3: Wiederholung indirekter Fragen aus Menschen A2 Lektion 16",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "Wiederaufnahme indirekter Fragen auf B1; kein exklusiver B1-Erwerbsbeginn"
+      }
+    ],
+    "note_es_mx": "Repaso en B1: estas preguntas también se introducen en A2 (Menschen, lección 16). El MCER no establece una lista exclusiva de gramática por nivel.",
+    "kind": "card"
+  },
+  {
+    "id": "ERR-B1-003-EX1",
+    "type": "single_choice",
+    "prompt_es_mx": "Integra la pregunta sobre el horario: Wissen Sie, ___?",
+    "options": [
+      "wann beginnt der Kurs",
+      "wann der Kurs beginnt",
+      "wann der Kurs beginnen"
+    ],
+    "correct": "wann der Kurs beginnt",
+    "feedback_es_mx": "En la pregunta integrada, beginnt va al final.",
+    "source_exercise_id": "indirect-1",
+    "parent_id": "ERR-B1-003",
+    "candidate_id": "CAND-20261005-B1-INDIRECT-QUESTION",
+    "status": "approved_for_pilot",
+    "sourceStatus": "pedagogical_review",
+    "level": "B1",
+    "topic": "Indirekt nach Kursinformationen fragen",
+    "kind": "practice",
+    "wrong": "Integra la pregunta sobre el horario: Wissen Sie, ___?",
+    "context_es_mx": "Integra la pregunta sobre el horario: Wissen Sie, ___?",
+    "explanation": "En la pregunta integrada, beginnt va al final.",
+    "sources": [
+      {
+        "title": "IDS grammis: Nebensatz",
+        "url": "https://grammis.ids-mannheim.de/sgt/2256",
+        "location": "Definition, Erläuterungen und indirekte Fragesätze",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "Eingeleitete finite Nebensätze prototypisch Verbletztstellung; indirekte Fragen als Nebensätze"
+      },
+      {
+        "title": "Hueber: Menschen A2 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/msn_a2-grammatik-uebersicht.pdf",
+        "location": "PDF S. 4: temporale Präpositionen L06; S. 6: indirekte Fragen L16",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "seit + Dativ als A2-Inhalt; indirekte Fragen bereits A2, daher B1 hier Festigung, kein exklusiver B1-Erwerbsbeginn"
+      },
+      {
+        "title": "Hueber: Menschen B1, Unterrichtsplan Lektion 19",
+        "url": "https://edit.hueber.de/media/36/msn-b1-2-unterrichtsplan-L19.pdf",
+        "location": "PDF S. 3: Wiederholung indirekter Fragen aus Menschen A2 Lektion 16",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "Wiederaufnahme indirekter Fragen auf B1; kein exklusiver B1-Erwerbsbeginn"
+      }
+    ],
+    "note_es_mx": "Repaso en B1: estas preguntas también se introducen en A2 (Menschen, lección 16). El MCER no establece una lista exclusiva de gramática por nivel.",
+    "level_note_de": "Festigung auf B1; Strukturen werden z. B. in Menschen bereits A2/L16 eingeführt. GER schreibt keine exklusive Grammatikprogression vor.",
+    "package_id": "vive-fehlertrainer-candidates-20261005",
+    "package_sha256": "dc8508cb8e448cdb6596a656c8013e6b0b01be3cc08e5bdeb2707f484d39cad7"
+  },
+  {
+    "id": "ERR-B1-003-EX2",
+    "type": "single_choice",
+    "prompt_es_mx": "Integra la pregunta sobre el lugar: Können Sie mir sagen, ___?",
+    "options": [
+      "wo ist der Unterrichtsraum",
+      "wo der Unterrichtsraum sein",
+      "wo der Unterrichtsraum ist"
+    ],
+    "correct": "wo der Unterrichtsraum ist",
+    "feedback_es_mx": "El verbo ist va al final de la parte que empieza con wo.",
+    "source_exercise_id": "indirect-2",
+    "parent_id": "ERR-B1-003",
+    "candidate_id": "CAND-20261005-B1-INDIRECT-QUESTION",
+    "status": "approved_for_pilot",
+    "sourceStatus": "pedagogical_review",
+    "level": "B1",
+    "topic": "Indirekt nach Kursinformationen fragen",
+    "kind": "practice",
+    "wrong": "Integra la pregunta sobre el lugar: Können Sie mir sagen, ___?",
+    "context_es_mx": "Integra la pregunta sobre el lugar: Können Sie mir sagen, ___?",
+    "explanation": "El verbo ist va al final de la parte que empieza con wo.",
+    "sources": [
+      {
+        "title": "IDS grammis: Nebensatz",
+        "url": "https://grammis.ids-mannheim.de/sgt/2256",
+        "location": "Definition, Erläuterungen und indirekte Fragesätze",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "Eingeleitete finite Nebensätze prototypisch Verbletztstellung; indirekte Fragen als Nebensätze"
+      },
+      {
+        "title": "Hueber: Menschen A2 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/msn_a2-grammatik-uebersicht.pdf",
+        "location": "PDF S. 4: temporale Präpositionen L06; S. 6: indirekte Fragen L16",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "seit + Dativ als A2-Inhalt; indirekte Fragen bereits A2, daher B1 hier Festigung, kein exklusiver B1-Erwerbsbeginn"
+      },
+      {
+        "title": "Hueber: Menschen B1, Unterrichtsplan Lektion 19",
+        "url": "https://edit.hueber.de/media/36/msn-b1-2-unterrichtsplan-L19.pdf",
+        "location": "PDF S. 3: Wiederholung indirekter Fragen aus Menschen A2 Lektion 16",
+        "verified": "full_text_opened_2026-10-05",
+        "supports": "Wiederaufnahme indirekter Fragen auf B1; kein exklusiver B1-Erwerbsbeginn"
+      }
+    ],
+    "note_es_mx": "Repaso en B1: estas preguntas también se introducen en A2 (Menschen, lección 16). El MCER no establece una lista exclusiva de gramática por nivel.",
+    "level_note_de": "Festigung auf B1; Strukturen werden z. B. in Menschen bereits A2/L16 eingeführt. GER schreibt keine exklusive Grammatikprogression vor.",
+    "package_id": "vive-fehlertrainer-candidates-20261005",
+    "package_sha256": "dc8508cb8e448cdb6596a656c8013e6b0b01be3cc08e5bdeb2707f484d39cad7"
+  },
+  {
+    "candidate_id": "CAND-P2-20261005-A1-NEGATION",
+    "status": "approved_for_pilot",
+    "level": "A1",
+    "topic": "nicht oder kein",
+    "learning_goal_de": "Ein prädikatives Adjektiv mit nicht negieren; kein als negativen Artikel in einer einfachen Nominalgruppe erkennen.",
+    "context_es_mx": "El curso cuesta poco. Quieres decir de forma neutral que no es caro. Te refieres al precio, sin contrastar personas ni nombres.",
+    "wrong": "Der Kurs ist kein teuer.",
+    "correct": "Der Kurs ist nicht teuer.",
+    "options": [
+      "Der Kurs ist kein teuer.",
+      "Der Kurs ist nicht teuer.",
+      "Der Kurs ist keine teuer."
+    ],
+    "explanation": "Teuer es un adjetivo: aquí se niega con nicht. Kein acompaña a un sustantivo, por ejemplo kein Auto. La forma de kein puede cambiar según el sustantivo y su función.",
+    "context_required": true,
+    "context_and_ambiguity_de": "Keine allgemeine Regel jedes Nomen immer mit kein lehren. Bestimmte Nominalgruppen und kontrastives nicht können andere Muster haben. Die Karte prüft ausschließlich nicht vor prädikativem teuer. Zusatzaufgabe 1 verlangt eine neutrale Aussage über fehlenden Autobesitz.",
+    "source_ids": [
+      "ids_negation"
+    ],
+    "source": "https://grammis.ids-mannheim.de/progr%40mm/6859",
+    "exercises": [
+      {
+        "id": "P2-negation-1",
+        "type": "single_choice",
+        "status": "pedagogical_review",
+        "context_es_mx": "No tienes auto. Solo informas de ello, sin hacer una comparación.",
+        "prompt_es_mx": "Completa: Ich habe ___ Auto.",
+        "options": [
+          "kein",
+          "keine",
+          "nein"
+        ],
+        "correct": "kein",
+        "feedback_es_mx": "Das Auto es neutro. En esta oración: Ich habe kein Auto.",
+        "assessment_type": "grammatical_form"
+      },
+      {
+        "id": "P2-negation-2",
+        "type": "single_choice",
+        "status": "pedagogical_review",
+        "context_es_mx": "El salón es pequeño. Quieres decir que no es grande.",
+        "prompt_es_mx": "Completa: Der Raum ist ___ groß.",
+        "options": [
+          "kein",
+          "nicht",
+          "keine"
+        ],
+        "correct": "nicht",
+        "feedback_es_mx": "Groß es un adjetivo usado después de ist: nicht groß.",
+        "assessment_type": "grammatical_form"
+      }
+    ],
+    "level_note_de": "A1-Einstieg; IDS richtet das verwendete Lernmaterial an A1–A2.",
+    "deduplication": "Keines der acht Live- oder sechs Paket-1-Themen übt die Wahl des Negationsmittels.",
+    "interference_hypothesis_de": "Ein möglicher Transfer von spanischem no auf ein einziges deutsches Negationsmuster ist eine didaktische Hypothese, kein belegter Häufigkeitsbefund.",
+    "assessment_type": "grammatical_form",
+    "id": "ERR-A1-009",
+    "sourceStatus": "pedagogical_review",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781",
+    "sources": [
+      {
+        "title": "IDS grammis: Negation",
+        "url": "https://grammis.ids-mannheim.de/progr%40mm/6859",
+        "location": "Abschnitte Negation allgemein: Partikel nicht und Artikel kein; Zielgruppe A1–A2",
+        "supports": "Unterscheidung von nicht und negativem Artikel; Kasus-/Genus-/Numerusformen von kein.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "",
+    "kind": "card"
+  },
+  {
+    "id": "ERR-A1-009-EX1",
+    "type": "single_choice",
+    "status": "approved_for_pilot",
+    "context_es_mx": "No tienes auto. Solo informas de ello, sin hacer una comparación.",
+    "prompt_es_mx": "Completa: Ich habe ___ Auto.",
+    "options": [
+      "kein",
+      "keine",
+      "nein"
+    ],
+    "correct": "kein",
+    "feedback_es_mx": "Das Auto es neutro. En esta oración: Ich habe kein Auto.",
+    "assessment_type": "grammatical_form",
+    "source_exercise_id": "P2-negation-1",
+    "parent_id": "ERR-A1-009",
+    "candidate_id": "CAND-P2-20261005-A1-NEGATION",
+    "sourceStatus": "pedagogical_review",
+    "level": "A1",
+    "topic": "nicht oder kein",
+    "kind": "practice",
+    "wrong": "Completa: Ich habe ___ Auto.",
+    "explanation": "Das Auto es neutro. En esta oración: Ich habe kein Auto.",
+    "sources": [
+      {
+        "title": "IDS grammis: Negation",
+        "url": "https://grammis.ids-mannheim.de/progr%40mm/6859",
+        "location": "Abschnitte Negation allgemein: Partikel nicht und Artikel kein; Zielgruppe A1–A2",
+        "supports": "Unterscheidung von nicht und negativem Artikel; Kasus-/Genus-/Numerusformen von kein.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "A1-Einstieg; IDS richtet das verwendete Lernmaterial an A1–A2.",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781"
+  },
+  {
+    "id": "ERR-A1-009-EX2",
+    "type": "single_choice",
+    "status": "approved_for_pilot",
+    "context_es_mx": "El salón es pequeño. Quieres decir que no es grande.",
+    "prompt_es_mx": "Completa: Der Raum ist ___ groß.",
+    "options": [
+      "kein",
+      "nicht",
+      "keine"
+    ],
+    "correct": "nicht",
+    "feedback_es_mx": "Groß es un adjetivo usado después de ist: nicht groß.",
+    "assessment_type": "grammatical_form",
+    "source_exercise_id": "P2-negation-2",
+    "parent_id": "ERR-A1-009",
+    "candidate_id": "CAND-P2-20261005-A1-NEGATION",
+    "sourceStatus": "pedagogical_review",
+    "level": "A1",
+    "topic": "nicht oder kein",
+    "kind": "practice",
+    "wrong": "Completa: Der Raum ist ___ groß.",
+    "explanation": "Groß es un adjetivo usado después de ist: nicht groß.",
+    "sources": [
+      {
+        "title": "IDS grammis: Negation",
+        "url": "https://grammis.ids-mannheim.de/progr%40mm/6859",
+        "location": "Abschnitte Negation allgemein: Partikel nicht und Artikel kein; Zielgruppe A1–A2",
+        "supports": "Unterscheidung von nicht und negativem Artikel; Kasus-/Genus-/Numerusformen von kein.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "A1-Einstieg; IDS richtet das verwendete Lernmaterial an A1–A2.",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781"
+  },
+  {
+    "candidate_id": "CAND-P2-20261005-A1-TIME-PREPOSITIONS",
+    "status": "approved_for_pilot",
+    "level": "A1",
+    "topic": "Uhrzeit, Wochentag und Monat",
+    "learning_goal_de": "Bei Zeitangaben um vor Uhrzeiten, am vor Wochentagen und im vor Monaten auswählen.",
+    "context_es_mx": "El horario dice que el curso empieza a las 18:00. Hablas de la hora exacta de inicio.",
+    "wrong": "Der Kurs beginnt am 18 Uhr.",
+    "correct": "Der Kurs beginnt um 18 Uhr.",
+    "options": [
+      "Der Kurs beginnt im 18 Uhr.",
+      "Der Kurs beginnt am 18 Uhr.",
+      "Der Kurs beginnt um 18 Uhr."
+    ],
+    "explanation": "Para una hora del reloj usa um: um 18 Uhr. Con un día de la semana usamos am, y con un mes, im. Aprende cada expresión con su tipo de tiempo.",
+    "context_required": true,
+    "context_and_ambiguity_de": "Keine Pauschalregel für alle Zeitwörter: nächste Woche und heute brauchen hier keine Präposition; in der Nacht ist ein anderes Muster. Kalenderangaben sind fiktive Übungsdaten, keine realen Kurstermine.",
+    "source_ids": [
+      "hueber_a1"
+    ],
+    "source": "https://edit.hueber.de/media/36/Menschen-a1-grammatik-uebersicht.pdf",
+    "exercises": [
+      {
+        "id": "P2-time-1",
+        "type": "single_choice",
+        "status": "pedagogical_review",
+        "context_es_mx": "La inscripción será un jueves. El día de la semana ya está fijado.",
+        "prompt_es_mx": "Completa: Die Anmeldung ist ___ Donnerstag.",
+        "options": [
+          "um",
+          "am",
+          "im"
+        ],
+        "correct": "am",
+        "feedback_es_mx": "Con Donnerstag se usa am: am Donnerstag.",
+        "assessment_type": "grammatical_form"
+      },
+      {
+        "id": "P2-time-2",
+        "type": "single_choice",
+        "status": "pedagogical_review",
+        "context_es_mx": "El taller se realizará en noviembre; todavía no mencionas un día concreto.",
+        "prompt_es_mx": "Completa: Der Workshop findet ___ November statt.",
+        "options": [
+          "im",
+          "um",
+          "am"
+        ],
+        "correct": "im",
+        "feedback_es_mx": "Con el mes November se usa im: im November.",
+        "assessment_type": "grammatical_form"
+      }
+    ],
+    "level_note_de": "A1 gemäß Menschen A1 L08/L12.",
+    "deduplication": "Anderes Ziel als seit + Dativ aus Paket 1: Auswahl nach Zeitkategorie, keine Dauer-/Kasusübung.",
+    "interference_hypothesis_de": "Spanische Zeitpräpositionen lassen sich nicht eins zu eins übertragen; das ist ein Vergleich der Muster, keine nachgewiesene Fehlerursache.",
+    "assessment_type": "grammatical_form",
+    "id": "ERR-A1-010",
+    "sourceStatus": "pedagogical_review",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781",
+    "sources": [
+      {
+        "title": "Hueber: Menschen A1 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/Menschen-a1-grammatik-uebersicht.pdf",
+        "location": "PDF S. 1 (Akkusativ L06), S. 3/6 (trennbare Verben L10), S. 4 (Partizip L19), S. 5 (Zeiten L08/12), S. 7 (Vergleiche L22)",
+        "supports": "A1-Progression der genannten Formen; spätere Festigung ist didaktische Einordnung.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "",
+    "kind": "card"
+  },
+  {
+    "id": "ERR-A1-010-EX1",
+    "type": "single_choice",
+    "status": "approved_for_pilot",
+    "context_es_mx": "La inscripción será un jueves. El día de la semana ya está fijado.",
+    "prompt_es_mx": "Completa: Die Anmeldung ist ___ Donnerstag.",
+    "options": [
+      "um",
+      "am",
+      "im"
+    ],
+    "correct": "am",
+    "feedback_es_mx": "Con Donnerstag se usa am: am Donnerstag.",
+    "assessment_type": "grammatical_form",
+    "source_exercise_id": "P2-time-1",
+    "parent_id": "ERR-A1-010",
+    "candidate_id": "CAND-P2-20261005-A1-TIME-PREPOSITIONS",
+    "sourceStatus": "pedagogical_review",
+    "level": "A1",
+    "topic": "Uhrzeit, Wochentag und Monat",
+    "kind": "practice",
+    "wrong": "Completa: Die Anmeldung ist ___ Donnerstag.",
+    "explanation": "Con Donnerstag se usa am: am Donnerstag.",
+    "sources": [
+      {
+        "title": "Hueber: Menschen A1 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/Menschen-a1-grammatik-uebersicht.pdf",
+        "location": "PDF S. 1 (Akkusativ L06), S. 3/6 (trennbare Verben L10), S. 4 (Partizip L19), S. 5 (Zeiten L08/12), S. 7 (Vergleiche L22)",
+        "supports": "A1-Progression der genannten Formen; spätere Festigung ist didaktische Einordnung.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "A1 gemäß Menschen A1 L08/L12.",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781"
+  },
+  {
+    "id": "ERR-A1-010-EX2",
+    "type": "single_choice",
+    "status": "approved_for_pilot",
+    "context_es_mx": "El taller se realizará en noviembre; todavía no mencionas un día concreto.",
+    "prompt_es_mx": "Completa: Der Workshop findet ___ November statt.",
+    "options": [
+      "im",
+      "um",
+      "am"
+    ],
+    "correct": "im",
+    "feedback_es_mx": "Con el mes November se usa im: im November.",
+    "assessment_type": "grammatical_form",
+    "source_exercise_id": "P2-time-2",
+    "parent_id": "ERR-A1-010",
+    "candidate_id": "CAND-P2-20261005-A1-TIME-PREPOSITIONS",
+    "sourceStatus": "pedagogical_review",
+    "level": "A1",
+    "topic": "Uhrzeit, Wochentag und Monat",
+    "kind": "practice",
+    "wrong": "Completa: Der Workshop findet ___ November statt.",
+    "explanation": "Con el mes November se usa im: im November.",
+    "sources": [
+      {
+        "title": "Hueber: Menschen A1 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/Menschen-a1-grammatik-uebersicht.pdf",
+        "location": "PDF S. 1 (Akkusativ L06), S. 3/6 (trennbare Verben L10), S. 4 (Partizip L19), S. 5 (Zeiten L08/12), S. 7 (Vergleiche L22)",
+        "supports": "A1-Progression der genannten Formen; spätere Festigung ist didaktische Einordnung.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "A1 gemäß Menschen A1 L08/L12.",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781"
+  },
+  {
+    "candidate_id": "CAND-P2-20261005-A1-SEPARABLE-PRESENT",
+    "status": "approved_for_pilot",
+    "level": "A1",
+    "topic": "Trennbare Verben im Hauptsatz",
+    "learning_goal_de": "Bei einfachen Präsens-Hauptsätzen trennbare Verbteile auf finite Position und rechte Satzklammer verteilen.",
+    "context_es_mx": "Le dices a una amiga que la llamas hoy por la noche. Es una oración principal en presente, sin können ni otro verbo modal.",
+    "wrong": "Ich anrufe dich heute Abend.",
+    "correct": "Ich rufe dich heute Abend an.",
+    "options": [
+      "Ich anrufe dich heute Abend.",
+      "Ich rufe dich heute Abend an.",
+      "Ich rufen dich heute Abend an."
+    ],
+    "explanation": "Anrufen es separable. En esta oración, rufe cambia según ich y an se coloca al final: Ich rufe dich heute Abend an.",
+    "context_required": true,
+    "context_and_ambiguity_de": "Auf einfache, unmarkierte Hauptsätze ohne Nachtrag begrenzen. Nicht behaupten, dass Verbteile immer getrennt stehen: Infinitiv, Partizip und Nebensatz verhalten sich anders. Keine Nachfeld- oder Reparaturlesart als Normaufgabe zulassen.",
+    "source_ids": [
+      "hueber_a1",
+      "ids_separable"
+    ],
+    "source": "https://edit.hueber.de/media/36/Menschen-a1-grammatik-uebersicht.pdf",
+    "exercises": [
+      {
+        "id": "P2-separable-1",
+        "type": "single_choice",
+        "status": "pedagogical_review",
+        "context_es_mx": "Vas a comprar comida hoy. Usa einkaufen en presente, en una sola oración principal.",
+        "prompt_es_mx": "Elige la oración con einkaufen.",
+        "options": [
+          "Ich einkaufe heute.",
+          "Ich kaufe heute ein.",
+          "Ich kauft heute ein."
+        ],
+        "correct": "Ich kaufe heute ein.",
+        "feedback_es_mx": "Einkaufen se separa: kaufe ... ein.",
+        "assessment_type": "grammatical_form"
+      },
+      {
+        "id": "P2-separable-2",
+        "type": "single_choice",
+        "status": "pedagogical_review",
+        "context_es_mx": "Abres la ventana ahora. Usa aufmachen en una oración principal neutral.",
+        "prompt_es_mx": "Elige la oración.",
+        "options": [
+          "Ich aufmache das Fenster.",
+          "Ich machen das Fenster auf.",
+          "Ich mache das Fenster auf."
+        ],
+        "correct": "Ich mache das Fenster auf.",
+        "feedback_es_mx": "Aufmachen se separa: mache ... auf.",
+        "assessment_type": "grammatical_form"
+      }
+    ],
+    "level_note_de": "A1; Menschen A1 L10.",
+    "deduplication": "Transferverbindung zum Nebensatz stattfindet aus Paket 1, aber eigenständiges Ziel: Trennung im finiten Hauptsatz. Nicht bloß allgemeine V2-Wiederholung.",
+    "interference_hypothesis_de": "Keine empirische spanischspezifische Fehlerursache behauptet. Die Auswahl folgt dem kommunikativen Lernziel, nicht einer Häufigkeitsrangfolge.",
+    "assessment_type": "grammatical_form",
+    "id": "ERR-A1-011",
+    "sourceStatus": "pedagogical_review",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781",
+    "sources": [
+      {
+        "title": "Hueber: Menschen A1 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/Menschen-a1-grammatik-uebersicht.pdf",
+        "location": "PDF S. 1 (Akkusativ L06), S. 3/6 (trennbare Verben L10), S. 4 (Partizip L19), S. 5 (Zeiten L08/12), S. 7 (Vergleiche L22)",
+        "supports": "A1-Progression der genannten Formen; spätere Festigung ist didaktische Einordnung.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      },
+      {
+        "title": "IDS grammis: Affix",
+        "url": "https://grammis.ids-mannheim.de/sgt/2243?termini=term",
+        "location": "Hinweise: Unterschied Präfix und Verbpartikel",
+        "supports": "Trennung von Verbpartikeln beim finiten Verb in Erst-/Zweitstellung; Unterschied zu untrennbaren Präfixen.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "",
+    "kind": "card"
+  },
+  {
+    "id": "ERR-A1-011-EX1",
+    "type": "single_choice",
+    "status": "approved_for_pilot",
+    "context_es_mx": "Vas a comprar comida hoy. Usa einkaufen en presente, en una sola oración principal.",
+    "prompt_es_mx": "Elige la oración con einkaufen.",
+    "options": [
+      "Ich einkaufe heute.",
+      "Ich kaufe heute ein.",
+      "Ich kauft heute ein."
+    ],
+    "correct": "Ich kaufe heute ein.",
+    "feedback_es_mx": "Einkaufen se separa: kaufe ... ein.",
+    "assessment_type": "grammatical_form",
+    "source_exercise_id": "P2-separable-1",
+    "parent_id": "ERR-A1-011",
+    "candidate_id": "CAND-P2-20261005-A1-SEPARABLE-PRESENT",
+    "sourceStatus": "pedagogical_review",
+    "level": "A1",
+    "topic": "Trennbare Verben im Hauptsatz",
+    "kind": "practice",
+    "wrong": "Elige la oración con einkaufen.",
+    "explanation": "Einkaufen se separa: kaufe ... ein.",
+    "sources": [
+      {
+        "title": "Hueber: Menschen A1 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/Menschen-a1-grammatik-uebersicht.pdf",
+        "location": "PDF S. 1 (Akkusativ L06), S. 3/6 (trennbare Verben L10), S. 4 (Partizip L19), S. 5 (Zeiten L08/12), S. 7 (Vergleiche L22)",
+        "supports": "A1-Progression der genannten Formen; spätere Festigung ist didaktische Einordnung.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      },
+      {
+        "title": "IDS grammis: Affix",
+        "url": "https://grammis.ids-mannheim.de/sgt/2243?termini=term",
+        "location": "Hinweise: Unterschied Präfix und Verbpartikel",
+        "supports": "Trennung von Verbpartikeln beim finiten Verb in Erst-/Zweitstellung; Unterschied zu untrennbaren Präfixen.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "A1; Menschen A1 L10.",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781"
+  },
+  {
+    "id": "ERR-A1-011-EX2",
+    "type": "single_choice",
+    "status": "approved_for_pilot",
+    "context_es_mx": "Abres la ventana ahora. Usa aufmachen en una oración principal neutral.",
+    "prompt_es_mx": "Elige la oración.",
+    "options": [
+      "Ich aufmache das Fenster.",
+      "Ich machen das Fenster auf.",
+      "Ich mache das Fenster auf."
+    ],
+    "correct": "Ich mache das Fenster auf.",
+    "feedback_es_mx": "Aufmachen se separa: mache ... auf.",
+    "assessment_type": "grammatical_form",
+    "source_exercise_id": "P2-separable-2",
+    "parent_id": "ERR-A1-011",
+    "candidate_id": "CAND-P2-20261005-A1-SEPARABLE-PRESENT",
+    "sourceStatus": "pedagogical_review",
+    "level": "A1",
+    "topic": "Trennbare Verben im Hauptsatz",
+    "kind": "practice",
+    "wrong": "Elige la oración.",
+    "explanation": "Aufmachen se separa: mache ... auf.",
+    "sources": [
+      {
+        "title": "Hueber: Menschen A1 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/Menschen-a1-grammatik-uebersicht.pdf",
+        "location": "PDF S. 1 (Akkusativ L06), S. 3/6 (trennbare Verben L10), S. 4 (Partizip L19), S. 5 (Zeiten L08/12), S. 7 (Vergleiche L22)",
+        "supports": "A1-Progression der genannten Formen; spätere Festigung ist didaktische Einordnung.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      },
+      {
+        "title": "IDS grammis: Affix",
+        "url": "https://grammis.ids-mannheim.de/sgt/2243?termini=term",
+        "location": "Hinweise: Unterschied Präfix und Verbpartikel",
+        "supports": "Trennung von Verbpartikeln beim finiten Verb in Erst-/Zweitstellung; Unterschied zu untrennbaren Präfixen.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "A1; Menschen A1 L10.",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781"
+  },
+  {
+    "candidate_id": "CAND-P2-20261005-A1-ACCUSATIVE-OBJECT",
+    "status": "approved_for_pilot",
+    "level": "A1",
+    "topic": "Maskulines Akkusativobjekt",
+    "learning_goal_de": "Bei brauchen und suchen einen maskulinen Gegenstand als Akkusativobjekt mit einen/den ausdrücken.",
+    "context_es_mx": "Estás en clase y necesitas una pluma para escribir. Usa Stift, cuyo artículo es der.",
+    "wrong": "Ich brauche ein Stift.",
+    "correct": "Ich brauche einen Stift.",
+    "options": [
+      "Ich brauche einem Stift.",
+      "Ich brauche ein Stift.",
+      "Ich brauche einen Stift."
+    ],
+    "explanation": "Stift es masculino: der Stift. Como objeto de brauchen, va en acusativo: einen Stift. Aprende el artículo junto con la palabra y la construcción del verbo.",
+    "context_required": true,
+    "context_and_ambiguity_de": "Nicht pauschal jedes Objekt als Akkusativ bezeichnen. Gegenstand und Artikel werden sichtbar vorgegeben, damit Genusraten nicht das Lernziel ersetzt. Keine Regel Person=Dativ oder Sache=Akkusativ vermitteln.",
+    "source_ids": [
+      "hueber_a1"
+    ],
+    "source": "https://edit.hueber.de/media/36/Menschen-a1-grammatik-uebersicht.pdf",
+    "exercises": [
+      {
+        "id": "P2-accusative-1",
+        "type": "single_choice",
+        "status": "pedagogical_review",
+        "context_es_mx": "Quieres agendar una cita. Termin es masculino: der Termin.",
+        "prompt_es_mx": "Completa: Ich brauche ___ Termin.",
+        "options": [
+          "ein",
+          "einen",
+          "einem"
+        ],
+        "correct": "einen",
+        "feedback_es_mx": "Brauchen lleva aquí un objeto en acusativo: einen Termin.",
+        "assessment_type": "grammatical_form"
+      },
+      {
+        "id": "P2-accusative-2",
+        "type": "single_choice",
+        "status": "pedagogical_review",
+        "context_es_mx": "Buscas la entrada de un edificio. Eingang es masculino: der Eingang.",
+        "prompt_es_mx": "Completa: Ich suche ___ Eingang.",
+        "options": [
+          "dem",
+          "der",
+          "den"
+        ],
+        "correct": "den",
+        "feedback_es_mx": "Como objeto de suchen: den Eingang.",
+        "assessment_type": "grammatical_form"
+      }
+    ],
+    "level_note_de": "A1; Menschen A1 L06 benennt Akkusativ nach haben, brauchen und suchen.",
+    "deduplication": "Kein Duplikat zu helfen + Dativ oder warten auf + Akkusativ: direktes Objekt ohne Präposition, Artikelwechsel maskulin.",
+    "interference_hypothesis_de": "Der fehlende entsprechende Artikelkasuswechsel im Spanischen kann ein Lernhindernis sein; dies ist eine Hypothese ohne Fehlerhäufigkeitsdaten.",
+    "assessment_type": "grammatical_form",
+    "id": "ERR-A1-012",
+    "sourceStatus": "pedagogical_review",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781",
+    "sources": [
+      {
+        "title": "Hueber: Menschen A1 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/Menschen-a1-grammatik-uebersicht.pdf",
+        "location": "PDF S. 1 (Akkusativ L06), S. 3/6 (trennbare Verben L10), S. 4 (Partizip L19), S. 5 (Zeiten L08/12), S. 7 (Vergleiche L22)",
+        "supports": "A1-Progression der genannten Formen; spätere Festigung ist didaktische Einordnung.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "",
+    "kind": "card"
+  },
+  {
+    "id": "ERR-A1-012-EX1",
+    "type": "single_choice",
+    "status": "approved_for_pilot",
+    "context_es_mx": "Quieres agendar una cita. Termin es masculino: der Termin.",
+    "prompt_es_mx": "Completa: Ich brauche ___ Termin.",
+    "options": [
+      "ein",
+      "einen",
+      "einem"
+    ],
+    "correct": "einen",
+    "feedback_es_mx": "Brauchen lleva aquí un objeto en acusativo: einen Termin.",
+    "assessment_type": "grammatical_form",
+    "source_exercise_id": "P2-accusative-1",
+    "parent_id": "ERR-A1-012",
+    "candidate_id": "CAND-P2-20261005-A1-ACCUSATIVE-OBJECT",
+    "sourceStatus": "pedagogical_review",
+    "level": "A1",
+    "topic": "Maskulines Akkusativobjekt",
+    "kind": "practice",
+    "wrong": "Completa: Ich brauche ___ Termin.",
+    "explanation": "Brauchen lleva aquí un objeto en acusativo: einen Termin.",
+    "sources": [
+      {
+        "title": "Hueber: Menschen A1 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/Menschen-a1-grammatik-uebersicht.pdf",
+        "location": "PDF S. 1 (Akkusativ L06), S. 3/6 (trennbare Verben L10), S. 4 (Partizip L19), S. 5 (Zeiten L08/12), S. 7 (Vergleiche L22)",
+        "supports": "A1-Progression der genannten Formen; spätere Festigung ist didaktische Einordnung.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "A1; Menschen A1 L06 benennt Akkusativ nach haben, brauchen und suchen.",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781"
+  },
+  {
+    "id": "ERR-A1-012-EX2",
+    "type": "single_choice",
+    "status": "approved_for_pilot",
+    "context_es_mx": "Buscas la entrada de un edificio. Eingang es masculino: der Eingang.",
+    "prompt_es_mx": "Completa: Ich suche ___ Eingang.",
+    "options": [
+      "dem",
+      "der",
+      "den"
+    ],
+    "correct": "den",
+    "feedback_es_mx": "Como objeto de suchen: den Eingang.",
+    "assessment_type": "grammatical_form",
+    "source_exercise_id": "P2-accusative-2",
+    "parent_id": "ERR-A1-012",
+    "candidate_id": "CAND-P2-20261005-A1-ACCUSATIVE-OBJECT",
+    "sourceStatus": "pedagogical_review",
+    "level": "A1",
+    "topic": "Maskulines Akkusativobjekt",
+    "kind": "practice",
+    "wrong": "Completa: Ich suche ___ Eingang.",
+    "explanation": "Como objeto de suchen: den Eingang.",
+    "sources": [
+      {
+        "title": "Hueber: Menschen A1 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/Menschen-a1-grammatik-uebersicht.pdf",
+        "location": "PDF S. 1 (Akkusativ L06), S. 3/6 (trennbare Verben L10), S. 4 (Partizip L19), S. 5 (Zeiten L08/12), S. 7 (Vergleiche L22)",
+        "supports": "A1-Progression der genannten Formen; spätere Festigung ist didaktische Einordnung.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "A1; Menschen A1 L06 benennt Akkusativ nach haben, brauchen und suchen.",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781"
+  },
+  {
+    "candidate_id": "CAND-P2-20261005-A2-PARTICIPLE-NO-GE",
+    "status": "approved_for_pilot",
+    "level": "A2",
+    "topic": "Partizip ohne zusätzliches ge-",
+    "learning_goal_de": "Bei schwachen Verben mit untrennbarem be-/ver- das Partizip II ohne zusätzliches ge- bilden.",
+    "context_es_mx": "Ya pagaste una factura. Completa una oración en Perfekt con bezahlen; el auxiliar habe ya está fijado.",
+    "wrong": "Ich habe die Rechnung gebezahlt.",
+    "correct": "Ich habe die Rechnung bezahlt.",
+    "options": [
+      "Ich habe die Rechnung bezahlt.",
+      "Ich habe die Rechnung gebezahlt.",
+      "Ich habe die Rechnung bezahlte."
+    ],
+    "explanation": "Bezahlt es el participio de bezahlen. Con este prefijo inseparable no agregas ge-. Lo mismo pasa en bestellt y verkauft. Aquí solo practicamos la forma del participio; habe ya está dado.",
+    "context_required": true,
+    "context_and_ambiguity_de": "Nur bezahl-/bestell-/verkauf- als schwache, eindeutig untrennbare Verben. Keine Regel alle Verben mit Vorsilbe ohne ge- lehren; trennbare Formen wie eingekauft unterscheiden sich. Auxiliar bleibt in allen Optionen identisch, damit kein Duplikat der alten haben-Aufgabe entsteht.",
+    "source_ids": [
+      "ids_participle",
+      "hueber_a1"
+    ],
+    "source": "https://grammis.ids-mannheim.de/kontrastive-grammatik/3769",
+    "exercises": [
+      {
+        "id": "P2-participle-1",
+        "type": "single_choice",
+        "status": "pedagogical_review",
+        "context_es_mx": "Pediste un libro y quieres contarlo en Perfekt. Usa bestellen.",
+        "prompt_es_mx": "Completa: Ich habe das Buch ___.",
+        "options": [
+          "gebestellt",
+          "bestellen",
+          "bestellt"
+        ],
+        "correct": "bestellt",
+        "feedback_es_mx": "Bestellen forma el participio bestellt, sin ge- adicional.",
+        "assessment_type": "grammatical_form"
+      },
+      {
+        "id": "P2-participle-2",
+        "type": "single_choice",
+        "status": "pedagogical_review",
+        "context_es_mx": "Vendiste tu bicicleta y hablas de la venta terminada. Usa verkaufen.",
+        "prompt_es_mx": "Completa: Ich habe mein Fahrrad ___.",
+        "options": [
+          "verkaufen",
+          "verkauft",
+          "geverkauft"
+        ],
+        "correct": "verkauft",
+        "feedback_es_mx": "Verkaufen forma el participio verkauft, sin ge- adicional.",
+        "assessment_type": "grammatical_form"
+      }
+    ],
+    "level_note_de": "A2-Festigung, kein exklusiver A2-Erwerbsbeginn: Menschen führt untrennbare Partizipien schon A1/L19 ein.",
+    "deduplication": "Eigenständiges morphologisches Lernziel gegenüber ERR-A2-002 lernen/Perfekt mit haben. Das Auxiliar ist unverändert.",
+    "interference_hypothesis_de": "Zusätzliches ge- kann eine innerdeutsche Übergeneralisierung sein; kein spezieller Spanischtransfer wird behauptet.",
+    "assessment_type": "grammatical_form",
+    "id": "ERR-A2-004",
+    "sourceStatus": "pedagogical_review",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781",
+    "sources": [
+      {
+        "title": "IDS grammis: Bildung des Partizips II",
+        "url": "https://grammis.ids-mannheim.de/kontrastive-grammatik/3769",
+        "location": "Abschnitt Partizipialpräfix, Nr. 5; Partizipialsuffix",
+        "supports": "Kein zusätzliches ge- bei Verben mit nicht abtrennbarem Präfix; schwache Partizipien mit -(e)t.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      },
+      {
+        "title": "Hueber: Menschen A1 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/Menschen-a1-grammatik-uebersicht.pdf",
+        "location": "PDF S. 1 (Akkusativ L06), S. 3/6 (trennbare Verben L10), S. 4 (Partizip L19), S. 5 (Zeiten L08/12), S. 7 (Vergleiche L22)",
+        "supports": "A1-Progression der genannten Formen; spätere Festigung ist didaktische Einordnung.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "Repaso en A2 de formas introducidas en A1 (Menschen, lección 19).",
+    "kind": "card"
+  },
+  {
+    "id": "ERR-A2-004-EX1",
+    "type": "single_choice",
+    "status": "approved_for_pilot",
+    "context_es_mx": "Pediste un libro y quieres contarlo en Perfekt. Usa bestellen.",
+    "prompt_es_mx": "Completa: Ich habe das Buch ___.",
+    "options": [
+      "gebestellt",
+      "bestellen",
+      "bestellt"
+    ],
+    "correct": "bestellt",
+    "feedback_es_mx": "Bestellen forma el participio bestellt, sin ge- adicional.",
+    "assessment_type": "grammatical_form",
+    "source_exercise_id": "P2-participle-1",
+    "parent_id": "ERR-A2-004",
+    "candidate_id": "CAND-P2-20261005-A2-PARTICIPLE-NO-GE",
+    "sourceStatus": "pedagogical_review",
+    "level": "A2",
+    "topic": "Partizip ohne zusätzliches ge-",
+    "kind": "practice",
+    "wrong": "Completa: Ich habe das Buch ___.",
+    "explanation": "Bestellen forma el participio bestellt, sin ge- adicional.",
+    "sources": [
+      {
+        "title": "IDS grammis: Bildung des Partizips II",
+        "url": "https://grammis.ids-mannheim.de/kontrastive-grammatik/3769",
+        "location": "Abschnitt Partizipialpräfix, Nr. 5; Partizipialsuffix",
+        "supports": "Kein zusätzliches ge- bei Verben mit nicht abtrennbarem Präfix; schwache Partizipien mit -(e)t.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      },
+      {
+        "title": "Hueber: Menschen A1 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/Menschen-a1-grammatik-uebersicht.pdf",
+        "location": "PDF S. 1 (Akkusativ L06), S. 3/6 (trennbare Verben L10), S. 4 (Partizip L19), S. 5 (Zeiten L08/12), S. 7 (Vergleiche L22)",
+        "supports": "A1-Progression der genannten Formen; spätere Festigung ist didaktische Einordnung.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "Repaso en A2 de formas introducidas en A1 (Menschen, lección 19).",
+    "level_note_de": "A2-Festigung, kein exklusiver A2-Erwerbsbeginn: Menschen führt untrennbare Partizipien schon A1/L19 ein.",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781"
+  },
+  {
+    "id": "ERR-A2-004-EX2",
+    "type": "single_choice",
+    "status": "approved_for_pilot",
+    "context_es_mx": "Vendiste tu bicicleta y hablas de la venta terminada. Usa verkaufen.",
+    "prompt_es_mx": "Completa: Ich habe mein Fahrrad ___.",
+    "options": [
+      "verkaufen",
+      "verkauft",
+      "geverkauft"
+    ],
+    "correct": "verkauft",
+    "feedback_es_mx": "Verkaufen forma el participio verkauft, sin ge- adicional.",
+    "assessment_type": "grammatical_form",
+    "source_exercise_id": "P2-participle-2",
+    "parent_id": "ERR-A2-004",
+    "candidate_id": "CAND-P2-20261005-A2-PARTICIPLE-NO-GE",
+    "sourceStatus": "pedagogical_review",
+    "level": "A2",
+    "topic": "Partizip ohne zusätzliches ge-",
+    "kind": "practice",
+    "wrong": "Completa: Ich habe mein Fahrrad ___.",
+    "explanation": "Verkaufen forma el participio verkauft, sin ge- adicional.",
+    "sources": [
+      {
+        "title": "IDS grammis: Bildung des Partizips II",
+        "url": "https://grammis.ids-mannheim.de/kontrastive-grammatik/3769",
+        "location": "Abschnitt Partizipialpräfix, Nr. 5; Partizipialsuffix",
+        "supports": "Kein zusätzliches ge- bei Verben mit nicht abtrennbarem Präfix; schwache Partizipien mit -(e)t.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      },
+      {
+        "title": "Hueber: Menschen A1 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/Menschen-a1-grammatik-uebersicht.pdf",
+        "location": "PDF S. 1 (Akkusativ L06), S. 3/6 (trennbare Verben L10), S. 4 (Partizip L19), S. 5 (Zeiten L08/12), S. 7 (Vergleiche L22)",
+        "supports": "A1-Progression der genannten Formen; spätere Festigung ist didaktische Einordnung.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "Repaso en A2 de formas introducidas en A1 (Menschen, lección 19).",
+    "level_note_de": "A2-Festigung, kein exklusiver A2-Erwerbsbeginn: Menschen führt untrennbare Partizipien schon A1/L19 ein.",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781"
+  },
+  {
+    "candidate_id": "CAND-P2-20261005-A2-LOCATION-DESTINATION",
+    "status": "approved_for_pilot",
+    "level": "A2",
+    "topic": "Wohin legen, wo liegen",
+    "learning_goal_de": "Bei auf/in den Akkusativ für das Ziel einer Platzierung und den Dativ für eine bestehende Ortsrelation unterscheiden.",
+    "context_es_mx": "Tienes una llave en la mano y la colocas sobre la mesa. La mesa es el destino de la llave. Tisch es masculino: der Tisch.",
+    "wrong": "Ich lege den Schlüssel auf dem Tisch.",
+    "correct": "Ich lege den Schlüssel auf den Tisch.",
+    "options": [
+      "Ich lege den Schlüssel auf dem Tisch.",
+      "Ich lege den Schlüssel auf der Tisch.",
+      "Ich lege den Schlüssel auf den Tisch."
+    ],
+    "explanation": "Aquí describes adónde colocas la llave: auf den Tisch, con acusativo. Si ya está sobre la mesa, describes dónde está: auf dem Tisch, con dativo. La clave es destino o ubicación.",
+    "context_required": true,
+    "context_and_ambiguity_de": "Kontext muss klar machen, dass der Tisch das Platzierungsziel ist, nicht bloß der Ort einer anders gerichteten Handlung. Bewegung allein erzwingt keinen Akkusativ: im Park laufen ist möglich. Nicht auf Präpositionen mit festem Kasus übertragen.",
+    "source_ids": [
+      "hueber_a2",
+      "ids_location"
+    ],
+    "source": "https://edit.hueber.de/media/36/msn_a2-grammatik-uebersicht.pdf",
+    "exercises": [
+      {
+        "id": "P2-location-1",
+        "type": "single_choice",
+        "status": "pedagogical_review",
+        "context_es_mx": "El libro ya está sobre el escritorio y no lo mueves. Schreibtisch es masculino.",
+        "prompt_es_mx": "Completa: Das Buch liegt auf ___ Schreibtisch.",
+        "options": [
+          "den",
+          "dem",
+          "der"
+        ],
+        "correct": "dem",
+        "feedback_es_mx": "La ubicación ya existe: auf dem Schreibtisch, con dativo.",
+        "assessment_type": "grammatical_form"
+      },
+      {
+        "id": "P2-location-2",
+        "type": "single_choice",
+        "status": "pedagogical_review",
+        "context_es_mx": "La bolsa está fuera del clóset y la colocas dentro. Schrank es masculino.",
+        "prompt_es_mx": "Completa: Ich stelle die Tasche in ___ Schrank.",
+        "options": [
+          "dem",
+          "der",
+          "den"
+        ],
+        "correct": "den",
+        "feedback_es_mx": "El interior del clóset es el destino: in den Schrank, con acusativo.",
+        "assessment_type": "grammatical_form"
+      }
+    ],
+    "level_note_de": "A2; Menschen A2 L02.",
+    "deduplication": "Keine Dublette zu nach Deutschland oder aus/in beim Wohnort: Kasuswechsel derselben Wechselpräposition mit expliziter räumlicher Relation.",
+    "interference_hypothesis_de": "Spanisches en kann verschiedene deutsche Orts-/Zielkonstruktionen abdecken. Mögliche Interferenz, nicht empirisch belegte Häufigkeit.",
+    "assessment_type": "grammatical_form",
+    "id": "ERR-A2-005",
+    "sourceStatus": "pedagogical_review",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781",
+    "sources": [
+      {
+        "title": "Hueber: Menschen A2 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/msn_a2-grammatik-uebersicht.pdf",
+        "location": "PDF S. 3 (Wechselpräpositionen L02), S. 5 (wenn L12, als L13)",
+        "supports": "A2-Einordnung von Ziel-/Ortsrelationen und temporalen Nebensätzen.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      },
+      {
+        "title": "IDS grammis: Kontakt, Nähe, Abstand",
+        "url": "https://grammis.ids-mannheim.de/progr%40mm/6740",
+        "location": "Einleitung und räumliche Relationen",
+        "supports": "Dativ für nicht-perspektivische Angaben räumlicher Position; keine vereinfachte Bewegung-gleich-Akkusativ-Regel.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "",
+    "kind": "card"
+  },
+  {
+    "id": "ERR-A2-005-EX1",
+    "type": "single_choice",
+    "status": "approved_for_pilot",
+    "context_es_mx": "El libro ya está sobre el escritorio y no lo mueves. Schreibtisch es masculino.",
+    "prompt_es_mx": "Completa: Das Buch liegt auf ___ Schreibtisch.",
+    "options": [
+      "den",
+      "dem",
+      "der"
+    ],
+    "correct": "dem",
+    "feedback_es_mx": "La ubicación ya existe: auf dem Schreibtisch, con dativo.",
+    "assessment_type": "grammatical_form",
+    "source_exercise_id": "P2-location-1",
+    "parent_id": "ERR-A2-005",
+    "candidate_id": "CAND-P2-20261005-A2-LOCATION-DESTINATION",
+    "sourceStatus": "pedagogical_review",
+    "level": "A2",
+    "topic": "Wohin legen, wo liegen",
+    "kind": "practice",
+    "wrong": "Completa: Das Buch liegt auf ___ Schreibtisch.",
+    "explanation": "La ubicación ya existe: auf dem Schreibtisch, con dativo.",
+    "sources": [
+      {
+        "title": "Hueber: Menschen A2 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/msn_a2-grammatik-uebersicht.pdf",
+        "location": "PDF S. 3 (Wechselpräpositionen L02), S. 5 (wenn L12, als L13)",
+        "supports": "A2-Einordnung von Ziel-/Ortsrelationen und temporalen Nebensätzen.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      },
+      {
+        "title": "IDS grammis: Kontakt, Nähe, Abstand",
+        "url": "https://grammis.ids-mannheim.de/progr%40mm/6740",
+        "location": "Einleitung und räumliche Relationen",
+        "supports": "Dativ für nicht-perspektivische Angaben räumlicher Position; keine vereinfachte Bewegung-gleich-Akkusativ-Regel.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "A2; Menschen A2 L02.",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781"
+  },
+  {
+    "id": "ERR-A2-005-EX2",
+    "type": "single_choice",
+    "status": "approved_for_pilot",
+    "context_es_mx": "La bolsa está fuera del clóset y la colocas dentro. Schrank es masculino.",
+    "prompt_es_mx": "Completa: Ich stelle die Tasche in ___ Schrank.",
+    "options": [
+      "dem",
+      "der",
+      "den"
+    ],
+    "correct": "den",
+    "feedback_es_mx": "El interior del clóset es el destino: in den Schrank, con acusativo.",
+    "assessment_type": "grammatical_form",
+    "source_exercise_id": "P2-location-2",
+    "parent_id": "ERR-A2-005",
+    "candidate_id": "CAND-P2-20261005-A2-LOCATION-DESTINATION",
+    "sourceStatus": "pedagogical_review",
+    "level": "A2",
+    "topic": "Wohin legen, wo liegen",
+    "kind": "practice",
+    "wrong": "Completa: Ich stelle die Tasche in ___ Schrank.",
+    "explanation": "El interior del clóset es el destino: in den Schrank, con acusativo.",
+    "sources": [
+      {
+        "title": "Hueber: Menschen A2 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/msn_a2-grammatik-uebersicht.pdf",
+        "location": "PDF S. 3 (Wechselpräpositionen L02), S. 5 (wenn L12, als L13)",
+        "supports": "A2-Einordnung von Ziel-/Ortsrelationen und temporalen Nebensätzen.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      },
+      {
+        "title": "IDS grammis: Kontakt, Nähe, Abstand",
+        "url": "https://grammis.ids-mannheim.de/progr%40mm/6740",
+        "location": "Einleitung und räumliche Relationen",
+        "supports": "Dativ für nicht-perspektivische Angaben räumlicher Position; keine vereinfachte Bewegung-gleich-Akkusativ-Regel.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "A2; Menschen A2 L02.",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781"
+  },
+  {
+    "candidate_id": "CAND-P2-20261005-A2-COMPARISON",
+    "status": "approved_for_pilot",
+    "level": "A2",
+    "topic": "Vergleiche mit als und wie",
+    "learning_goal_de": "Im geschriebenen Standarddeutsch Ungleichheit mit Komparativ + als und Gleichheit mit genauso + Positiv + wie ausdrücken.",
+    "context_es_mx": "Comparas dos trayectos en un texto de alemán estándar escrito. La ruta A dura 20 minutos y la B, 35. A es más rápida.",
+    "wrong": "Route A ist schneller wie Route B.",
+    "correct": "Route A ist schneller als Route B.",
+    "options": [
+      "Route A ist schneller wie Route B.",
+      "Route A ist schneller als Route B.",
+      "Route A ist schneller als wie Route B."
+    ],
+    "explanation": "En el alemán estándar escrito, un comparativo como schneller se combina con als. Para igualdad usamos, por ejemplo, genauso schnell wie. En algunas regiones sí se oye schneller wie; aquí practicamos la forma estándar.",
+    "context_required": true,
+    "context_and_ambiguity_de": "Registerbindung sichtbar lassen. Größer/schneller wie und als wie sind regional belegt; deshalb keine universelle Ungrammatikalität behaupten. Gleiche Vergleichsdimension in jedem Satz festlegen.",
+    "source_ids": [
+      "ids_comparison",
+      "hueber_a1"
+    ],
+    "source": "https://grammis.ids-mannheim.de/progr%40mm/5276",
+    "exercises": [
+      {
+        "id": "P2-comparison-1",
+        "type": "single_choice",
+        "status": "pedagogical_review",
+        "context_es_mx": "Dos mochilas cuestan lo mismo. Redactas una comparación en alemán estándar escrito.",
+        "prompt_es_mx": "Completa: Der blaue Rucksack ist genauso teuer ___ der rote.",
+        "options": [
+          "als",
+          "wie",
+          "als wie"
+        ],
+        "correct": "wie",
+        "feedback_es_mx": "Genauso teuer expresa igualdad y se combina con wie.",
+        "assessment_type": "standard_written_register"
+      },
+      {
+        "id": "P2-comparison-2",
+        "type": "single_choice",
+        "status": "pedagogical_review",
+        "context_es_mx": "Para el mismo trayecto, el tren tarda 40 minutos y el autobús, 65. Escribes una comparación en alemán estándar.",
+        "prompt_es_mx": "Completa: Der Zug ist schneller ___ der Bus.",
+        "options": [
+          "wie",
+          "als wie",
+          "als"
+        ],
+        "correct": "als",
+        "feedback_es_mx": "Schneller es comparativo: schneller als.",
+        "assessment_type": "standard_written_register"
+      }
+    ],
+    "level_note_de": "A2-Festigung; Menschen führt Vergleiche bereits A1/L22 ein.",
+    "deduplication": "Neues Vergleichsziel. Als in diesem Kandidaten ist nicht das temporale als des nächsten Kandidaten.",
+    "interference_hypothesis_de": "Spanisches más ... que und tan ... como bieten hilfreiche Vergleichsmuster. Keine unbelegte Fehlerursache oder Rangfolge.",
+    "assessment_type": "standard_written_register",
+    "id": "ERR-A2-006",
+    "sourceStatus": "pedagogical_review",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781",
+    "sources": [
+      {
+        "title": "IDS grammis: Adjunktor",
+        "url": "https://grammis.ids-mannheim.de/progr%40mm/5276",
+        "location": "Semantische und funktionale Eigenschaften",
+        "supports": "Standardsprachliches als bei Ungleichheit/Komparativ und wie bei Gleichheit; Registerhinweis auf regionale Varianten.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      },
+      {
+        "title": "Hueber: Menschen A1 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/Menschen-a1-grammatik-uebersicht.pdf",
+        "location": "PDF S. 1 (Akkusativ L06), S. 3/6 (trennbare Verben L10), S. 4 (Partizip L19), S. 5 (Zeiten L08/12), S. 7 (Vergleiche L22)",
+        "supports": "A1-Progression der genannten Formen; spätere Festigung ist didaktische Einordnung.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "Repaso en A2 de comparaciones introducidas en A1 (Menschen, lección 22). Aquí se practica el alemán estándar escrito; existen variantes regionales con wie o als wie.",
+    "kind": "card"
+  },
+  {
+    "id": "ERR-A2-006-EX1",
+    "type": "single_choice",
+    "status": "approved_for_pilot",
+    "context_es_mx": "Dos mochilas cuestan lo mismo. Redactas una comparación en alemán estándar escrito.",
+    "prompt_es_mx": "Completa: Der blaue Rucksack ist genauso teuer ___ der rote.",
+    "options": [
+      "als",
+      "wie",
+      "als wie"
+    ],
+    "correct": "wie",
+    "feedback_es_mx": "Genauso teuer expresa igualdad y se combina con wie.",
+    "assessment_type": "standard_written_register",
+    "source_exercise_id": "P2-comparison-1",
+    "parent_id": "ERR-A2-006",
+    "candidate_id": "CAND-P2-20261005-A2-COMPARISON",
+    "sourceStatus": "pedagogical_review",
+    "level": "A2",
+    "topic": "Vergleiche mit als und wie",
+    "kind": "practice",
+    "wrong": "Completa: Der blaue Rucksack ist genauso teuer ___ der rote.",
+    "explanation": "Genauso teuer expresa igualdad y se combina con wie.",
+    "sources": [
+      {
+        "title": "IDS grammis: Adjunktor",
+        "url": "https://grammis.ids-mannheim.de/progr%40mm/5276",
+        "location": "Semantische und funktionale Eigenschaften",
+        "supports": "Standardsprachliches als bei Ungleichheit/Komparativ und wie bei Gleichheit; Registerhinweis auf regionale Varianten.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      },
+      {
+        "title": "Hueber: Menschen A1 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/Menschen-a1-grammatik-uebersicht.pdf",
+        "location": "PDF S. 1 (Akkusativ L06), S. 3/6 (trennbare Verben L10), S. 4 (Partizip L19), S. 5 (Zeiten L08/12), S. 7 (Vergleiche L22)",
+        "supports": "A1-Progression der genannten Formen; spätere Festigung ist didaktische Einordnung.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "Repaso en A2 de comparaciones introducidas en A1 (Menschen, lección 22). Aquí se practica el alemán estándar escrito; existen variantes regionales con wie o als wie.",
+    "level_note_de": "A2-Festigung; Menschen führt Vergleiche bereits A1/L22 ein.",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781"
+  },
+  {
+    "id": "ERR-A2-006-EX2",
+    "type": "single_choice",
+    "status": "approved_for_pilot",
+    "context_es_mx": "Para el mismo trayecto, el tren tarda 40 minutos y el autobús, 65. Escribes una comparación en alemán estándar.",
+    "prompt_es_mx": "Completa: Der Zug ist schneller ___ der Bus.",
+    "options": [
+      "wie",
+      "als wie",
+      "als"
+    ],
+    "correct": "als",
+    "feedback_es_mx": "Schneller es comparativo: schneller als.",
+    "assessment_type": "standard_written_register",
+    "source_exercise_id": "P2-comparison-2",
+    "parent_id": "ERR-A2-006",
+    "candidate_id": "CAND-P2-20261005-A2-COMPARISON",
+    "sourceStatus": "pedagogical_review",
+    "level": "A2",
+    "topic": "Vergleiche mit als und wie",
+    "kind": "practice",
+    "wrong": "Completa: Der Zug ist schneller ___ der Bus.",
+    "explanation": "Schneller es comparativo: schneller als.",
+    "sources": [
+      {
+        "title": "IDS grammis: Adjunktor",
+        "url": "https://grammis.ids-mannheim.de/progr%40mm/5276",
+        "location": "Semantische und funktionale Eigenschaften",
+        "supports": "Standardsprachliches als bei Ungleichheit/Komparativ und wie bei Gleichheit; Registerhinweis auf regionale Varianten.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      },
+      {
+        "title": "Hueber: Menschen A1 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/Menschen-a1-grammatik-uebersicht.pdf",
+        "location": "PDF S. 1 (Akkusativ L06), S. 3/6 (trennbare Verben L10), S. 4 (Partizip L19), S. 5 (Zeiten L08/12), S. 7 (Vergleiche L22)",
+        "supports": "A1-Progression der genannten Formen; spätere Festigung ist didaktische Einordnung.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "Repaso en A2 de comparaciones introducidas en A1 (Menschen, lección 22). Aquí se practica el alemán estándar escrito; existen variantes regionales con wie o als wie.",
+    "level_note_de": "A2-Festigung; Menschen führt Vergleiche bereits A1/L22 ein.",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781"
+  },
+  {
+    "candidate_id": "CAND-P2-20261005-A2-TEMPORAL-ALS-WENN",
+    "status": "approved_for_pilot",
+    "level": "A2",
+    "topic": "Einmal damals oder jedes Mal",
+    "learning_goal_de": "Für einen bestimmten vergangenen Bezugspunkt als und für wiederkehrende vergangene Situationen wenn auswählen.",
+    "context_es_mx": "Cuentas un hecho real y único: tu llegada a Berlín el 3 de mayo de 2025. Tu hermano te recibió ese día. No planteas una condición ni una suposición.",
+    "wrong": "Wenn ich am 3. Mai 2025 in Berlin ankam, holte mich mein Bruder ab.",
+    "correct": "Als ich am 3. Mai 2025 in Berlin ankam, holte mich mein Bruder ab.",
+    "options": [
+      "Wenn ich am 3. Mai 2025 in Berlin ankam, holte mich mein Bruder ab.",
+      "Als ich am 3. Mai 2025 in Berlin ankam, holte mich mein Bruder ab.",
+      "Wann ich am 3. Mai 2025 in Berlin ankam, holte mich mein Bruder ab."
+    ],
+    "explanation": "Para contar esa llegada única y ya ocurrida, usa als. Si hablas de una situación que se repetía, usa wenn, por ejemplo con jedes Mal. No elijas solo por ver un verbo en pasado: importa cómo se presenta la situación.",
+    "context_required": true,
+    "context_and_ambiguity_de": "Fehler ist kontextuelle Wahl, nicht generelle Ungrammatikalität von wenn + Vergangenheit. Wiederholung im temporalen Nebensatz entscheidend; Als ich Kind war, spielte ich oft draußen bleibt möglich. Nicht behaupten, dass als nur punktuelle Ereignisse bezeichnet: auch ein einmaliger Zeitraum passt.",
+    "source_ids": [
+      "hueber_a2_solutions",
+      "hueber_a2"
+    ],
+    "source": "https://edit.hueber.de/media/36/Menschen_A2_Loesungen_und_Verbliste.pdf",
+    "exercises": [
+      {
+        "id": "P2-temporal-1",
+        "type": "single_choice",
+        "status": "pedagogical_review",
+        "context_es_mx": "Durante el año pasado tenías varias ocasiones de tiempo libre. En cada una practicabas alemán. No hablas de un solo periodo continuo.",
+        "prompt_es_mx": "Completa: Jedes Mal, ___ ich frei hatte, übte ich Deutsch.",
+        "options": [
+          "als",
+          "wann",
+          "wenn"
+        ],
+        "correct": "wenn",
+        "feedback_es_mx": "Jedes Mal describe ocasiones repetidas: wenn ich frei hatte.",
+        "assessment_type": "meaning_in_context"
+      },
+      {
+        "id": "P2-temporal-2",
+        "type": "single_choice",
+        "status": "pedagogical_review",
+        "context_es_mx": "Ayer se produjo una sola llegada de Sofía a tu casa. En ese momento preparaste té. Relatas lo que efectivamente pasó.",
+        "prompt_es_mx": "Completa: ___ Sofía gestern bei mir ankam, kochte ich Tee.",
+        "options": [
+          "Wenn",
+          "Als",
+          "Wann"
+        ],
+        "correct": "Als",
+        "feedback_es_mx": "Hablas de una llegada concreta y ya ocurrida: Als Sofía ... ankam.",
+        "assessment_type": "meaning_in_context"
+      }
+    ],
+    "level_note_de": "A2; Menschen A2 L12/L13 und Lösungen zu L13.",
+    "deduplication": "Neues temporales Bedeutungsziel, keine reine Verbendstellungsvariante der vorhandenen weil-Aufgabe.",
+    "interference_hypothesis_de": "Spanisches cuando kann beide zeitlichen Lesarten tragen; möglicher Transfer wird nur als Hypothese behandelt.",
+    "assessment_type": "meaning_in_context",
+    "id": "ERR-A2-007",
+    "sourceStatus": "pedagogical_review",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781",
+    "sources": [
+      {
+        "title": "Hueber: Menschen A2, Lösungen und Liste unregelmäßiger Verben",
+        "url": "https://edit.hueber.de/media/36/Menschen_A2_Loesungen_und_Verbliste.pdf",
+        "location": "PDF S. 26: Lektion 13, Arbeitsbuch, Aufgaben 3–5; einmal passiert/als, häufig passiert/wenn",
+        "supports": "Primärer Beleg der zeitlichen Kontrastierung im A2-Lehrgang. Keine Aufgaben übernommen.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      },
+      {
+        "title": "Hueber: Menschen A2 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/msn_a2-grammatik-uebersicht.pdf",
+        "location": "PDF S. 3 (Wechselpräpositionen L02), S. 5 (wenn L12, als L13)",
+        "supports": "A2-Einordnung von Ziel-/Ortsrelationen und temporalen Nebensätzen.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "",
+    "kind": "card"
+  },
+  {
+    "id": "ERR-A2-007-EX1",
+    "type": "single_choice",
+    "status": "approved_for_pilot",
+    "context_es_mx": "Durante el año pasado tenías varias ocasiones de tiempo libre. En cada una practicabas alemán. No hablas de un solo periodo continuo.",
+    "prompt_es_mx": "Completa: Jedes Mal, ___ ich frei hatte, übte ich Deutsch.",
+    "options": [
+      "als",
+      "wann",
+      "wenn"
+    ],
+    "correct": "wenn",
+    "feedback_es_mx": "Jedes Mal describe ocasiones repetidas: wenn ich frei hatte.",
+    "assessment_type": "meaning_in_context",
+    "source_exercise_id": "P2-temporal-1",
+    "parent_id": "ERR-A2-007",
+    "candidate_id": "CAND-P2-20261005-A2-TEMPORAL-ALS-WENN",
+    "sourceStatus": "pedagogical_review",
+    "level": "A2",
+    "topic": "Einmal damals oder jedes Mal",
+    "kind": "practice",
+    "wrong": "Completa: Jedes Mal, ___ ich frei hatte, übte ich Deutsch.",
+    "explanation": "Jedes Mal describe ocasiones repetidas: wenn ich frei hatte.",
+    "sources": [
+      {
+        "title": "Hueber: Menschen A2, Lösungen und Liste unregelmäßiger Verben",
+        "url": "https://edit.hueber.de/media/36/Menschen_A2_Loesungen_und_Verbliste.pdf",
+        "location": "PDF S. 26: Lektion 13, Arbeitsbuch, Aufgaben 3–5; einmal passiert/als, häufig passiert/wenn",
+        "supports": "Primärer Beleg der zeitlichen Kontrastierung im A2-Lehrgang. Keine Aufgaben übernommen.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      },
+      {
+        "title": "Hueber: Menschen A2 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/msn_a2-grammatik-uebersicht.pdf",
+        "location": "PDF S. 3 (Wechselpräpositionen L02), S. 5 (wenn L12, als L13)",
+        "supports": "A2-Einordnung von Ziel-/Ortsrelationen und temporalen Nebensätzen.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "A2; Menschen A2 L12/L13 und Lösungen zu L13.",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781"
+  },
+  {
+    "id": "ERR-A2-007-EX2",
+    "type": "single_choice",
+    "status": "approved_for_pilot",
+    "context_es_mx": "Ayer se produjo una sola llegada de Sofía a tu casa. En ese momento preparaste té. Relatas lo que efectivamente pasó.",
+    "prompt_es_mx": "Completa: ___ Sofía gestern bei mir ankam, kochte ich Tee.",
+    "options": [
+      "Wenn",
+      "Als",
+      "Wann"
+    ],
+    "correct": "Als",
+    "feedback_es_mx": "Hablas de una llegada concreta y ya ocurrida: Als Sofía ... ankam.",
+    "assessment_type": "meaning_in_context",
+    "source_exercise_id": "P2-temporal-2",
+    "parent_id": "ERR-A2-007",
+    "candidate_id": "CAND-P2-20261005-A2-TEMPORAL-ALS-WENN",
+    "sourceStatus": "pedagogical_review",
+    "level": "A2",
+    "topic": "Einmal damals oder jedes Mal",
+    "kind": "practice",
+    "wrong": "Completa: ___ Sofía gestern bei mir ankam, kochte ich Tee.",
+    "explanation": "Hablas de una llegada concreta y ya ocurrida: Als Sofía ... ankam.",
+    "sources": [
+      {
+        "title": "Hueber: Menschen A2, Lösungen und Liste unregelmäßiger Verben",
+        "url": "https://edit.hueber.de/media/36/Menschen_A2_Loesungen_und_Verbliste.pdf",
+        "location": "PDF S. 26: Lektion 13, Arbeitsbuch, Aufgaben 3–5; einmal passiert/als, häufig passiert/wenn",
+        "supports": "Primärer Beleg der zeitlichen Kontrastierung im A2-Lehrgang. Keine Aufgaben übernommen.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      },
+      {
+        "title": "Hueber: Menschen A2 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/msn_a2-grammatik-uebersicht.pdf",
+        "location": "PDF S. 3 (Wechselpräpositionen L02), S. 5 (wenn L12, als L13)",
+        "supports": "A2-Einordnung von Ziel-/Ortsrelationen und temporalen Nebensätzen.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "A2; Menschen A2 L12/L13 und Lösungen zu L13.",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781"
+  },
+  {
+    "candidate_id": "CAND-P2-20261005-B1-PURPOSE",
+    "status": "approved_for_pilot",
+    "level": "B1",
+    "topic": "Ein Ziel mit damit ausdrücken",
+    "learning_goal_de": "Bei ausdrücklich verschiedenen Handlungsträgern einen Zweck mit damit + Subjekt + finitem Verb ausdrücken; um ... zu ohne eigenes Subjekt erkennen.",
+    "context_es_mx": "Tú envías un enlace a Lucía. Quieres que ella, no tú, encuentre el formulario. Une ambas ideas en una sola oración que exprese esa intención.",
+    "wrong": "Ich schicke Lucía den Link, um sie das Formular zu finden.",
+    "correct": "Ich schicke Lucía den Link, damit sie das Formular findet.",
+    "options": [
+      "Ich schicke Lucía den Link, um sie das Formular zu finden.",
+      "Ich schicke Lucía den Link, damit sie das Formular findet.",
+      "Ich schicke Lucía den Link, damit sie findet das Formular."
+    ],
+    "explanation": "Tú envías el enlace y quieres que Lucía encuentre el formulario: son personas distintas. Aquí usa damit sie ... findet. La construcción um ... zu no lleva un sujeto propio como sie. El objetivo no garantiza que ella lo logre.",
+    "context_required": true,
+    "context_and_ambiguity_de": "Nur die einfachen aktiven Konstruktionen hier verallgemeinern. Bei gleichem Handlungsträger können damit und um ... zu beide passen; niemals eine davon allein deshalb als falsch anbieten. Kein pauschales Verbot aller komplexeren um-zu-Konstruktionen mit abweichender Kontrolle behaupten. Finalität ist Absicht, nicht Tatsache.",
+    "source_ids": [
+      "hueber_b1",
+      "ids_final"
+    ],
+    "source": "https://edit.hueber.de/media/36/msn-b1-grammatik-uebersicht.pdf",
+    "exercises": [
+      {
+        "id": "P2-purpose-1",
+        "type": "single_choice",
+        "status": "pedagogical_review",
+        "context_es_mx": "Tú abres la puerta. El objetivo es que los participantes puedan entrar. Usa damit; mantén distintos a quien abre y quienes entran.",
+        "prompt_es_mx": "Completa: Ich öffne die Tür, ___.",
+        "options": [
+          "damit die Teilnehmenden hereinkommen können",
+          "um die Teilnehmenden hereinzukommen",
+          "damit können die Teilnehmenden hereinkommen"
+        ],
+        "correct": "damit die Teilnehmenden hereinkommen können",
+        "feedback_es_mx": "Con damit se menciona el sujeto propio die Teilnehmenden; können va al final.",
+        "assessment_type": "grammatical_form"
+      },
+      {
+        "id": "P2-purpose-2",
+        "type": "single_choice",
+        "status": "pedagogical_review",
+        "context_es_mx": "Tú estudias alemán porque quieres entender los avisos por altavoz. Usa expresamente um ... zu y mantén a la misma persona en las dos acciones.",
+        "prompt_es_mx": "Completa: Ich lerne Deutsch, ___.",
+        "options": [
+          "um ich die Ansagen zu verstehen",
+          "um die Ansagen verstehen",
+          "um die Ansagen zu verstehen"
+        ],
+        "correct": "um die Ansagen zu verstehen",
+        "feedback_es_mx": "Um ... zu no lleva ich como sujeto propio: um die Ansagen zu verstehen.",
+        "assessment_type": "grammatical_form"
+      }
+    ],
+    "level_note_de": "B1; Menschen B1 L24.",
+    "deduplication": "Neues Ziel-/Handlungsträger-Lernziel. Nicht identisch mit höflicher Modalbitte ohne zu oder indirekter Frage aus Paket 1.",
+    "interference_hypothesis_de": "Spanisch unterscheidet para + infinitivo und para que + verbo; als Lernbrücke geeignet. Die deutsche Form wird eigenständig erklärt, ohne Fehlerhäufigkeit zu behaupten.",
+    "assessment_type": "grammatical_form",
+    "id": "ERR-B1-004",
+    "sourceStatus": "pedagogical_review",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781",
+    "sources": [
+      {
+        "title": "Hueber: Menschen B1 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/msn-b1-grammatik-uebersicht.pdf",
+        "location": "PDF S. 6, Konjunktionen damit / um ... zu, L24",
+        "supports": "Finale Beziehungen; didaktisches Grundmodell gleicher/verschiedener Handlungsträger.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      },
+      {
+        "title": "IDS grammis: Finalsätze",
+        "url": "https://grammis.ids-mannheim.de/systematische-grammatik/2111",
+        "location": "Finale Verhältnisse und Austausch mit um ... zu",
+        "supports": "Zweck als angestrebtes, nicht garantiert eintretendes Ergebnis; damit und um ... zu.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "",
+    "kind": "card"
+  },
+  {
+    "id": "ERR-B1-004-EX1",
+    "type": "single_choice",
+    "status": "approved_for_pilot",
+    "context_es_mx": "Tú abres la puerta. El objetivo es que los participantes puedan entrar. Usa damit; mantén distintos a quien abre y quienes entran.",
+    "prompt_es_mx": "Completa: Ich öffne die Tür, ___.",
+    "options": [
+      "damit die Teilnehmenden hereinkommen können",
+      "um die Teilnehmenden hereinzukommen",
+      "damit können die Teilnehmenden hereinkommen"
+    ],
+    "correct": "damit die Teilnehmenden hereinkommen können",
+    "feedback_es_mx": "Con damit se menciona el sujeto propio die Teilnehmenden; können va al final.",
+    "assessment_type": "grammatical_form",
+    "source_exercise_id": "P2-purpose-1",
+    "parent_id": "ERR-B1-004",
+    "candidate_id": "CAND-P2-20261005-B1-PURPOSE",
+    "sourceStatus": "pedagogical_review",
+    "level": "B1",
+    "topic": "Ein Ziel mit damit ausdrücken",
+    "kind": "practice",
+    "wrong": "Completa: Ich öffne die Tür, ___.",
+    "explanation": "Con damit se menciona el sujeto propio die Teilnehmenden; können va al final.",
+    "sources": [
+      {
+        "title": "Hueber: Menschen B1 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/msn-b1-grammatik-uebersicht.pdf",
+        "location": "PDF S. 6, Konjunktionen damit / um ... zu, L24",
+        "supports": "Finale Beziehungen; didaktisches Grundmodell gleicher/verschiedener Handlungsträger.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      },
+      {
+        "title": "IDS grammis: Finalsätze",
+        "url": "https://grammis.ids-mannheim.de/systematische-grammatik/2111",
+        "location": "Finale Verhältnisse und Austausch mit um ... zu",
+        "supports": "Zweck als angestrebtes, nicht garantiert eintretendes Ergebnis; damit und um ... zu.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "B1; Menschen B1 L24.",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781"
+  },
+  {
+    "id": "ERR-B1-004-EX2",
+    "type": "single_choice",
+    "status": "approved_for_pilot",
+    "context_es_mx": "Tú estudias alemán porque quieres entender los avisos por altavoz. Usa expresamente um ... zu y mantén a la misma persona en las dos acciones.",
+    "prompt_es_mx": "Completa: Ich lerne Deutsch, ___.",
+    "options": [
+      "um ich die Ansagen zu verstehen",
+      "um die Ansagen verstehen",
+      "um die Ansagen zu verstehen"
+    ],
+    "correct": "um die Ansagen zu verstehen",
+    "feedback_es_mx": "Um ... zu no lleva ich como sujeto propio: um die Ansagen zu verstehen.",
+    "assessment_type": "grammatical_form",
+    "source_exercise_id": "P2-purpose-2",
+    "parent_id": "ERR-B1-004",
+    "candidate_id": "CAND-P2-20261005-B1-PURPOSE",
+    "sourceStatus": "pedagogical_review",
+    "level": "B1",
+    "topic": "Ein Ziel mit damit ausdrücken",
+    "kind": "practice",
+    "wrong": "Completa: Ich lerne Deutsch, ___.",
+    "explanation": "Um ... zu no lleva ich como sujeto propio: um die Ansagen zu verstehen.",
+    "sources": [
+      {
+        "title": "Hueber: Menschen B1 – Grammatikübersicht",
+        "url": "https://edit.hueber.de/media/36/msn-b1-grammatik-uebersicht.pdf",
+        "location": "PDF S. 6, Konjunktionen damit / um ... zu, L24",
+        "supports": "Finale Beziehungen; didaktisches Grundmodell gleicher/verschiedener Handlungsträger.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      },
+      {
+        "title": "IDS grammis: Finalsätze",
+        "url": "https://grammis.ids-mannheim.de/systematische-grammatik/2111",
+        "location": "Finale Verhältnisse und Austausch mit um ... zu",
+        "supports": "Zweck als angestrebtes, nicht garantiert eintretendes Ergebnis; damit und um ... zu.",
+        "verified": "full_text_opened_2026-10-05",
+        "evidence_type": "primary_teaching_or_reference_material",
+        "frequency_evidence": false
+      }
+    ],
+    "note_es_mx": "",
+    "level_note_de": "B1; Menschen B1 L24.",
+    "package_id": "vive-fehlertrainer-paket2-20261005",
+    "package_sha256": "095cabc9ea62c631c146bd447691c2a0a59975b6b68ac8a8bd1f3f9e92409781"
+  }
+]);
+
+        const campaign = window.viveCampaignContext?.() || {};
+        const campaignId = campaign.campaign_id && campaign.campaign_id !== 'none' ? campaign.campaign_id : 'fehlertrainer-organic';
+        const trafficSource = campaign.traffic_source || 'direct';
+        const trafficMedium = campaign.traffic_medium || 'none';
+        const campaignContent = campaign.campaign_content || 'none';
 
         const state = {
             index: 0,
@@ -633,6 +3137,11 @@
         };
 
         const levelFilter = document.getElementById('level-filter');
+        const kindFilter = document.getElementById('exercise-kind');
+        const topicFilter = document.getElementById('topic-filter');
+        for (const topic of [...new Set(exercises.map(e => e.topic))]) {
+            const option = document.createElement('option'); option.value = topic; option.textContent = topic; topicFilter.appendChild(option);
+        }
         const levelTag = document.getElementById('level-tag');
         const topicTag = document.getElementById('topic-tag');
         const wrongSentence = document.getElementById('wrong-sentence');
@@ -663,17 +3172,7 @@
             return result;
         }
 
-        function trackEvent(name, params = {}) {
-            if (typeof window.gtag === 'function') {
-                window.gtag('event', name, {
-                    ...params,
-                    campaign_id: campaignId,
-                    source: trafficSource,
-                    medium: trafficMedium,
-                    content: campaignContent
-                });
-            }
-        }
+        function trackEvent() { /* Trainer answers, progress and learner interactions stay local. */ }
 
         function resultText() {
             const done = state.stats.done;
@@ -710,6 +3209,13 @@
             correctCount.textContent = state.stats.correct;
             accuracy.textContent = state.stats.done ? Math.round((state.stats.correct / state.stats.done) * 100) + '%' : '0%';
             updateGroupCta();
+            updateSessionProgress();
+        }
+
+        function updateSessionProgress() {
+            document.getElementById('session-progress').textContent = session.completed
+                ? 'Sesión terminada: ' + session.correct + '/' + Math.min(3, state.filtered.length) + ' correctas. Puedes seguir practicando o iniciar una nueva sesión.'
+                : 'Sesión de 3: ' + session.answeredIds.size + '/' + Math.min(3, state.filtered.length) + ' respuestas evaluadas. ' + state.filtered.length + ' tareas en este filtro.';
         }
 
         function currentExercise() {
@@ -719,10 +3225,23 @@
         function renderExercise() {
             const exercise = currentExercise();
             state.selected = '';
-            checkAnswerButton.disabled = session.answeredIds.has(exercise.id);
+            state.revealed = false;
+            checkAnswerButton.disabled = !exercise || session.answeredIds.has(exercise.id);
+            if (!exercise) { choices.innerHTML = ''; wrongSentence.textContent = 'No hay tareas con estos filtros.'; for (const id of ['exercise-context','exercise-note','exercise-sources']) document.getElementById(id).textContent = ''; feedback.textContent = 'Prueba otro nivel o tema.'; updateSessionProgress(); return; }
+            document.getElementById('exercise-context').textContent = exercise.context_es_mx || '';
+            document.getElementById('exercise-note').textContent = exercise.note_es_mx || '';
+            document.getElementById('problem-label').textContent = exercise.kind === 'practice' ? 'Ejercicio adicional' : 'Error típico';
+            const sourceNode = document.getElementById('exercise-sources'); sourceNode.innerHTML = '';
+            const sources = exercise.sources || (exercise.source ? [{title:'Fuente gramatical',url:exercise.source}] : []);
+            for (const source of sources) {
+                const a = document.createElement('a'); a.href = source.url; a.textContent = source.title; a.target = '_blank'; a.rel = 'noopener noreferrer';
+                sourceNode.appendChild(a); const location = document.createElement('span'); location.textContent = ' — ' + (source.location || '') + ' '; sourceNode.appendChild(location);
+            }
+            updateSessionProgress();
             levelTag.textContent = exercise.level;
             topicTag.textContent = exercise.topic;
             wrongSentence.textContent = exercise.wrong;
+            wrongSentence.style.color = exercise.kind === 'practice' ? 'var(--text)' : 'var(--red)';
             choices.innerHTML = '';
             feedback.className = 'feedback';
             feedback.textContent = 'Elige la forma correcta. Después verás la explicación corta en español.';
@@ -744,8 +3263,8 @@
 
         function checkAnswer() {
             const exercise = currentExercise();
-            if (session.answeredIds.has(exercise.id)) return;
-            if (!state.selected) {
+            if (!exercise || state.revealed || session.answeredIds.has(exercise.id)) return;
+            if (!exercise.options.includes(state.selected)) {
                 feedback.className = 'feedback bad';
                 feedback.textContent = 'Primero elige una respuesta.';
                 return;
@@ -759,6 +3278,7 @@
                     quiz_size: Math.min(3, state.filtered.length)
                 });
             }
+            if (session.completed) resetSession();
             session.answeredIds.add(exercise.id);
             if (isCorrect) session.correct += 1;
             checkAnswerButton.disabled = true;
@@ -781,6 +3301,7 @@
                 });
             }
 
+            updateSessionProgress();
             feedback.className = isCorrect ? 'feedback good' : 'feedback bad';
             feedback.innerHTML = isCorrect
                 ? '<strong>Correcto:</strong> ' + exercise.correct + '<br>' + exercise.explanation
@@ -789,18 +3310,22 @@
 
         function showExplanation() {
             const exercise = currentExercise();
+            if (!exercise) return;
+            state.revealed = true;
+            checkAnswerButton.disabled = true;
             feedback.className = 'feedback';
             feedback.innerHTML = '<strong>Forma correcta:</strong> ' + exercise.correct + '<br>' + exercise.explanation;
         }
 
         function nextExercise() {
+            if (!state.filtered.length) return;
             state.index = (state.index + 1) % state.filtered.length;
             renderExercise();
         }
 
         function applyFilter() {
             const value = levelFilter.value;
-            state.filtered = exercises.filter(exercise => exercise.status === 'approved_for_pilot' && (value === 'all' || exercise.level === value));
+            state.filtered = exercises.filter(exercise => exercise.status === 'approved_for_pilot' && (value === 'all' || exercise.level === value) && (kindFilter.value === 'all' || (exercise.kind || 'card') === kindFilter.value) && (topicFilter.value === 'all' || exercise.topic === topicFilter.value));
             state.index = 0;
             resetSession();
             renderExercise();
@@ -817,6 +3342,9 @@
         document.getElementById('show-explanation').addEventListener('click', showExplanation);
         document.getElementById('next-exercise').addEventListener('click', nextExercise);
         levelFilter.addEventListener('change', applyFilter);
+        kindFilter.addEventListener('change', applyFilter);
+        topicFilter.addEventListener('change', applyFilter);
+        document.getElementById('restart-session').addEventListener('click', () => { resetSession(); renderExercise(); });
         document.getElementById('reset-progress').addEventListener('click', () => {
             state.stats = { done: 0, correct: 0 };
             resetSession();
