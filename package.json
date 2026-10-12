@@ -13,6 +13,8 @@
     "bridge:ai": "node scripts/codex-bridge-ai.mjs",
     "bridge:codex": "node scripts/codex-bridge-codex.mjs",
     "bridge:service": "node scripts/codex-bridge-service.mjs",
-    "test:bridge": "node scripts/test-codex-bridge.mjs && node scripts/test-codex-bridge-connect.mjs && node scripts/test-codex-bridge-ai.mjs && node scripts/test-codex-bridge-codex.mjs && node scripts/test-codex-bridge-service.mjs"
+    "smoke:bridge-action": "node --use-env-proxy scripts/smoke-codex-bridge-action.mjs",
+    "test:bridge-action": "node scripts/test-codex-bridge-action.mjs",
+    "test:bridge": "node scripts/test-codex-bridge.mjs && node scripts/test-codex-bridge-connect.mjs && node scripts/test-codex-bridge-ai.mjs && node scripts/test-codex-bridge-codex.mjs && node scripts/test-codex-bridge-service.mjs && npm run test:bridge-action"
   }
 }

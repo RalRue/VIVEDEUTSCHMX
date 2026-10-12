@@ -170,12 +170,13 @@ export function createBridgeClient(options, { run = execFileAsync, signal } = {}
     status: () => command('status', ['--json']),
     inbox: (agent, { all = false } = {}) => command('inbox', ['--agent', agent, '--json', ...(all ? ['--all'] : [])]),
     ack: (agent, id) => command('ack', ['--agent', agent, '--id', id]),
-    async send({ from, to, body, replyTo }) {
+    async send({ from, to, body, replyTo, id }) {
       const directory = await fs.mkdtemp(path.join(tmpdir(), 'vive-codex-ai-'));
       const filename = path.join(directory, 'reply.txt');
       try {
         await fs.writeFile(filename, body, { flag: 'wx', mode: 0o600 });
-        return await command('send', ['--from', from, '--to', to, '--reply-to', replyTo, '--file', filename]);
+        return await command('send', ['--from', from, '--to', to, '--reply-to', replyTo, '--file', filename,
+          ...(id === undefined ? [] : ['--id', validateId(id)])]);
       } finally { await fs.rm(directory, { recursive: true, force: true }); }
     },
   };

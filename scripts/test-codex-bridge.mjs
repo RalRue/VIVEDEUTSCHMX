@@ -167,6 +167,20 @@ try {
   assert.equal((await inbox(cloud, 'cloud')).messages.length, 1);
   console.log('PASS: messages, replies and distinct helper inboxes cross two independent checkouts');
 
+  const stableId = '91919191-9191-4191-8191-919191919191';
+  const stableFile = await payload('Stable correlated result.');
+  const stableArgs = ['send', '--from', 'cloud', '--to', 'local', '--reply-to', first.id,
+    '--id', stableId, '--file', stableFile];
+  const stable = await bridge(cloud, ...stableArgs);
+  const stableTip = (await bridge(cloud, 'status', '--json')).tip;
+  const repeated = await bridge(local, ...stableArgs);
+  assert.equal(repeated.id, stableId);
+  assert.deepEqual(repeated.message, stable.message);
+  assert.equal((await bridge(local, 'status', '--json')).tip, stableTip);
+  await fails(local, [...stableArgs.slice(0, -1), await payload('Different result for same ID.')], /collision|overwrite/i);
+  await fails(local, ['send', '--from', 'cloud', '--to', 'local', '--id', '../bad', '--file', stableFile], /UUID/i);
+  console.log('PASS: stable IDs preserve immutable content and timestamp across retries and reject collisions');
+
   const acknowledge = await bridge(cloud, 'ack', '--agent', 'cloud', '--id', first.id);
   assert.equal(acknowledge.acknowledged, true);
   assert.equal(acknowledge.alreadyAcknowledged, false);

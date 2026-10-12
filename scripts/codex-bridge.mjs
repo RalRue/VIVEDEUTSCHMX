@@ -239,8 +239,10 @@ async function makeCommit(snapshot, path, record) {
   return (await git(args, { maxBuffer: 1_024 })).toString('ascii').trim();
 }
 
-function sameMessage(left, right) {
-  return ['schema', 'type', 'id', 'from', 'to', 'createdAt', 'replyTo', 'body'].every(key => left[key] === right[key]);
+function sameMessage(left, right, { stableId = false } = {}) {
+  const fields = ['schema', 'type', 'id', 'from', 'to', 'replyTo', 'body'];
+  if (!stableId) fields.push('createdAt');
+  return fields.every(key => left[key] === right[key]);
 }
 
 async function appendRecord(remote, privateRef, { path, record, check }) {
@@ -323,7 +325,7 @@ function parseArgs(args) {
     }
   }
   const allowed = {
-    send: ['remote', 'from', 'to', 'file', 'reply-to'],
+    send: ['remote', 'from', 'to', 'file', 'reply-to', 'id'],
     inbox: ['remote', 'agent', 'all', 'json'],
     ack: ['remote', 'agent', 'id'],
     status: ['remote', 'json'],
@@ -335,7 +337,7 @@ function parseArgs(args) {
 export function helpText() {
   return `Codex bridge — durable messages in a separate private Git mailbox.\n\n`
     + `Run from your existing project checkout (Node.js 18+ and Git required).\n`
-    + `  node scripts/codex-bridge.mjs send --from NAME --to NAME|all --file PATH [--reply-to UUID]\n`
+    + `  node scripts/codex-bridge.mjs send --from NAME --to NAME|all --file PATH [--reply-to UUID] [--id UUID]\n`
     + `  node scripts/codex-bridge.mjs inbox --agent NAME [--all] [--json]\n`
     + `  node scripts/codex-bridge.mjs ack --agent NAME --id UUID\n`
     + `  node scripts/codex-bridge.mjs status [--json]\n\n`
@@ -370,7 +372,7 @@ export async function main(args = process.argv.slice(2)) {
     const from = validateAgent(options.from);
     const to = validateAgent(options.to, { allowBroadcast: true });
     const replyTo = options['reply-to'] === undefined ? null : validateId(options['reply-to']);
-    message = validateMessage({ schema: SCHEMA, type: 'message', id: randomUUID(), from, to,
+    message = validateMessage({ schema: SCHEMA, type: 'message', id: options.id === undefined ? randomUUID() : validateId(options.id), from, to,
       createdAt: new Date().toISOString(), replyTo, body: await readBody(options.file) });
   } else if (command === 'inbox' || command === 'ack') {
     agent = validateAgent(options.agent);
@@ -397,7 +399,8 @@ export async function main(args = process.argv.slice(2)) {
           check(snapshot) {
             const existing = snapshot.messages.get(message.id);
             if (existing) {
-              if (!sameMessage(existing, message)) throw new Error('Message UUID collision; refusing to overwrite a record.');
+              if (!sameMessage(existing, message, { stableId: options.id !== undefined })) throw new Error('Message UUID collision; refusing to overwrite a record.');
+              message = existing;
               return { alreadyPresent: true };
             }
             if (message.replyTo !== null && !snapshot.messages.has(message.replyTo)) throw new Error('Reply target does not exist in the mailbox.');

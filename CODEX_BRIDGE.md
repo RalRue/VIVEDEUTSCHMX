@@ -14,6 +14,48 @@ Ein Überwachungsprozess kann neue Nachrichten melden, führt deren Inhalt aber
 nicht aus. Cloud-Prozesse überstehen keinen Neustart oder neuen Snapshot; die zu
 GitHub übertragenen Nachrichten bleiben erhalten.
 
+## VIVE’s DOT in ChatGPT anbinden
+
+Der vom Nutzer gewählte Partner ist **VIVE’s DOT als Custom GPT in ChatGPT**.
+Für ihn gilt [DOT_BRIDGE.md](DOT_BRIDGE.md): Die vorhandene Vercel-API erhält
+authentifizierte GPT-Aktionen zum Senden eines Auftrags, Abrufen des zugehörigen
+Ergebnisses und Bestätigen des Empfangs. DOT sendet als `local` an `cloud`; der
+Cloud-Worker antwortet als `cloud` an `local`. Eine lokale Codex-Installation ist
+für DOT nicht erforderlich.
+
+Neue native Ergebnisse haben eine stabil aus Auftrag und Teilnehmern abgeleitete
+UUID. Dadurch kann die API genau eine Ergebnisdatei lesen, unabhängig von der
+Größe der bisherigen Mailbox-Historie. Der Git-Befehl `send --id UUID` ist bei
+identischem Inhalt wiederholbar und bewahrt die ursprüngliche Erstellungszeit;
+geänderte Inhalte unter derselben ID werden abgelehnt.
+
+Die Aktionen benötigen ihre Bereitstellung auf Vercel, sichere Server-Bindungen
+und die Konfiguration im DOT-Editor. Der Quellcode in PR 1 allein verbindet DOT
+noch nicht. Ein ruhender ChatGPT-Chat kann durch diesen Anschluss nicht selbst
+gestartet werden. Die folgenden lokalen CLI-Befehle bleiben für zusätzliche
+Codex-Teilnehmer verfügbar.
+
+### Stand nach Wiederherstellung der Cloud
+
+Der private Git-Zugang wurde nach der Veröffentlichung erneut bestätigt. Die
+frische native Modellprobe ist dagegen **blockiert**, bevor ein Turn beginnt:
+Codex 0.159.2 kann seine `installation_id` unter
+`/run/codex-environment/codex-home` nicht zum Schreiben öffnen (`os error 30`).
+Dies ist ein schreibgeschützter Plattform-Runtime-Pfad, kein nachgewiesener
+Anmelde- oder HTTP-401-Fehler. Unterstützte Overrides für `sqlite_home` und
+`log_dir` wurden geprüft und reichen nicht aus. Die passende offizielle
+CLI-Quelle öffnet die Installationsdatei zwingend mit Lesen und Schreiben;
+ein separater Pfad-Override ist dort nicht vorhanden.
+
+Ein ausführender Cloud-Worker wurde deshalb nach diesem Neustart nicht gestartet.
+Die Plattform muss eine unterstützte beschreibbare CLI-Runtime mit erhaltenem
+sicherem Auth-Binding bereitstellen. Keine Auth-Dateien kopieren, keine
+Readonly-Mounts verändern und keine weiteren unveränderten Login-Versuche
+unternehmen. Der fehlgeschlagene technische Prüflauf bleibt mit seinem Zustand
+erhalten; er wird nicht automatisch wiederholt. Die früher erfolgreichen
+Modell- und Postfachläufe unten betreffen die Cloud **vor** der Veröffentlichung
+und beweisen keine funktionierende Modellinferenz nach diesem Neustart.
+
 ## Verbindung automatisch aktivieren
 
 Die Mailbox lässt sich auf dem **tatsächlichen lokalen Rechner** mit einer
@@ -65,12 +107,12 @@ Lizenzdatei. Der mit Codex verbundenen GitHub App anschließend Zugriff auf dies
 neue Repository geben. Nach diesen Schritten den tatsächlichen Git-Zugang und
 Nachrichtenaustausch prüfen; für dieses Postfach haben beide Prüfungen bestanden.
 
-In der aktuellen Cloud läuft ein einzelner nativer Helfer für `cloud`, der alle
-30 Sekunden direkt adressierte initiale Nachrichten von `local` prüft. Zustand:
-`/workspace/scratch/vive-codex-bridge/cloud.codex.json`. Er verwendet `read-only`
-und höchstens einen Auftrag je Prüflauf. Der Rechner des Nutzers ist dadurch noch
-nicht eingerichtet; bestehende Chats werden nicht fortgesetzt. Cloud-Neustarts
-oder Snapshot-Veröffentlichungen erfordern einen neuen Start dieses Prozesses.
+Vor der Veröffentlichung lief ein einzelner nativer Helfer für `cloud`, der alle
+30 Sekunden direkt adressierte initiale Nachrichten von `local` prüfte. Sein
+Zustand liegt unter `/workspace/scratch/vive-codex-bridge/cloud.codex.json`.
+Er verwendet `read-only` und höchstens einen Auftrag je Prüflauf. Nach dem Neustart
+ist dieser Prozess beendet und seine Inferenz durch den oben beschriebenen
+Runtime-Fehler blockiert. Bestehende Chats werden nicht fortgesetzt.
 
 Der Quellcode wird im Website-Repository über den Branch
 `codex/communication-bridge` und einen Pull Request bereitgestellt. Vor dessen

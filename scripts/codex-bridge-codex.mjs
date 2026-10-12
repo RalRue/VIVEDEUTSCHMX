@@ -10,6 +10,7 @@ import { pathToFileURL } from 'node:url';
 import { DEFAULT_REMOTE, validateAgent, validateId, validateMessage, validateRemote } from './codex-bridge.mjs';
 import { createBridgeClient } from './codex-bridge-ai.mjs';
 import { acquireStateLock, writeJsonAtomic } from './codex-bridge-watch.mjs';
+import { nativeReplyId } from '../lib/codex-bridge-protocol.mjs';
 
 export const CODEX_MARKER = '[codex-bridge-run/v1]';
 export const MAX_TASK_BYTES = 16_384;
@@ -292,7 +293,8 @@ async function processRecord(record, state, options, dependencies) {
   if (record.stage === 'drafted' || record.stage === 'publishing') {
     record.stage = 'publishing'; await save();
     try {
-      const reply = await bridge.send({ from: options.agent, to: record.source.from, body: record.draft, replyTo: record.source.id });
+      const reply = await bridge.send({ from: options.agent, to: record.source.from, body: record.draft, replyTo: record.source.id,
+        id: nativeReplyId(record.source.id, options.agent, record.source.from) });
       record.replyId = validateId(reply?.id); record.stage = 'published'; await save();
     } catch (error) {
       if (error?.messageId) { try { record.replyId = validateId(error.messageId); await save(); } catch {} }

@@ -6,6 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { createCodexRunner, parseCodexArgs, runCodexWorker } from './codex-bridge-codex.mjs';
+import { nativeReplyId } from '../lib/codex-bridge-protocol.mjs';
 
 // A fixture executable handles every Codex invocation, including login checks.
 // The only Git remotes are local temporary bare repositories. No inference or network.
@@ -113,10 +114,11 @@ async function core(cwd, ...args) { return JSON.parse((await command(process.exe
 function actualBridge(cwd) {
   return {
     inbox: (agent, { all = false } = {}) => core(cwd, 'inbox', '--agent', agent, '--json', ...(all ? ['--all'] : [])),
-    async send({ from, to, body, replyTo = null }) {
+    async send({ from, to, body, replyTo = null, id }) {
       const filename = path.join(temporary, `payload-${++payloadNumber}.txt`);
       await writeFile(filename, body);
-      return core(cwd, 'send', '--from', from, '--to', to, '--file', filename, ...(replyTo ? ['--reply-to', replyTo] : []));
+      return core(cwd, 'send', '--from', from, '--to', to, '--file', filename,
+        ...(replyTo ? ['--reply-to', replyTo] : []), ...(id ? ['--id', id] : []));
     },
     ack: (agent, id) => core(cwd, 'ack', '--agent', agent, '--id', id),
     status: () => core(cwd, 'status', '--json'),
@@ -219,6 +221,17 @@ try {
   const initialCloud = await snapshot(cloud);
   const initialWebsiteHeads = await git(local, 'ls-remote', '--heads', 'origin');
 
+  await test('native replies have stable task-specific UUIDs for constant-cost Action lookup', async () => {
+    const taskId = '01234567-89ab-4def-8123-456789abcdef';
+    const replyId = nativeReplyId(taskId, 'cloud', 'local');
+    assert.match(replyId, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    assert.equal(nativeReplyId(taskId, 'cloud', 'local'), replyId);
+    assert.notEqual(nativeReplyId(taskId, 'local', 'cloud'), replyId);
+    assert.notEqual(nativeReplyId('01234567-89ab-4def-8123-456789abcdee', 'cloud', 'local'), replyId);
+    assert.throws(() => nativeReplyId(taskId, 'all', 'local'));
+    assert.throws(() => nativeReplyId('../bad', 'cloud', 'local'));
+  });
+
   await test('authentication checks report readiness without launching inference', async () => {
     const before = (await audit()).filter(event => event.kind === 'exec').length;
     const authenticated = await runner().probe();
@@ -251,6 +264,7 @@ try {
     await assert.rejects(readFile(shellMarker), { code: 'ENOENT' });
     const delivered = await replies(original);
     assert.equal(delivered.length, 1);
+    assert.equal(delivered[0].id, nativeReplyId(original.id, 'arrival-run', 'local'));
     assert.ok(delivered[0].body.startsWith(marker));
     assert.ok(delivered[0].body.includes(codexEnvironment.VIVE_CODEX_TEST_RESULT));
     assert.equal(await acknowledged(original), true);

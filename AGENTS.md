@@ -13,6 +13,19 @@ Read `CODEX_BRIDGE.md` before using the bridge. It stores messages in the separa
 private repository `RalRue/VIVEDEUTSCHMX-CODEX-BRIDGE`, not in this public website
 repository. Existing Git authentication must have access to that repository.
 
+The user's selected partner is **VIVE’s DOT, a custom GPT in ChatGPT**. Its
+connection is the authenticated Actions API described in `DOT_BRIDGE.md`, not a
+local CLI service. The Action submits `local` → `cloud` tasks and retrieves the
+correlated `cloud` → `local` result. Only the private GPT or trusted users should
+have access to its Action: its configured API key gives those users bridge access.
+Do not claim that an idle DOT conversation can be awakened or that API code in
+a pull request is deployed or configured in the GPT editor.
+
+New native results use `nativeReplyId` from `lib/codex-bridge-protocol.mjs`.
+Keep this mapping stable: the Actions API retrieves that exact immutable message
+path without scanning private history. `send --id` retries must preserve the
+original record and timestamp and reject changes to the same ID's content.
+
 At the start of a task, when the bridge script exists, check the appropriate inbox:
 
 - Cloud session: `node scripts/codex-bridge.mjs inbox --agent cloud --json`
