@@ -6,6 +6,17 @@
     "test:placement": "node scripts/test-placement.cjs && node scripts/test-placement-api.mjs && node scripts/test-placement-ui.cjs",
     "test:placement:private": "node scripts/test-placement-receiver.mjs",
     "test:reply-assistant": "node scripts/test-reply-assistant.mjs",
-    "smoke:reply-assistant": "node scripts/smoke-reply-assistant.mjs"
+    "smoke:reply-assistant": "node scripts/smoke-reply-assistant.mjs",
+    "bridge": "node scripts/codex-bridge.mjs",
+    "bridge:connect": "node scripts/codex-bridge-connect.mjs",
+    "bridge:watch": "node scripts/codex-bridge-watch.mjs",
+    "bridge:ai": "node scripts/codex-bridge-ai.mjs",
+    "bridge:codex": "node scripts/codex-bridge-codex.mjs",
+    "bridge:service": "node scripts/codex-bridge-service.mjs",
+    "bridge:zoohaus": "node scripts/codex-bridge-zoohaus.mjs",
+    "smoke:bridge-action": "node --use-env-proxy scripts/smoke-codex-bridge-action.mjs",
+    "test:bridge-action": "node scripts/test-codex-bridge-action.mjs",
+    "test:bridge-zoohaus": "node scripts/test-codex-bridge-zoohaus.mjs",
+    "test:bridge": "node scripts/test-codex-bridge.mjs && node scripts/test-codex-bridge-connect.mjs && node scripts/test-codex-bridge-ai.mjs && node scripts/test-codex-bridge-codex.mjs && node scripts/test-codex-bridge-service.mjs && npm run test:bridge-action && npm run test:bridge-zoohaus"
   }
 }
