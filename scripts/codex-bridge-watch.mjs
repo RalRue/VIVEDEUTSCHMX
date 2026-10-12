@@ -88,13 +88,17 @@ export async function readState(filename, agent) {
 }
 
 export async function writeState(filename, agent, seen) {
+  await writeJsonAtomic(filename, { schema: STATE_SCHEMA, agent, seen: [...seen], updatedAt: new Date().toISOString() });
+}
+
+export async function writeJsonAtomic(filename, value) {
   const directory = path.dirname(filename);
   await fs.mkdir(directory, { recursive: true, mode: 0o700 });
   const temporary = path.join(directory, `.${path.basename(filename)}.${process.pid}.${randomUUID()}.tmp`);
   let handle;
   try {
     handle = await fs.open(temporary, 'wx', 0o600);
-    await handle.writeFile(`${JSON.stringify({ schema: STATE_SCHEMA, agent, seen: [...seen], updatedAt: new Date().toISOString() })}\n`, 'utf8');
+    await handle.writeFile(`${JSON.stringify(value)}\n`, 'utf8');
     await handle.sync();
     await handle.close();
     handle = undefined;
@@ -118,7 +122,7 @@ function processIsAlive(pid) {
 
 // A random owner filename lets only one contender remove a dead owner's marker.
 // Contenders never remove an empty directory: the winner removes it after unlink.
-async function acquireStateLock(filename, { once, signal }) {
+export async function acquireStateLock(filename, { once, signal }) {
   const directory = `${filename}.lock`;
   await fs.mkdir(path.dirname(filename), { recursive: true, mode: 0o700 });
   const deadline = Date.now() + (once ? 60_000 : 2_000);
@@ -202,7 +206,7 @@ async function fetchInbox(options, signal) {
   try {
     result = await execFileAsync(process.execPath, args, {
       cwd: options.cwd,
-      timeout: 90_000,
+      timeout: 150_000,
       maxBuffer: 40 * 1024 * 1024,
       signal,
     });

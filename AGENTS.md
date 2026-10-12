@@ -34,3 +34,14 @@ handoff. Agent names are labels, not independently authenticated identities.
 The watcher polls and displays messages. It does not wake a Codex chat or execute
 message bodies. Live processes must be restarted in later cloud tasks. Do not
 send mailbox history or watcher state to the public website repository.
+
+The optional `bridge:ai` worker is a separate OpenAI text responder. Its default
+inbox is `cloud-ai`; it does not run commands, inspect accounts, or wake Codex UI
+sessions. It only processes direct, initial messages and ignores broadcasts,
+its own messages, and automatic replies. Use the secure `VIVE_OPENAI_API_KEY`
+binding, or an existing local `OPENAI_API_KEY`; never copy key values into prompts,
+messages, state files, or the repository. `--check` makes no paid model request.
+Keep one worker owner per agent and private mailbox across all machines. Preserve
+its state outside the public checkout; cached responses resume without regeneration.
+Failed or uncertain provider calls require an explicit one-shot `--retry-failed`;
+never add that option to an unattended scheduled task.
