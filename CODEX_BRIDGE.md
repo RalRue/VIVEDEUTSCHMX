@@ -35,17 +35,19 @@ lokale GitHub-Anmeldung kann die erforderlichen Rechte bereits besitzen; dann
 kann der lokale Codex die Einrichtung übernehmen. Als direkte Alternative zum
 npm-Aufruf dient `node scripts/codex-bridge-connect.mjs`.
 
-Das echte private Postfach wurde zum Zeitpunkt dieser Einrichtung noch **nicht
-erstellt**. Beide Cloud-Versuche mit der verbundenen GitHub-Integration
-(`gh repo create` über GraphQL und `POST /user/repos`) wurden mit HTTP 403 und
-`Resource not accessible by integration` abgelehnt. Die vorhandene Integration
-darf diese Aktion derzeit nicht ausführen.
+Das private Postfach ist **erstellt und für die Codex-App freigegeben**.
+Ein echter Cloud-Test hat Git-Lesen und -Schreiben, einen neuen begrenzten
+Codex-Lauf, die korrelierte Antwort und beide Empfangsbestätigungen erfolgreich
+geprüft. Die Testteilnehmer waren `cloud-check` und `local-check` in dieser Cloud;
+eine Installation auf dem tatsächlichen lokalen Rechner ist damit nicht geprüft.
+Eine eigene API-Key-Bindung war für diesen nativen Codex-Weg nicht erforderlich.
 
 Die verpflichtende Cloud-HTTPS-Proxyroute verwendet GitHub-App-Authentifizierung
-unabhängig von der lokalen CLI-Anmeldung. Auch nach einer erfolgreich bestätigten
-GitHub-OAuth-Anmeldung als `RalRue` scheitert das Anlegen dort weiterhin mit 403.
+unabhängig von der lokalen CLI-Anmeldung. Das Anlegen scheiterte deshalb auch
+nach einer erfolgreich bestätigten GitHub-OAuth-Anmeldung mit 403.
 Weitere Cloud-Anmeldungen oder ein Tokenwechsel allein sind deshalb keine
-bestätigte Lösung. Die automatische Anlage und die App-Freigabe müssen mit einem
+bestätigte Lösung für neue Repository-Erstellungen. Die Anlage und App-Freigabe
+dieses Postfachs erfolgten auf der GitHub-Website. Weitere Anlagen müssen mit einem
 berechtigten Benutzerzugang auf dem tatsächlichen lokalen Rechner außerhalb
 dieser Cloud-App-Route oder auf der GitHub-Website erfolgen. Proxy- und
 TLS-Prüfungen nicht umgehen.
@@ -60,8 +62,15 @@ Der Git-Zugang muss das neue private Repository ebenfalls lesen und schreiben d�
 Eine optionale Alternative ist die manuelle Anlage unter <https://github.com/new>:
 `RalRue/VIVEDEUTSCHMX-CODEX-BRIDGE` als **Private**, ohne README, `.gitignore` oder
 Lizenzdatei. Der mit Codex verbundenen GitHub App anschließend Zugriff auf dieses
-neue Repository geben. Bis der private Git-Zugriff verfügbar ist, ist kein
-Austausch über das echte Postfach möglich.
+neue Repository geben. Nach diesen Schritten den tatsächlichen Git-Zugang und
+Nachrichtenaustausch prüfen; für dieses Postfach haben beide Prüfungen bestanden.
+
+In der aktuellen Cloud läuft ein einzelner nativer Helfer für `cloud`, der alle
+30 Sekunden direkt adressierte initiale Nachrichten von `local` prüft. Zustand:
+`/workspace/scratch/vive-codex-bridge/cloud.codex.json`. Er verwendet `read-only`
+und höchstens einen Auftrag je Prüflauf. Der Rechner des Nutzers ist dadurch noch
+nicht eingerichtet; bestehende Chats werden nicht fortgesetzt. Cloud-Neustarts
+oder Snapshot-Veröffentlichungen erfordern einen neuen Start dieses Prozesses.
 
 Der Quellcode wird im Website-Repository über den Branch
 `codex/communication-bridge` und einen Pull Request bereitgestellt. Vor dessen
@@ -241,13 +250,13 @@ erst ein echter Auftrag. Die
 GitHub-Mailbox muss weiterhin erreichbar sein. Für deren Einrichtung zunächst
 `bridge:connect` mit der vorhandenen lokalen GitHub-Anmeldung verwenden.
 Der aktuelle Cloud-Test erkennt Codex `0.159.2` mit vorhandener Anmeldung, meldet
-aber `transport.available: false`, `status: blocked` und
-`inferenceLaunched: false`. Dieser Check startet keinen Codex-Auftrag. Nach einer
+`transport.available: true`, `status: ready` und `inferenceLaunched: false`.
+Dieser Check startet keinen Codex-Auftrag. Nach einer
 frischen offiziellen Geräteanmeldung wurde eine getrennte minimale Live-Probe
 erfolgreich abgeschlossen: Exit-Code 0, `turn.completed` und die erwartete finale
 Antwort. Der native Modellzugang funktioniert damit in der aktuellen Cloud;
-der frühere HTTP-401-Fehler ist behoben. Der private Git-Transport bleibt
-blockiert, deshalb ist der vollständige Nachrichtenaustausch noch nicht geprüft.
+der frühere HTTP-401-Fehler ist behoben. Nach Erstellung und Freigabe des privaten
+Postfachs bestand auch der vollständige Nachrichtenlauf mit Antwort und ACK.
 Über deinen lokalen Anmeldestatus sagt der Cloud-Test nichts aus; auch dort muss
 nach dem Check ein kleiner erlaubter Live-Auftrag erfolgreich abgeschlossen werden.
 
@@ -404,8 +413,9 @@ node scripts/codex-bridge-ai.mjs --agent cloud-ai --check
 
 `--check` gibt JSON aus und endet bei fehlenden Voraussetzungen mit Exit-Code 1.
 Der aktuelle Cloud-Test meldet `status: blocked`, `keyConfigured: false` und
-`transport.available: false`; `paidRequest` bleibt `false`. Sowohl API-Schlüssel
-als auch privater Git-Zugriff fehlen noch.
+`transport.available: true`; `paidRequest` bleibt `false`. Der private Git-Zugriff
+funktioniert; für diesen optionalen API-Helfer fehlt weiterhin der API-Schlüssel.
+Der geprüfte native Codex-Helfer nutzt stattdessen seine ChatGPT-CLI-Anmeldung.
 
 Dieser Test bestätigt keine erfolgreiche Modellantwort, verfügbare API-Guthaben
 oder Modellberechtigung. Echte Modellantworten werden über das verwendete
@@ -512,11 +522,12 @@ git status --short
 ### GitHub 403: Berechtigungen der verbundenen App
 
 Die bestätigte Ursache ist die Installation `168678307` von
-`chatgpt-codex-connector` unter `RalRue`: Für sie ist ausschließlich das öffentliche
-Repository `VIVEDEUTSCHMX` ausgewählt; sie besitzt weder
+`chatgpt-codex-connector` unter `RalRue`: Vor der Reparatur war ausschließlich das
+öffentliche Repository `VIVEDEUTSCHMX` ausgewählt; sie besitzt weder
 `administration`- noch Schreibberechtigung zur Änderung der Installationsauswahl.
-Sie kann daher das private Postfach derzeit weder
-anlegen noch als nicht ausgewähltes Repository lesen. Ein gemeldetes `admin: true`
+Sie kann neue Postfächer nicht selbst anlegen oder ihre Auswahl erweitern.
+Das private `VIVEDEUTSCHMX-CODEX-BRIDGE` wurde inzwischen vom Nutzer erstellt und
+freigegeben; Git-Lesen und -Schreiben funktionieren jetzt. Ein gemeldetes `admin: true`
 für den Benutzer beschreibt dessen Repository-Rolle und erweitert keine App-Rechte.
 
 Die verpflichtende Cloud-HTTPS-Proxyroute setzt diese App-Authentifizierung auch
@@ -544,8 +555,8 @@ die Auswahl und den Git-Lesetest erneut prüfen. Diesen Schreibschritt ebenfalls
 dem lokalen Rechner mit dem autorisierten Benutzerzugang ausführen. Ein Token zum Anlegen allein
 repariert den Git-Zugriff der Cloud-App nicht. HTTP 404 kann sowohl ein fehlendes
 Repository als auch fehlenden Zugriff bedeuten. Es gibt keinen Fallback auf das
-öffentliche Website-Repository. Ein erfolgreicher Live-Austausch ist weiterhin
-nicht bestätigt.
+öffentliche Website-Repository. Der Live-Austausch über das freigegebene private
+Postfach wurde mit echtem Codex und beiden Bestätigungen erfolgreich geprüft.
 
 ### Codex 401: Anmeldung erneuert, Live-Probe erfolgreich
 
@@ -585,7 +596,9 @@ Verbindung zum lokalen Browser. Die offizielle GitHub-Geräteanmeldung ist als
 `RalRue` erfolgreich abgeschlossen. Sie verwendet eine getrennte private
 CLI-Konfiguration außerhalb des Checkouts; das bisherige `GH_TOKEN` bleibt
 unverändert. Wegen der Cloud-App-Proxyroute bleibt das Anlegen dennoch mit 403
-blockiert. Private Mailbox, App-Freigabe und Git-Live-Zugriff sind nicht bestätigt.
+für neue Repositories blockiert. Die private Mailbox wurde anschließend auf der
+GitHub-Website erstellt und freigegeben. Metadatenprüfung, Git-Live-Zugriff und
+der vollständige Codex-Nachrichtenlauf haben bestanden.
 
 Die Gerätecode-Anmeldung wurde im ChatGPT-Konto aktiviert. Der neue Codex-Fluss
 auf [der offiziellen Codex-Geräteseite](https://auth.openai.com/codex/device) wurde
@@ -594,7 +607,8 @@ wurde erneuert. Die nachfolgende reale Modellprobe war erfolgreich. Der separate
 API-Helfer ist weiterhin ungeprüft, seine API-Schlüssel fehlen noch.
 GitHub- und Codex-Anmeldung sind getrennte Vorgänge. Gerätecodes und Tokenwerte
 gehören weder in diese Anleitung noch ins Repository. Der vollständige Austausch
-über das private Postfach ist weiterhin nicht bestätigt.
+über das private Postfach ist jetzt in dieser Cloud bestätigt. Der lokale
+Rechner benötigt weiterhin seine eigene Einrichtung und Anmeldung.
 
 ### Weitere Prüfungen
 
