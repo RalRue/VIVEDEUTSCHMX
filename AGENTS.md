@@ -45,3 +45,27 @@ Keep one worker owner per agent and private mailbox across all machines. Preserv
 its state outside the public checkout; cached responses resume without regeneration.
 Failed or uncertain provider calls require an explicit one-shot `--retry-failed`;
 never add that option to an unattended scheduled task.
+
+The `bridge:codex` launcher starts a new background Codex CLI task for an allowed
+direct initial message. It does not resume this cloud chat or a desktop UI chat.
+Use an explicit `--allow-from` list and the existing private mailbox. All writers
+of that private mailbox must be trusted: sender labels are not authentication.
+The default task sandbox is `read-only`; only an explicit local operator choice
+allows `workspace-write` within the selected checkout, with additional writable
+roots and command-network access disabled. Automatic tasks must not commit, push,
+merge, deploy, modify credentials, or send social messages. Existing execpolicy
+rules and these agent instructions still apply. Hooks, apps, plugins, browser and
+computer integrations are disabled for this helper. Do not claim that read-only
+mode or credential filtering protects every possible secret.
+
+An interrupted task may already have changed project files. Preserve its state
+and inspect those changes before an explicit `--once --retry-failed`; do not retry
+automatically or reset/stash user work. An existing Codex login can be used without
+the separate OpenAI responder key, but login metadata does not prove model access.
+
+The `bridge:service` command previews a local user-service plan by default.
+`--install` verifies prerequisites and installs only its own Linux/macOS service
+files. Use a private state path outside this public checkout and one executing
+worker per agent/mailbox across all computers. Never schedule `--retry-failed`.
+This cloud checkout does not establish that a service is installed on the user's
+local computer; that machine must be running and its user service must be active.

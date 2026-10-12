@@ -11,6 +11,8 @@
     "bridge:connect": "node scripts/codex-bridge-connect.mjs",
     "bridge:watch": "node scripts/codex-bridge-watch.mjs",
     "bridge:ai": "node scripts/codex-bridge-ai.mjs",
-    "test:bridge": "node scripts/test-codex-bridge.mjs && node scripts/test-codex-bridge-connect.mjs && node scripts/test-codex-bridge-ai.mjs"
+    "bridge:codex": "node scripts/codex-bridge-codex.mjs",
+    "bridge:service": "node scripts/codex-bridge-service.mjs",
+    "test:bridge": "node scripts/test-codex-bridge.mjs && node scripts/test-codex-bridge-connect.mjs && node scripts/test-codex-bridge-ai.mjs && node scripts/test-codex-bridge-codex.mjs && node scripts/test-codex-bridge-service.mjs"
   }
 }
