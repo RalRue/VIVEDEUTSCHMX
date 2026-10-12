@@ -6,6 +6,10 @@
     "test:placement": "node scripts/test-placement.cjs && node scripts/test-placement-api.mjs && node scripts/test-placement-ui.cjs",
     "test:placement:private": "node scripts/test-placement-receiver.mjs",
     "test:reply-assistant": "node scripts/test-reply-assistant.mjs",
-    "smoke:reply-assistant": "node scripts/smoke-reply-assistant.mjs"
+    "smoke:reply-assistant": "node scripts/smoke-reply-assistant.mjs",
+    "bridge": "node scripts/codex-bridge.mjs",
+    "bridge:connect": "node scripts/codex-bridge-connect.mjs",
+    "bridge:watch": "node scripts/codex-bridge-watch.mjs",
+    "test:bridge": "node scripts/test-codex-bridge.mjs && node scripts/test-codex-bridge-connect.mjs"
   }
 }
