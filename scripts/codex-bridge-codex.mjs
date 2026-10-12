@@ -63,6 +63,33 @@ export function parseCodexArgs(argv, { cwd = process.cwd(), home = homedir() } =
   return options;
 }
 
+export function terminateCodexProcess(child, signal, {
+  platform = process.platform, spawnProcess = spawn, killGroup = process.kill,
+  windowsRoot = process.env.SystemRoot || 'C:\\Windows',
+} = {}) {
+  if (!Number.isInteger(child.pid) || child.pid <= 0) return;
+  try {
+    if (platform !== 'win32') return killGroup(-child.pid, signal);
+    if (child.exitCode !== null || child.signalCode != null) return;
+    // Windows does not propagate child.kill() to the CLI's descendants. Kill
+    // only this owned process tree so cancelled jobs cannot keep running.
+    const root = /^[A-Za-z]:\\/.test(windowsRoot) && !/[\x00-\x1f\x7f"]/.test(windowsRoot)
+      ? windowsRoot : 'C:\\Windows';
+    const killer = spawnProcess(path.win32.join(root, 'System32', 'taskkill.exe'),
+      ['/PID', String(child.pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore', shell: false });
+    const fallback = () => {
+      if (child.exitCode === null && child.signalCode == null) { try { child.kill(signal); } catch {} }
+    };
+    const deadline = setTimeout(() => {
+      try { killer.kill('SIGKILL'); } catch {}
+      fallback();
+    }, 5_000);
+    deadline.unref?.();
+    killer.on('error', () => { clearTimeout(deadline); fallback(); });
+    killer.on('close', code => { clearTimeout(deadline); if (code !== 0) fallback(); });
+  } catch { try { child.kill(signal); } catch {} }
+}
+
 function runExecutable(program, args, options) {
   return new Promise((accept, reject) => {
     const { input, signal, timeout, maxBuffer = 65_536, ...execOptions } = options;
@@ -74,12 +101,7 @@ function runExecutable(program, args, options) {
       detached: process.platform !== 'win32', windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] });
     const collected = { stdout: [], stderr: [] };
     const sizes = { stdout: 0, stderr: 0 };
-    const kill = name => {
-      try {
-        if (process.platform !== 'win32' && child.pid > 0) process.kill(-child.pid, name);
-        else child.kill(name);
-      } catch {}
-    };
+    const kill = name => terminateCodexProcess(child, name);
     const stop = () => {
       failure ||= new Error('Interrupted or timed out.');
       kill('SIGTERM');

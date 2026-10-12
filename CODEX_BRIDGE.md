@@ -35,6 +35,34 @@ noch nicht. Ein ruhender ChatGPT-Chat kann durch diesen Anschluss nicht selbst
 gestartet werden. Die folgenden lokalen CLI-Befehle bleiben für zusätzliche
 Codex-Teilnehmer verfügbar.
 
+## Zoohaus: Codex und ChatGPT auf dem lokalen PC
+
+Der Nutzer hat **Zoohaus als seinen lokalen PC** mit Codex und ChatGPT benannt.
+Die Screenshots zeigen Windows; das Betriebssystem vor einer tatsächlichen
+Installation lokal prüfen. [ZOOHAUS_BRIDGE.md](ZOOHAUS_BRIDGE.md) enthält den
+vorbereiteten Windows-Anschluss und einen Auftrag für den dortigen Codex.
+
+Zoohaus kann den ausführenden Helfer für `cloud` mit `--allow-from local`
+betreiben. Dadurch bedient er die bestehenden DOT-Actions: DOT stellt Aufträge
+als `local` an `cloud`, Zoohaus antwortet als `cloud` an `local`. `cloud` ist
+hier der Postfachname; der Prozess läuft auf dem PC. Seine Verarbeitung ist
+dann unabhängig von der schreibgeschützten CLI-Runtime dieser Cloud, sofern
+Zoohaus selbst funktionierenden Git- und nativen Codex-Zugang hat.
+
+Es darf nur einen ausführenden Betreiber dieser Inbox geben. Zoohaus ist der
+geplante Betreiber; Installation, Anmeldung und Modelllauf auf dem tatsächlichen
+PC sind von hier noch nicht bestätigt. Keinen zusätzlichen Cloud-Worker starten,
+während Zoohaus aktiv sein könnte. Für einen späteren Wechsel bisherigen Betreiber
+anhalten und Nachrichten/Zustand bewahren. Die Vercel-Bereitstellung und
+DOT-Actions-Konfiguration bleiben eigene Voraussetzungen; gewöhnliche
+ChatGPT-Browserchats erhalten nicht automatisch Actions.
+
+Der Windows-Anschluss plant einen eigenen Benutzertask beim Anmelden und jede
+Minute. Er startet neue `read-only`-Codex-Läufe mit höchstens einem Auftrag,
+ohne automatische Wiederholung fehlgeschlagener Jobs. Er setzt keinen bestehenden
+Codex-/ChatGPT-Chat fort und schaltet den PC nicht ein. Laufender Rechner und
+angemeldete Benutzersitzung bleiben notwendig.
+
 ### Stand nach Wiederherstellung der Cloud
 
 Der private Git-Zugang wurde nach der Veröffentlichung erneut bestätigt. Die
@@ -373,8 +401,9 @@ installiert. Der geplante Dienst startet begrenzte einzelne Läufe, ohne
 Benutzers. Der Rechner muss eingeschaltet sein; der Benutzerdienst benötigt die
 entsprechende laufende Benutzersitzung.
 Unter Linux werden Benutzer-Units für systemd verwendet, unter macOS ein
-LaunchAgent. Windows benötigt eine separate manuelle Aufgabenplanung; der
-Installer unterstützt es nicht.
+LaunchAgent. Dieser allgemeine Installer unterstützt Windows nicht. Für Zoohaus
+steht der separate Windows-Anschluss in [ZOOHAUS_BRIDGE.md](ZOOHAUS_BRIDGE.md)
+bereit; seine tatsächliche Installation muss auf diesem PC erfolgen.
 
 ## Automatisch auf neue Nachrichten prüfen
 

@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import { createCodexRunner, parseCodexArgs, runCodexWorker } from './codex-bridge-codex.mjs';
+import { createCodexRunner, parseCodexArgs, runCodexWorker, terminateCodexProcess } from './codex-bridge-codex.mjs';
 import { nativeReplyId } from '../lib/codex-bridge-protocol.mjs';
 
 // A fixture executable handles every Codex invocation, including login checks.
@@ -220,6 +220,27 @@ try {
   const initialLocal = await snapshot(local);
   const initialCloud = await snapshot(cloud);
   const initialWebsiteHeads = await git(local, 'ls-remote', '--heads', 'origin');
+
+  await test('Windows cancellation terminates only the owned CLI tree without invoking a command shell', async () => {
+    const calls = [];
+    const child = { pid: 1234, exitCode: null, kill: signal => calls.push({ fallback: signal }) };
+    const spawnProcess = (program, args, settings) => {
+      calls.push({ program, args, settings });
+      return { on: (event, callback) => { if (event === 'close') callback(5); } };
+    };
+    terminateCodexProcess(child, 'SIGTERM', { platform: 'win32', windowsRoot: 'C:\\Windows', spawnProcess });
+    assert.equal(calls[0].program, 'C:\\Windows\\System32\\taskkill.exe');
+    assert.deepEqual(calls[0].args, ['/PID', '1234', '/T', '/F']);
+    assert.equal(calls[0].settings.shell, false);
+    assert.equal(calls[0].settings.windowsHide, true);
+    assert.equal(calls[1].fallback, 'SIGTERM');
+    calls.length = 0;
+    terminateCodexProcess({ ...child, pid: 0 }, 'SIGKILL', { platform: 'win32', spawnProcess });
+    terminateCodexProcess({ ...child, exitCode: 0 }, 'SIGKILL', { platform: 'win32', spawnProcess });
+    assert.equal(calls.length, 0, 'Missing or exited processes must never reach taskkill');
+    terminateCodexProcess(child, 'SIGKILL', { platform: 'linux', killGroup: (pid, signal) => calls.push({ pid, signal }) });
+    assert.deepEqual(calls, [{ pid: -1234, signal: 'SIGKILL' }]);
+  });
 
   await test('native replies have stable task-specific UUIDs for constant-cost Action lookup', async () => {
     const taskId = '01234567-89ab-4def-8123-456789abcdef';

@@ -7,6 +7,15 @@ aktiver Codex-Worker bearbeitet diese Aufträge in einer eigenen Sitzung mit
 automatisch geweckt. Der Worker muss tatsächlich laufen; das Postfach bewahrt
 Aufträge auch während einer Unterbrechung auf.
 
+Der Nutzer hat Zoohaus als lokalen PC mit Codex und ChatGPT benannt. Der
+vorbereitete [Zoohaus-Anschluss](ZOOHAUS_BRIDGE.md) kann den passenden `cloud`-
+Worker dort betreiben. Er bedient denselben Actions-Vertrag mit lokaler
+Codex-Anmeldung und ist dann unabhängig vom CLI-Startfehler dieser Cloud.
+Zoohaus ist der geplante einzige ausführende Betreiber; sein tatsächlicher
+Start und Modellzugriff sind noch nicht geprüft. ChatGPT auf dem PC nutzt diesen
+Weg über VIVE’s DOT mit eingerichteten Actions. Vercel-Secrets, Bereitstellung
+und GPT-Konfiguration bleiben erforderlich.
+
 ## Stand und Voraussetzungen
 
 Die Schnittstelle ist als Code zur Prüfung vorbereitet. **Deployment,

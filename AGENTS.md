@@ -21,6 +21,16 @@ have access to its Action: its configured API key gives those users bridge acces
 Do not claim that an idle DOT conversation can be awakened or that API code in
 a pull request is deployed or configured in the GPT editor.
 
+The user also identified **Zoohaus as the local PC with both Codex and ChatGPT**.
+The prepared Windows connector is described in `ZOOHAUS_BRIDGE.md`. It runs the
+`cloud` inbox worker on Zoohaus with `--allow-from local` to serve DOT's existing
+Action contract; these names describe routing, not which computer runs the job.
+Zoohaus is the intended sole executing owner of that inbox. Its installation
+and native model access are not verified from this Linux cloud. Do not start a
+second cloud worker here while Zoohaus may be active. Preserve queued messages
+and coordinate an explicit ownership transfer before moving the worker.
+Ordinary ChatGPT browser chats do not automatically receive GPT Actions.
+
 New native results use `nativeReplyId` from `lib/codex-bridge-protocol.mjs`.
 Keep this mapping stable: the Actions API retrieves that exact immutable message
 path without scanning private history. `send --id` retries must preserve the
@@ -28,7 +38,8 @@ original record and timestamp and reject changes to the same ID's content.
 
 At the start of a task, when the bridge script exists, check the appropriate inbox:
 
-- Cloud session: `node scripts/codex-bridge.mjs inbox --agent cloud --json`
+- Cloud coordination session: `node scripts/codex-bridge.mjs inbox --agent cloud-control --json`
+- Executing DOT worker: `node scripts/codex-bridge.mjs inbox --agent cloud --json`
 - Local session: `node scripts/codex-bridge.mjs inbox --agent local --json`
 - Helpers: use their assigned stable agent identifier and check that inbox.
 
@@ -82,3 +93,11 @@ files. Use a private state path outside this public checkout and one executing
 worker per agent/mailbox across all computers. Never schedule `--retry-failed`.
 This cloud checkout does not establish that a service is installed on the user's
 local computer; that machine must be running and its user service must be active.
+
+The dedicated `bridge:zoohaus` Windows connector previews by default and installs
+only with `--install` on the actual PC. Its current-user Task Scheduler job uses
+the existing native `codex.exe` and Git authentication, read-only jobs, one task
+per run and no automatic failed-task retry. Respect its private config and state;
+never overwrite unrelated schedules or copy authentication files. Keep its
+runtime bundle separate from the user's checkout when PR files are unavailable
+on the local branch, rather than switching branches or overwriting user work.
