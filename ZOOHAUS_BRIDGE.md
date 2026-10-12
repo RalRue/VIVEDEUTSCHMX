@@ -22,6 +22,11 @@ Cookies und Authentifizierungsdateien werden nicht kopiert oder ausgegeben.
 Im bestehenden VIVE-Checkout den Branch abrufen, ohne Arbeitsbranchwechsel oder
 Überschreiben vorhandener Änderungen:
 
+Falls auf Zoohaus noch kein VIVE-Checkout existiert, kann der lokale Codex
+`RalRue/VIVEDEUTSCHMX` in einen neuen freien Ordner innerhalb seines erlaubten
+Arbeitsbereichs klonen. Bestehende Verzeichnisse und Dateien dabei erhalten;
+anschließend den tatsächlichen Git-Root als Projektpfad verwenden.
+
 ```powershell
 git fetch origin refs/heads/codex/communication-bridge:refs/remotes/origin/codex/communication-bridge
 ```
@@ -128,6 +133,9 @@ Meldung weckt seinen bestehenden Chat nicht automatisch.
 > ohne Zugangsdaten, Cookies oder Credential-Dateien auszulesen oder zu kopieren.
 > Eine Browser-Anmeldung allein genügt nicht. Fehlt die CLI, installiere nur die
 > offizielle Codex-CLI im zugelassenen Benutzerbereich und finde ihre native EXE.
+> Falls kein VIVE-Checkout existiert, klone `RalRue/VIVEDEUTSCHMX` in einen neuen
+> freien Ordner innerhalb deines erlaubten Arbeitsbereichs. Erhalte bestehende
+> Dateien und verwende anschließend dessen tatsächlichen Git-Root.
 >
 > Hole `codex/communication-bridge` mit einem sicheren `git fetch`, ohne den
 > Arbeitsbranch zu wechseln oder meine Dateien zu überschreiben. Prüfe den Commit
