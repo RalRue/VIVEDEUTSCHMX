@@ -14,7 +14,7 @@ export function safeAttribution(search) {
   if (['fb','ig','facebook','instagram'].includes(source)) safe.set('utm_source', source);
   if (incoming.get('utm_medium') === 'paid_social') safe.set('utm_medium', 'paid_social');
   const campaign = incoming.get('utm_campaign');
-  if (['a1_minilecciones_sep2026', 'a1_confirma_hora_202610'].includes(campaign)) safe.set('utm_campaign', campaign);
+  if (['a1_minilecciones_sep2026', 'a1_confirma_hora_202610', 'a1_cafe_202610'].includes(campaign)) safe.set('utm_campaign', campaign);
   if (/^mini0[123]$/.test(incoming.get('utm_content') || '')) safe.set('utm_content', incoming.get('utm_content'));
   const clickId = incoming.get('fbclid');
   if (/^[A-Za-z0-9_-]{20,500}$/.test(clickId || '')) safe.set('fbclid', clickId);
