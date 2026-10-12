@@ -70,6 +70,36 @@ assert.ok(html.includes('src="/consulta/inquiry.js"'));
 assert.equal(safeAttribution('?email=private@example.com&utm_source=private@example.com&utm_content=student_answer').size,0);
 assert.equal(safeAttribution('?utm_source=ig&utm_content=mini01&utm_campaign=a1_minilecciones_sep2026').size,3);
 assert.equal(safeAttribution('?fbclid=private@example.com').size,0);
+// Approved numeric Meta attribution stays exact and campaign-bound.
+const adPairs = [
+  ['a1_confirma_hora_202610','120248958374280767','120248958374300767'],
+  ['a1_cafe_202610','120248962296800767','120248962296790767']
+];
+for (const [campaign, campaignId, adId] of adPairs) {
+  const query = `?utm_source=ig&utm_medium=paid_social&utm_campaign=${campaign}&campaign_id=${campaignId}&utm_content=${adId}`;
+  const safe = safeAttribution(query);
+  assert.equal(safe.get('campaign_id'),campaignId);
+  assert.equal(safe.get('utm_content'),adId);
+  assert.equal(safe.size,5);
+  for (const suffix of ['&campaign_id=123','&utm_content=123','&utm_campaign=a1_cafe_202610']) {
+    const ambiguous = safeAttribution(query+suffix);
+    assert.equal(ambiguous.has('campaign_id'),false);
+    assert.equal(ambiguous.has('utm_content'),false);
+  }
+  for (const rejected of ['123456789012345678','+120248958374300767','1e17','{{ad.id}}','private@example.com','student_answer']) {
+    assert.equal(safeAttribution(query.replace(adId,encodeURIComponent(rejected))).has('utm_content'),false);
+  }
+  assert.equal(safeAttribution(query.replace(campaignId,'{{campaign.id}}')).has('campaign_id'),false);
+  assert.equal(safeAttribution(query.replace(campaignId,'{{campaign.id}}')).has('utm_content'),false);
+  assert.equal(safeAttribution(query+'&email=private@example.com&name=TEST&score=100').toString(),safe.toString());
+}
+assert.equal(safeAttribution('?utm_campaign=a1_cafe_202610&campaign_id=120248958374280767&utm_content=120248958374300767').has('campaign_id'),false);
+assert.equal(safeAttribution('?utm_campaign=a1_confirma_hora_202610&campaign_id=120248958374280767&utm_content=120248962296790767').has('utm_content'),false);
+for (const campaign of ['a1_minilecciones_sep2026','a1_confirma_hora_202610','a1_cafe_202610']) {
+  for (const content of ['mini01','mini02','mini03']) assert.equal(safeAttribution(`?utm_campaign=${campaign}&utm_content=${content}`).get('utm_content'),content);
+}
+console.log('Approved numeric attribution: exact IDs, campaign binding, ambiguous/unresolved/unknown input rejection and legacy values: PASS');
+
 assert.ok(!/analytics\.js|meta-pixel\.js|googletagmanager|fbevents/.test(html));
 assert.ok(!/checked/.test(html));
 assert.ok(html.includes('type="email"'));
