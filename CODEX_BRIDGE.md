@@ -16,8 +16,9 @@ GitHub übertragenen Nachrichten bleiben erhalten.
 
 ## Verbindung automatisch aktivieren
 
-Die Mailbox lässt sich mit dem Einrichtungsbefehl prüfen und bei Bedarf als
-leeres privates Repository anlegen:
+Die Mailbox lässt sich auf dem **tatsächlichen lokalen Rechner** mit einer
+berechtigten GitHub-Anmeldung prüfen und bei Bedarf als leeres privates Repository
+anlegen:
 
 ```bash
 npm run bridge:connect
@@ -40,14 +41,21 @@ erstellt**. Beide Cloud-Versuche mit der verbundenen GitHub-Integration
 `Resource not accessible by integration` abgelehnt. Die vorhandene Integration
 darf diese Aktion derzeit nicht ausführen.
 
-Für die automatische Anlage in der Cloud fehlt daher eine GitHub-Authentifizierung,
-die das private Repository unter `RalRue` erstellen darf. Sie kann als
-`VIVE_GITHUB_ADMIN_TOKEN` sicher in den Codex-Umgebungseinstellungen hinterlegt
-werden; niemals den Wert im Chat, im Repository oder in Nachrichtendateien
-übermitteln. Nach Bereitstellung dieses Zugangs kann der Einrichtungsbefehl erneut
-ausgeführt werden. Das Anlegen allein erteilt der verbundenen GitHub App keinen
-zusätzlichen Zugriff: Auch der anschließend verwendete Git-Zugang muss das neue
-private Repository lesen und schreiben dürfen.
+Die verpflichtende Cloud-HTTPS-Proxyroute verwendet GitHub-App-Authentifizierung
+unabhängig von der lokalen CLI-Anmeldung. Auch nach einer erfolgreich bestätigten
+GitHub-OAuth-Anmeldung als `RalRue` scheitert das Anlegen dort weiterhin mit 403.
+Weitere Cloud-Anmeldungen oder ein Tokenwechsel allein sind deshalb keine
+bestätigte Lösung. Die automatische Anlage und die App-Freigabe müssen mit einem
+berechtigten Benutzerzugang auf dem tatsächlichen lokalen Rechner außerhalb
+dieser Cloud-App-Route oder auf der GitHub-Website erfolgen. Proxy- und
+TLS-Prüfungen nicht umgehen.
+
+`VIVE_GITHUB_ADMIN_TOKEN` bleibt eine optionale sichere Bindung, falls die Plattform
+einen ausdrücklich unterstützten, wirksamen Benutzerzugang bereitstellt. Dieser
+Weg ist in der aktuellen Cloud nicht bestätigt und garantiert keine Behebung der
+Proxy-Berechtigung. Niemals den Wert im Chat oder Repository übermitteln. Das
+Anlegen allein erteilt der verbundenen GitHub App keinen zusätzlichen Zugriff:
+Der Git-Zugang muss das neue private Repository ebenfalls lesen und schreiben dürfen.
 
 Eine optionale Alternative ist die manuelle Anlage unter <https://github.com/new>:
 `RalRue/VIVEDEUTSCHMX-CODEX-BRIDGE` als **Private**, ohne README, `.gitignore` oder
@@ -234,15 +242,14 @@ GitHub-Mailbox muss weiterhin erreichbar sein. Für deren Einrichtung zunächst
 `bridge:connect` mit der vorhandenen lokalen GitHub-Anmeldung verwenden.
 Der aktuelle Cloud-Test erkennt Codex `0.159.2` mit vorhandener Anmeldung, meldet
 aber `transport.available: false`, `status: blocked` und
-`inferenceLaunched: false`. Dieser Check startet keinen Codex-Auftrag. Eine
-getrennte minimale Live-Probe konnte eine neue CLI-Sitzung starten, endete aber
-mit HTTP 401 (Authentifizierung), Exit-Code 1 und `turn.failed`, ohne finale
-Modellantwort. Die erkannte Anmeldung
-beweist daher keinen funktionierenden Modellzugang. Der private Git-Transport
-und eine erfolgreiche Inferenz sind in der aktuellen Cloud beide noch nicht
-verifiziert. Über deinen lokalen Anmeldestatus sagt das nichts aus; auch dort
-muss nach dem Check ein kleiner erlaubter Live-Auftrag erfolgreich abgeschlossen
-werden.
+`inferenceLaunched: false`. Dieser Check startet keinen Codex-Auftrag. Nach einer
+frischen offiziellen Geräteanmeldung wurde eine getrennte minimale Live-Probe
+erfolgreich abgeschlossen: Exit-Code 0, `turn.completed` und die erwartete finale
+Antwort. Der native Modellzugang funktioniert damit in der aktuellen Cloud;
+der frühere HTTP-401-Fehler ist behoben. Der private Git-Transport bleibt
+blockiert, deshalb ist der vollständige Nachrichtenaustausch noch nicht geprüft.
+Über deinen lokalen Anmeldestatus sagt der Cloud-Test nichts aus; auch dort muss
+nach dem Check ein kleiner erlaubter Live-Auftrag erfolgreich abgeschlossen werden.
 
 `--allow-from cloud` ist ausdrücklich erforderlich. Mehrere zugelassene Sender
 lassen sich mit wiederholtem `--allow-from NAME` nennen; `all`, `*` und
@@ -506,15 +513,25 @@ git status --short
 
 Die bestätigte Ursache ist die Installation `168678307` von
 `chatgpt-codex-connector` unter `RalRue`: Für sie ist ausschließlich das öffentliche
-Repository `VIVEDEUTSCHMX` ausgewählt; sie besitzt keine
-`administration`-Berechtigung. Sie kann daher das private Postfach derzeit weder
+Repository `VIVEDEUTSCHMX` ausgewählt; sie besitzt weder
+`administration`- noch Schreibberechtigung zur Änderung der Installationsauswahl.
+Sie kann daher das private Postfach derzeit weder
 anlegen noch als nicht ausgewähltes Repository lesen. Ein gemeldetes `admin: true`
 für den Benutzer beschreibt dessen Repository-Rolle und erweitert keine App-Rechte.
 
-Die unterstützte Lösung ist `bridge:connect` mit einer bereits berechtigten
-lokalen `gh`-Anmeldung oder `VIVE_GITHUB_ADMIN_TOKEN` in den sicheren
-Codex-Umgebungseinstellungen. Dieser Zugang muss unter `RalRue` private Repositories
-anlegen dürfen; Tokenwerte gehören niemals in den Chat oder ins Repository.
+Die verpflichtende Cloud-HTTPS-Proxyroute setzt diese App-Authentifizierung auch
+unabhängig von CLI-Tokenvariablen ein. Eine erfolgreich abgeschlossene isolierte
+OAuth-Anmeldung reparierte den 403 beim Anlegen nicht; selbst ein Test ohne
+expliziten Token wurde als `RalRue` beantwortet. Wiederholte Cloud-Logins oder
+zusätzliche CLI-Scopes beheben diese Route daher nicht nachweislich.
+
+Die unterstützte Lösung ist `bridge:connect` mit einer berechtigten `gh`-Anmeldung
+auf dem **tatsächlichen lokalen Rechner**, außerhalb der Cloud-App-Route, oder die
+GitHub-Website. Der Benutzerzugang muss unter `RalRue` private Repositories anlegen
+und die App-Auswahl ändern dürfen. Eine optionale sichere `VIVE_GITHUB_ADMIN_TOKEN`-
+Bindung hilft nur bei ausdrücklich unterstützter wirksamer Benutzerauthentifizierung;
+dies ist in der aktuellen Cloud unbestätigt. Tokenwerte niemals teilen, TLS- und
+Proxy-Schutz nicht umgehen.
 
 Nach dem Anlegen das neue private Repository zusätzlich in den
 [Codex-App-Einstellungen](https://github.com/settings/installations/168678307)
@@ -523,21 +540,32 @@ diesen Schritt auch über den offiziellen
 [GitHub-Endpunkt](https://docs.github.com/en/rest/apps/installations#add-a-repository-to-an-app-installation)
 `PUT /user/installations/168678307/repositories/{repository_id}` erledigen.
 Vorher Kontoinhaber, Installation und private Repository-Identität prüfen; danach
-die Auswahl und den Git-Lesetest erneut prüfen. Ein Token zum Anlegen allein
+die Auswahl und den Git-Lesetest erneut prüfen. Diesen Schreibschritt ebenfalls auf
+dem lokalen Rechner mit dem autorisierten Benutzerzugang ausführen. Ein Token zum Anlegen allein
 repariert den Git-Zugriff der Cloud-App nicht. HTTP 404 kann sowohl ein fehlendes
 Repository als auch fehlenden Zugriff bedeuten. Es gibt keinen Fallback auf das
 öffentliche Website-Repository. Ein erfolgreicher Live-Austausch ist weiterhin
 nicht bestätigt.
 
-### Codex 401: Anmeldedaten und Browser-Zugang
+### Codex 401: Anmeldung erneuert, Live-Probe erfolgreich
 
-Die Cloud-CLI erkennt vorhandene ChatGPT-Anmeldedaten lokal als vorhanden/ok.
-Der erreichbare Authentifizierungsdienst antwortet bei der Live-Probe dennoch mit
-HTTP 401 bzw. `unauthorized`. Ein Ablauf der Anmeldung oder Refresh-Fehler ist
-nicht nachgewiesen; ebenso wenig eine abweichende versteckte Provider-Konfiguration.
-`--ignore-user-config` erhält die Authentifizierung unter `CODEX_HOME`.
+Die erste Cloud-Probe scheiterte mit HTTP 401 bzw. `unauthorized`, obwohl lokale
+Metadaten die ChatGPT-Anmeldedaten als vorhanden/ok erkannten. Nach einer bewusst
+bestätigten neuen Geräteanmeldung funktioniert eine minimale echte Inferenz:
+Ein neuer isolierter `read-only`-Lauf endete mit Exit-Code 0, `turn.completed` und
+der erwarteten finalen Antwort. Der native 401 ist in der aktuellen Cloud behoben.
+Ein Ablauf der früheren Anmeldung oder Refresh-Fehler wurde nicht nachgewiesen.
+`--ignore-user-config` erhält die Authentifizierung unter `CODEX_HOME`; eine
+Metadatenprüfung ersetzt weiterhin keinen Live-Test.
 
 Für eine bewusst erneuerte CLI-Anmeldung bietet die CLI den offiziellen Gerätefluss:
+
+Voraussetzung ist eine aktivierte **Anmeldung per Gerätecode** unter
+**ChatGPT → Profil → Einstellungen → Sicherheit** im selben Konto. Zeigt die
+offizielle Codex-Geräteseite stattdessen die Aufforderung, diese Anmeldung für
+Codex, Excel, PowerPoint und Word zu aktivieren, erscheint deshalb noch kein
+Code-Eingabefeld. Diese Einstellung zuerst aktivieren und danach einen neuen
+CLI-Gerätefluss starten:
 
 ```bash
 codex login --device-auth
@@ -553,15 +581,20 @@ er repariert damit keine ChatGPT-Anmeldedaten.
 
 Eine Anmeldung in Edge oder einem Browser-Arbeitsbereich verleiht dieser Cloud
 nicht automatisch CLI-Zugriff. Die Cloud läuft unter Linux ohne Edge und ohne
-Verbindung zum lokalen Browser. Die offiziellen Geräteflüsse für GitHub und Codex
-wurden gestartet; beide Browserbestätigungen stehen noch aus:
-[GitHub](https://github.com/login/device) und
-[Codex](https://auth.openai.com/codex/device). GitHub verwendet eine getrennte
-private CLI-Konfiguration außerhalb des Checkouts; das bisherige `GH_TOKEN`
-bleibt unverändert. Vor der Browserfreigabe wird keine Codex-Anmeldung ersetzt.
-GitHub- und Codex-Anmeldung sind getrennte Vorgänge. Gerätecodes
-und Tokenwerte gehören weder in diese Anleitung noch ins Repository. Es ist
-weiterhin kein erfolgreicher Live-Austausch bestätigt.
+Verbindung zum lokalen Browser. Die offizielle GitHub-Geräteanmeldung ist als
+`RalRue` erfolgreich abgeschlossen. Sie verwendet eine getrennte private
+CLI-Konfiguration außerhalb des Checkouts; das bisherige `GH_TOKEN` bleibt
+unverändert. Wegen der Cloud-App-Proxyroute bleibt das Anlegen dennoch mit 403
+blockiert. Private Mailbox, App-Freigabe und Git-Live-Zugriff sind nicht bestätigt.
+
+Die Gerätecode-Anmeldung wurde im ChatGPT-Konto aktiviert. Der neue Codex-Fluss
+auf [der offiziellen Codex-Geräteseite](https://auth.openai.com/codex/device) wurde
+bewusst bestätigt und erfolgreich abgeschlossen; die gespeicherte CLI-Anmeldung
+wurde erneuert. Die nachfolgende reale Modellprobe war erfolgreich. Der separate
+API-Helfer ist weiterhin ungeprüft, seine API-Schlüssel fehlen noch.
+GitHub- und Codex-Anmeldung sind getrennte Vorgänge. Gerätecodes und Tokenwerte
+gehören weder in diese Anleitung noch ins Repository. Der vollständige Austausch
+über das private Postfach ist weiterhin nicht bestätigt.
 
 ### Weitere Prüfungen
 
