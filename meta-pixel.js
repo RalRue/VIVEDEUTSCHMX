@@ -18,7 +18,11 @@
     };
 
     const loadPixel = function () {
-        if (!isConfigured || !hasMarketingConsent() || window.__viveDeutschMetaPixelLoaded) return;
+        if (!isConfigured || !hasMarketingConsent()) return;
+        if (window.__viveDeutschMetaPixelLoaded) {
+            if (typeof window.fbq === 'function') window.fbq('consent', 'grant');
+            return;
+        }
         window.__viveDeutschMetaPixelLoaded = true;
 
         !function (f, b, e, v, n, t, s) {
