@@ -502,6 +502,69 @@ node scripts/codex-bridge.mjs status --json
 git status --short
 ```
 
+### GitHub 403: Berechtigungen der verbundenen App
+
+Die bestätigte Ursache ist die Installation `168678307` von
+`chatgpt-codex-connector` unter `RalRue`: Für sie ist ausschließlich das öffentliche
+Repository `VIVEDEUTSCHMX` ausgewählt; sie besitzt keine
+`administration`-Berechtigung. Sie kann daher das private Postfach derzeit weder
+anlegen noch als nicht ausgewähltes Repository lesen. Ein gemeldetes `admin: true`
+für den Benutzer beschreibt dessen Repository-Rolle und erweitert keine App-Rechte.
+
+Die unterstützte Lösung ist `bridge:connect` mit einer bereits berechtigten
+lokalen `gh`-Anmeldung oder `VIVE_GITHUB_ADMIN_TOKEN` in den sicheren
+Codex-Umgebungseinstellungen. Dieser Zugang muss unter `RalRue` private Repositories
+anlegen dürfen; Tokenwerte gehören niemals in den Chat oder ins Repository.
+
+Nach dem Anlegen das neue private Repository zusätzlich in den
+[Codex-App-Einstellungen](https://github.com/settings/installations/168678307)
+auswählen. Ein separat autorisierter Benutzerzugang mit den nötigen Rechten kann
+diesen Schritt auch über den offiziellen
+[GitHub-Endpunkt](https://docs.github.com/en/rest/apps/installations#add-a-repository-to-an-app-installation)
+`PUT /user/installations/168678307/repositories/{repository_id}` erledigen.
+Vorher Kontoinhaber, Installation und private Repository-Identität prüfen; danach
+die Auswahl und den Git-Lesetest erneut prüfen. Ein Token zum Anlegen allein
+repariert den Git-Zugriff der Cloud-App nicht. HTTP 404 kann sowohl ein fehlendes
+Repository als auch fehlenden Zugriff bedeuten. Es gibt keinen Fallback auf das
+öffentliche Website-Repository. Ein erfolgreicher Live-Austausch ist weiterhin
+nicht bestätigt.
+
+### Codex 401: Anmeldedaten und Browser-Zugang
+
+Die Cloud-CLI erkennt vorhandene ChatGPT-Anmeldedaten lokal als vorhanden/ok.
+Der erreichbare Authentifizierungsdienst antwortet bei der Live-Probe dennoch mit
+HTTP 401 bzw. `unauthorized`. Ein Ablauf der Anmeldung oder Refresh-Fehler ist
+nicht nachgewiesen; ebenso wenig eine abweichende versteckte Provider-Konfiguration.
+`--ignore-user-config` erhält die Authentifizierung unter `CODEX_HOME`.
+
+Für eine bewusst erneuerte CLI-Anmeldung bietet die CLI den offiziellen Gerätefluss:
+
+```bash
+codex login --device-auth
+```
+
+Dieser Schritt benötigt die bewusste Bestätigung des Kontoinhabers im Browser und
+erneuert anschließend die gespeicherte CLI-Anmeldung. Das ist lokal und im
+autorisierten Cloud-Ablauf unterstützt. Es gibt keinen separaten CLI-Refresh-Befehl.
+Die injizierte Cloud-Anmeldung nicht blind abmelden oder ersetzen. Der optionale
+OpenAI-API-Helfer
+kann einen sicher hinterlegten `VIVE_OPENAI_API_KEY` verwenden, derzeit fehlt dieser;
+er repariert damit keine ChatGPT-Anmeldedaten.
+
+Eine Anmeldung in Edge oder einem Browser-Arbeitsbereich verleiht dieser Cloud
+nicht automatisch CLI-Zugriff. Die Cloud läuft unter Linux ohne Edge und ohne
+Verbindung zum lokalen Browser. Die offiziellen Geräteflüsse für GitHub und Codex
+wurden gestartet; beide Browserbestätigungen stehen noch aus:
+[GitHub](https://github.com/login/device) und
+[Codex](https://auth.openai.com/codex/device). GitHub verwendet eine getrennte
+private CLI-Konfiguration außerhalb des Checkouts; das bisherige `GH_TOKEN`
+bleibt unverändert. Vor der Browserfreigabe wird keine Codex-Anmeldung ersetzt.
+GitHub- und Codex-Anmeldung sind getrennte Vorgänge. Gerätecodes
+und Tokenwerte gehören weder in diese Anleitung noch ins Repository. Es ist
+weiterhin kein erfolgreicher Live-Austausch bestätigt.
+
+### Weitere Prüfungen
+
 - **Kein Lesezugriff:** Ziel `RalRue/VIVEDEUTSCHMX-CODEX-BRIDGE`, mögliche Overrides,
   vorhandene Git-Authentifizierung und Netzwerkzugriff auf GitHub prüfen. Der
   Account und die verbundene GitHub App benötigen Zugriff auf dieses private
