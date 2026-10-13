@@ -157,7 +157,7 @@ export function createBridgeClient(options, { run = execFileAsync, signal } = {}
     if (options.remote) argv.push('--remote', options.remote);
     let output;
     try { output = await run(process.execPath, argv, { cwd: options.cwd, encoding: 'utf8',
-      timeout: 180_000, maxBuffer: 40 * 1024 * 1024, signal }); }
+      timeout: 180_000, maxBuffer: 40 * 1024 * 1024, windowsHide: true, signal }); }
     catch (error) {
       const failure = new AiWorkerError(`Bridge ${name} could not be confirmed; check mailbox access.`);
       const id = /message ID ([0-9a-f-]{36})\b/.exec(typeof error?.stderr === 'string' ? error.stderr : '')?.[1];

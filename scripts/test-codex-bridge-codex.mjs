@@ -332,6 +332,72 @@ try {
     assert.equal(calls, 0);
   });
 
+  await test('fresh state adopts an existing canonical result before execution or publication', async () => {
+    const original = (await localBridge.send({ from: 'local', to: 'fresh-result-run', body: 'Recover a result after the previous owner lost its local state.' })).message;
+    const id = nativeReplyId(original.id, 'fresh-result-run', 'local');
+    const previous = await cloudBridge.send({ from: 'fresh-result-run', to: 'local', replyTo: original.id,
+      id, body: `${marker}\nThe previous owner already completed this technical task.` });
+    assert.equal(await acknowledged(original), false);
+    const configuration = options('fresh-result-run');
+    await assert.rejects(readFile(configuration.state), { code: 'ENOENT' });
+    success(await invoke(configuration, {
+      launch: async () => assert.fail('An existing canonical result must never cause another execution'),
+      bridge: { ...cloudBridge, send: async () => assert.fail('The existing result must not be published again') },
+    }), 1);
+    assert.equal((await executions(original)).length, 0);
+    assert.equal((await replies(original)).length, 1);
+    assert.equal(await acknowledged(original), true);
+    const record = JSON.parse(await readFile(configuration.state, 'utf8')).records[0];
+    assert.equal(record.stage, 'acked');
+    assert.equal(record.replyId, id);
+    assert.equal(record.draft, previous.message.body);
+  });
+
+  await test('a conflicting canonical identity fails closed before execution or ACK', async () => {
+    const original = (await localBridge.send({ from: 'local', to: 'invalid-canonical-run', body: 'A result with the wrong worker identity must not be adopted.' })).message;
+    await cloudBridge.send({ from: 'another-helper', to: 'local', replyTo: original.id,
+      id: nativeReplyId(original.id, 'invalid-canonical-run', 'local'), body: `${marker}\nWrong worker identity.` });
+    const outcome = await invoke(options('invalid-canonical-run'), {
+      launch: async () => assert.fail('Conflicting canonical result must block execution'),
+    });
+    assert.match(outcome.failure?.message || '', /canonical reply identity/i);
+    assert.equal((await executions(original)).length, 0);
+    assert.equal(await acknowledged(original), false);
+  });
+
+  await test('legacy publishing and published caches gain a canonical result without rerunning or rewriting history', async () => {
+    for (const stage of ['publishing', 'published']) {
+      const agent = `legacy-${stage}-run`;
+      const original = (await localBridge.send({ from: 'local', to: agent, body: `Recover the legacy ${stage} cache at the Action-compatible result path.` })).message;
+      const configuration = options(agent);
+      const legacyBridge = { ...cloudBridge,
+        send: async ({ id, ...fields }) => {
+          const legacy = await cloudBridge.send(fields);
+          if (stage === 'publishing') throw new Error('Old owner lost the successful publication response');
+          return legacy;
+        },
+        ack: async () => { throw new Error('Old owner stopped before request acknowledgement'); },
+      };
+      await invoke(configuration, { bridge: legacyBridge });
+      const cached = JSON.parse(await readFile(configuration.state, 'utf8')).records[0];
+      assert.equal(cached.stage, stage);
+      const legacy = (await replies(original))[0];
+      const canonicalId = nativeReplyId(original.id, agent, 'local');
+      assert.notEqual(legacy.id, canonicalId);
+      assert.equal((await executions(original)).length, 1);
+      success(await invoke(configuration, {
+        launch: async () => assert.fail('A cached legacy result must never rerun its task'),
+      }), 1);
+      const delivered = await replies(original);
+      assert.equal(delivered.length, 2);
+      assert.deepEqual(delivered.find(reply => reply.id === legacy.id), legacy);
+      assert.equal(delivered.find(reply => reply.id === canonicalId)?.body, legacy.body);
+      assert.equal((await executions(original)).length, 1);
+      assert.equal(await acknowledged(original), true);
+      assert.equal(JSON.parse(await readFile(configuration.state, 'utf8')).records[0].replyId, canonicalId);
+    }
+  });
+
   await test('failed publication retains the final result so restart never relaunches Codex', async () => {
     const original = (await localBridge.send({ from: 'local', to: 'publication-run', body: 'Cache this launcher result after publication failure.' })).message;
     await invoke(options('publication-run'), { bridge: { ...cloudBridge, send: async () => { throw new Error('Cannot publish'); } } });

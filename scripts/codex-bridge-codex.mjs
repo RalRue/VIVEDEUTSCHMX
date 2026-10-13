@@ -287,6 +287,28 @@ async function saveState(filename, state) {
 async function processRecord(record, state, options, dependencies) {
   const { bridge, launch, signal, env } = dependencies;
   const save = () => { record.updatedAt = new Date().toISOString(); return saveState(options.state, state); };
+  const canonicalId = nativeReplyId(record.source.id, options.agent, record.source.from);
+  if (['received', 'started', 'failed', 'publishing'].includes(record.stage)
+    || (record.stage === 'published' && record.replyId !== canonicalId)) {
+    // A previous owner can publish a result before losing its local state or
+    // failing to acknowledge the request. Recover that result before execution.
+    const replies = inboxMessages(await bridge.inbox(record.source.from, { all: true }));
+    const existing = replies.find(reply => reply.id === canonicalId);
+    if (existing) {
+      if (existing.from !== options.agent || existing.to !== record.source.from || existing.replyTo !== record.source.id) {
+        throw new CodexWorkerError('Canonical reply identity does not match its task; preserve state and inspect mailbox history.');
+      }
+      validateDraft(record.source, options, existing.body, env);
+      if (record.draft !== null && record.draft !== existing.body) {
+        throw new CodexWorkerError('Canonical reply conflicts with the cached result; preserve both before recovery.');
+      }
+      record.draft = existing.body; record.replyId = canonicalId; record.stage = 'published'; await save();
+    } else if (record.stage === 'published') {
+      // Old workers used random result IDs. Publish the cached result at the
+      // canonical path before ACK, retaining the legacy message and history.
+      record.stage = 'publishing'; await save();
+    }
+  }
   if (record.stage === 'started' || record.stage === 'failed') {
     if (!options.retryFailed) return false;
     record.stage = 'received'; await save();
@@ -306,17 +328,11 @@ async function processRecord(record, state, options, dependencies) {
     }
   }
   if (signal.aborted) return false;
-  if (record.stage === 'publishing') {
-    const replies = inboxMessages(await bridge.inbox(record.source.from, { all: true }));
-    const existing = replies.find(reply => reply.from === options.agent && reply.to === record.source.from
-      && reply.replyTo === record.source.id && reply.body === record.draft);
-    if (existing) { record.replyId = existing.id; record.stage = 'published'; await save(); }
-  }
   if (record.stage === 'drafted' || record.stage === 'publishing') {
     record.stage = 'publishing'; await save();
     try {
       const reply = await bridge.send({ from: options.agent, to: record.source.from, body: record.draft, replyTo: record.source.id,
-        id: nativeReplyId(record.source.id, options.agent, record.source.from) });
+        id: canonicalId });
       record.replyId = validateId(reply?.id); record.stage = 'published'; await save();
     } catch (error) {
       if (error?.messageId) { try { record.replyId = validateId(error.messageId); await save(); } catch {} }

@@ -25,6 +25,16 @@ const taskName = 'VIVE-Codex-Bridge-Zoohaus';
 const owner = 'Managed by vive-codex-bridge-zoohaus/v1';
 let passed = 0;
 
+function schedule() {
+  return { executionTimeLimitSeconds: 1_200, startWhenAvailable: true,
+    triggers: [
+      { kind: 'logon', userId: sid, enabled: true, startBoundary: '', endBoundary: '',
+        intervalSeconds: 0, durationSeconds: 0, stopAtDurationEnd: false, delaySeconds: 0, randomDelaySeconds: 0 },
+      { kind: 'time', userId: '', enabled: true, startBoundary: '2026-10-13T10:00:00', endBoundary: '',
+        intervalSeconds: 60, durationSeconds: 0, stopAtDurationEnd: false, delaySeconds: 0, randomDelaySeconds: 0 },
+    ], lastTaskResult: 0, lastRunTime: '2026-10-13T10:00:00.0000000Z', nextRunTime: '2026-10-13T10:01:00.0000000Z', missedRuns: 0 };
+}
+
 function failure(code) { return Object.assign(new Error(code), { code }); }
 
 class MemoryFiles {
@@ -167,7 +177,12 @@ function fixture({ platform = 'win32', dependencies = {} } = {}) {
       assert.ok(!script.includes(project), 'User-controlled path was interpolated into PowerShell syntax');
       let value;
       if (op === 'identity') value = { sid: behavior.currentSid };
-      else if (op === 'inspect') value = behavior.task || { exists: false };
+      else if (op === 'inspect') {
+        assert.match(script, /Read-Schedule \$t/);
+        assert.match(script, /Get-ScheduledTaskInfo -TaskName \$d\.name/);
+        assert.match(script, /-Depth 5/);
+        value = behavior.task || { exists: false };
+      }
       else if (op === 'verifyAcl') value = { safe: behavior.safeAcl };
       else if (op === 'secureAcl') {
         assert.equal(payload.directory, win.dirname(configPath), 'ACL update escaped the managed private directory');
@@ -183,14 +198,20 @@ function fixture({ platform = 'win32', dependencies = {} } = {}) {
         assert.match(script, /-UserId\s+\$d\.sid/);
         assert.match(script, /New-ScheduledTaskTrigger\s+-AtLogOn\s+-User\s+\$d\.sid/);
         assert.match(script, /-RepetitionInterval\s+\(\[TimeSpan\]::FromMinutes\(1\)\)/);
+        assert.match(script, /Assert-Schedule \$task/);
+        assert.match(script, /executionTimeLimitSeconds -ne 1200/);
+        assert.match(script, /\$times\[0\]\.intervalSeconds -ne 60/);
         behavior.task = { exists: true, description: payload.description, sid: payload.sid,
           execute: payload.execute, args: payload.args, workingDirectory: payload.project,
           state: 'Ready', enabled: true, actionCount: 1,
           logonType: /-LogonType\s+([a-zA-Z]+)/.exec(script)?.[1],
           runLevel: /-RunLevel\s+([a-zA-Z]+)/.exec(script)?.[1],
-          multipleInstances: /-MultipleInstances\s+([a-zA-Z]+)/.exec(script)?.[1], wakeToRun: false };
+          multipleInstances: /-MultipleInstances\s+([a-zA-Z]+)/.exec(script)?.[1], wakeToRun: false, ...schedule() };
         value = { ok: true };
-      } else if (['start', 'pause'].includes(op)) value = { ok: true };
+      } else if (['start', 'pause'].includes(op)) {
+        assert.match(script, /Assert-Schedule \$task/);
+        value = { ok: true };
+      }
       else assert.fail(`Unexpected PowerShell fixture operation: ${op}`);
       return { stdout: JSON.stringify(value), stderr: '' };
     }
@@ -228,7 +249,7 @@ function ownedTask(configuration, plan) {
   return { exists: true, description: owner, sid: configuration.ownerSid,
     execute: configuration.node, args: plan.task.action.args, workingDirectory: configuration.project,
     state: 'Ready', enabled: true, actionCount: 1, logonType: 'Interactive', runLevel: 'Limited',
-    multipleInstances: 'IgnoreNew', wakeToRun: false };
+    multipleInstances: 'IgnoreNew', wakeToRun: false, ...schedule() };
 }
 async function rejects(run, pattern) {
   await assert.rejects(run, error => pattern.test(error.message));
@@ -394,10 +415,68 @@ await test('status reads the owned task without starting a worker or changing fi
   const status = await f.client.status(parseZoohausArgs(['--status'], { cwd: project, pathApi: win }));
   assert.equal(status.task, taskName);
   assert.equal(status.enabled, true);
+  assert.equal(status.scheduleVerified, true);
+  assert.equal(status.lastTaskResult, 0);
+  assert.equal(status.lastRunTimeUtc, '2026-10-13T10:00:00.0000000Z');
+  assert.equal(status.nextRunTimeUtc, '2026-10-13T10:01:00.0000000Z');
+  assert.equal(status.missedRuns, 0);
   assert.equal(status.inferenceVerified, false);
   assert.equal(f.calls.filter(call => win.basename(call.program).toLowerCase() === 'node.exe').length, 0);
   assert.equal(taskOperations(f, 'register', 'start', 'pause', 'secureAcl').length, 0);
   assert.equal(f.fs.mutations.length, 0);
+});
+
+await test('changed or disabled startup triggers and execution limits cannot be reported ready or overwritten', async () => {
+  const alterations = [
+    task => { task.triggers = []; },
+    task => { task.triggers.pop(); },
+    task => { task.triggers.push(structuredClone(task.triggers[1])); },
+    task => { task.triggers[0].enabled = false; },
+    task => { task.triggers[0].userId = differentSid; },
+    task => { task.triggers[0].intervalSeconds = 1; },
+    task => { task.triggers[0].delaySeconds = 300; },
+    task => { task.triggers[1].kind = 'other'; },
+    task => { task.triggers[1].enabled = false; },
+    task => { task.triggers[1].intervalSeconds = 300; },
+    task => { task.triggers[1].durationSeconds = 600; },
+    task => { task.triggers[1].stopAtDurationEnd = true; },
+    task => { task.triggers[1].endBoundary = '2026-10-13T10:00:00'; },
+    task => { task.triggers[1].randomDelaySeconds = 15; },
+    task => { task.triggers[1].startBoundary = ''; },
+    task => { task.executionTimeLimitSeconds = 1; },
+    task => { task.executionTimeLimitSeconds = 0; },
+    task => { task.startWhenAvailable = false; },
+  ];
+  for (const change of alterations) {
+    const f = fixture();
+    const plan = await f.client.plan(options());
+    await f.client.install(options('install'));
+    const saved = await config(f);
+    f.behavior.task = ownedTask(saved, plan);
+    change(f.behavior.task);
+    f.fs.putFile(statePath, 'PRESERVE_OWNED_STATE');
+    const original = await f.fs.readFile(configPath, 'utf8');
+    f.calls.length = 0;
+    f.fs.mutations.length = 0;
+    await rejects(() => f.client.status(options('status')), /task|policy|owned/i);
+    await rejects(() => f.client.install(options('install')), /task|policy|owned/i);
+    assert.equal(f.fs.mutations.length, 0);
+    assert.equal(taskOperations(f, 'register', 'start', 'pause', 'secureAcl').length, 0);
+    assert.equal(await f.fs.readFile(configPath, 'utf8'), original);
+    assert.equal(await f.fs.readFile(statePath, 'utf8'), 'PRESERVE_OWNED_STATE');
+  }
+});
+
+await test('status safely reports absent history while never claiming model inference', async () => {
+  const f = fixture();
+  await f.client.install(options('install'));
+  Object.assign(f.behavior.task, { lastTaskResult: -1, lastRunTime: null, nextRunTime: 'not a timestamp', missedRuns: -1 });
+  const status = await f.client.status(options('status'));
+  assert.equal(status.lastTaskResult, null);
+  assert.equal(status.lastRunTimeUtc, null);
+  assert.equal(status.nextRunTimeUtc, null);
+  assert.equal(status.missedRuns, null);
+  assert.equal(status.inferenceVerified, false);
 });
 
 await test('run loads strict owned config and prepends native Codex and Git directories to child PATH', async () => {

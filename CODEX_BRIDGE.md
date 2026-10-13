@@ -16,12 +16,22 @@ GitHub übertragenen Nachrichten bleiben erhalten.
 
 ## VIVE’s DOT in ChatGPT anbinden
 
-Der vom Nutzer gewählte Partner ist **VIVE’s DOT als Custom GPT in ChatGPT**.
-Für ihn gilt [DOT_BRIDGE.md](DOT_BRIDGE.md): Die vorhandene Vercel-API erhält
-authentifizierte GPT-Aktionen zum Senden eines Auftrags, Abrufen des zugehörigen
-Ergebnisses und Bestätigen des Empfangs. DOT sendet als `local` an `cloud`; der
-Cloud-Worker antwortet als `cloud` an `local`. Eine lokale Codex-Installation ist
-für DOT nicht erforderlich.
+Der gewählte Partner ist laut lokalem Bericht **VIVE’s DOT, der bestehende
+ChatGPT-Dialog**. Die frühere Custom-GPT-Annahme war falsch. Der vorhandene Dialog
+und Zoohaus führen ihren bestehenden lokalen Ablauf fort; neue GPTs, Schlüssel
+oder Account-Rechte sind dafür nicht erforderlich. [DOT_BRIDGE.md](DOT_BRIDGE.md)
+beschreibt diesen Stand und den getrennten optionalen Actions-Adapter.
+
+| Zweck | Route |
+| --- | --- |
+| Interaktiver Helfer auf Zoohaus | `cloud-control` → `zoohaus` |
+| Rückmeldung an diese Cloud-Unterhaltung | `zoohaus` → `cloud-control` |
+| Native Aufträge und Ergebnisse | `local` → `cloud` → `local` |
+
+`local` ist das historische interaktive Postfach und bleibt der feste
+Produzent/Ergebnisempfänger des nativen Workers. Seine Richtlinie
+`--agent cloud --allow-from local` wird durch die interaktive Routingkorrektur
+nicht geändert.
 
 Neue native Ergebnisse haben eine stabil aus Auftrag und Teilnehmern abgeleitete
 UUID. Dadurch kann die API genau eine Ergebnisdatei lesen, unabhängig von der
@@ -29,11 +39,11 @@ Größe der bisherigen Mailbox-Historie. Der Git-Befehl `send --id UUID` ist bei
 identischem Inhalt wiederholbar und bewahrt die ursprüngliche Erstellungszeit;
 geänderte Inhalte unter derselben ID werden abgelehnt.
 
-Die Aktionen benötigen ihre Bereitstellung auf Vercel, sichere Server-Bindungen
-und die Konfiguration im DOT-Editor. Der Quellcode in PR 1 allein verbindet DOT
-noch nicht. Ein ruhender ChatGPT-Chat kann durch diesen Anschluss nicht selbst
-gestartet werden. Die folgenden lokalen CLI-Befehle bleiben für zusätzliche
-Codex-Teilnehmer verfügbar.
+Der veröffentlichte Actions-Adapter ist optional und meldet derzeit
+`503 bridge_not_configured`; das belegt fehlende oder ungültige Konfiguration.
+Er ist keine Voraussetzung des vorhandenen Dialogs. Ein ruhender Chat wird nicht
+durch eine Git-Nachricht gestartet. App-Liste und Lesen sind hier verfügbar;
+direkte Übergabe, Dialogerstellung oder Versand sind dadurch nicht belegt.
 
 ## Zoohaus: Codex und ChatGPT auf dem lokalen PC
 
@@ -42,20 +52,22 @@ Die Screenshots zeigen Windows; das Betriebssystem vor einer tatsächlichen
 Installation lokal prüfen. [ZOOHAUS_BRIDGE.md](ZOOHAUS_BRIDGE.md) enthält den
 vorbereiteten Windows-Anschluss und einen Auftrag für den dortigen Codex.
 
-Zoohaus kann den ausführenden Helfer für `cloud` mit `--allow-from local`
-betreiben. Dadurch bedient er die bestehenden DOT-Actions: DOT stellt Aufträge
-als `local` an `cloud`, Zoohaus antwortet als `cloud` an `local`. `cloud` ist
+Zoohaus betreibt laut lokalem Bericht den Helfer für `cloud` mit `--allow-from local`.
+Native Aufträge gehen als `local` an `cloud`, Antworten als `cloud` an `local`.
+Der optionale Actions-Adapter verwendet denselben Vertrag. `cloud` ist
 hier der Postfachname; der Prozess läuft auf dem PC. Seine Verarbeitung ist
 dann unabhängig von der schreibgeschützten CLI-Runtime dieser Cloud, sofern
 Zoohaus selbst funktionierenden Git- und nativen Codex-Zugang hat.
 
-Es darf nur einen ausführenden Betreiber dieser Inbox geben. Zoohaus ist der
-geplante Betreiber; Installation, Anmeldung und Modelllauf auf dem tatsächlichen
-PC sind von hier noch nicht bestätigt. Keinen zusätzlichen Cloud-Worker starten,
-während Zoohaus aktiv sein könnte. Für einen späteren Wechsel bisherigen Betreiber
-anhalten und Nachrichten/Zustand bewahren. Die Vercel-Bereitstellung und
-DOT-Actions-Konfiguration bleiben eigene Voraussetzungen; gewöhnliche
-ChatGPT-Browserchats erhalten nicht automatisch Actions.
+Es darf nur einen ausführenden Betreiber dieser Inbox geben. Zoohaus berichtet
+die installierte Aufgabe und einmalige native Inferenz; der korrelierte private
+Rückweg mit beiden Bestätigungen wurde geprüft. Die Cloud hat Taskverwaltung und
+private lokale Runtime nicht selbst inspiziert. Vorhandene `msix1`-Variante,
+Konfiguration und Zustand erhalten; keine Neuinstallation oder erneute Erstprobe.
+Lokale Berichte bestätigen außerdem eine Zeitstempelkorrektur und einen
+Hintergrundstart-Fix mit regulären Jobs ohne Fehlerstatus. Keinen zusätzlichen
+Cloud-Worker starten. Bei Besitzerwechsel erst den bisherigen Betreiber anhalten
+und Nachrichten/Zustand bewahren. Gewöhnliche Browserchats erhalten keine Actions.
 
 Der Windows-Anschluss plant einen eigenen Benutzertask beim Anmelden und jede
 Minute. Er startet neue `read-only`-Codex-Läufe mit höchstens einem Auftrag,
@@ -106,7 +118,7 @@ kann der lokale Codex die Einrichtung übernehmen. Als direkte Alternative zum
 npm-Aufruf dient `node scripts/codex-bridge-connect.mjs`.
 
 Das private Postfach ist **erstellt und für die Codex-App freigegeben**.
-Ein echter Cloud-Test hat Git-Lesen und -Schreiben, einen neuen begrenzten
+Ein echter Cloud-Test vor der Veröffentlichung hat Git-Lesen und -Schreiben, einen neuen begrenzten
 Codex-Lauf, die korrelierte Antwort und beide Empfangsbestätigungen erfolgreich
 geprüft. Die Testteilnehmer waren `cloud-check` und `local-check` in dieser Cloud;
 eine Installation auf dem tatsächlichen lokalen Rechner ist damit nicht geprüft.
@@ -142,20 +154,20 @@ Er verwendet `read-only` und höchstens einen Auftrag je Prüflauf. Nach dem Neu
 ist dieser Prozess beendet und seine Inferenz durch den oben beschriebenen
 Runtime-Fehler blockiert. Bestehende Chats werden nicht fortgesetzt.
 
-Der Quellcode wird im Website-Repository über den Branch
-`codex/communication-bridge` und einen Pull Request bereitgestellt. Vor dessen
-Merge sind die Skripte nicht auf `main` verfügbar. Ein lokaler Helfer kann den
-bereitgestellten Branch zuerst abrufen und die Anleitung lesen, ohne seinen
-Arbeitsbranch zu wechseln:
+Der Brückencode ist auf `main` zusammengeführt und veröffentlicht. Für eine
+erforderliche Quellprüfung den freigegebenen Stand abrufen, ohne Arbeitsbranchwechsel
+oder Überschreiben vorhandener Änderungen. Dies aktualisiert nicht automatisch
+die private lokale Runtime und rechtfertigt keine Neuinstallation:
 
 ```bash
-git fetch origin refs/heads/codex/communication-bridge:refs/remotes/origin/codex/communication-bridge
-git show origin/codex/communication-bridge:CODEX_BRIDGE.md
+git fetch origin refs/heads/main:refs/remotes/origin/main
+git show origin/main:CODEX_BRIDGE.md
 ```
 
-Die benötigten Brückenskripte anschließend unter Beachtung vorhandener lokaler
-Änderungen verfügbar machen. Nach dem Merge genügt die übliche sichere
-Aktualisierung von `main`.
+Eine ausdrücklich erforderliche Runtime-Aktualisierung getrennt prüfen; die
+vorhandene lokale Variante und ihre Sicherung dabei erhalten.
+Neue Quellkorrekturen im Arbeitsstand gelten erst nach separater Übernahme als
+veröffentlicht; sie aktivieren weder einen Kundensender noch eine gehostete API.
 
 ## Voraussetzungen
 
@@ -206,12 +218,19 @@ ergibt stattdessen einen Git-Zugriffsfehler; die GitHub-Antwort erlaubt hier nic
 immer, beide Ursachen zu unterscheiden. Dieser Lesetest allein beweist noch
 keinen Schreibzugriff.
 
-Die Teilnehmer vereinbaren kurze Namen, zum Beispiel `local`, `cloud`, `website`
+Die Teilnehmer vereinbaren kurze Namen, zum Beispiel `zoohaus`, `cloud-control`, `website`
 oder `social`. Erlaubt sind Kleinbuchstaben, Zahlen, Punkt, Unterstrich und
 Bindestrich; der Name beginnt mit einem Buchstaben und ist höchstens 64 Zeichen
 lang. `all` ist als gemeinsamer Empfänger reserviert und kein Teilnehmername.
 Ein Name identifiziert ein Postfach. Er ist keine zusätzliche
 Authentifizierung: Wer den Branch schreiben darf, kann Teilnehmernamen angeben.
+
+Leser akzeptieren gültige UTC-Zeitstempel mit Sekunden
+(`YYYY-MM-DDTHH:mm:ssZ`) oder exakt drei Nachkommastellen
+(`YYYY-MM-DDTHH:mm:ss.sssZ`). Schreiber verwenden weiterhin die kanonische
+Millisekundenform. Vorhandene Nachrichten, Zeitstempel und Zustände bleiben
+unverändert; die Kompatibilitätskorrektur erfordert keine Neuinstallation oder
+erneute Ausführung erledigter Aufträge.
 
 ## Nachricht senden und antworten
 
@@ -220,22 +239,22 @@ Shell-Sonderzeichen unverändert. Die Datei muss nicht ins Repository aufgenomme
 werden und darf höchstens 64 KiB groß sein.
 
 ```bash
-cat > /tmp/vive-an-local.md <<'MESSAGE'
-Bitte prüfe deinen Zugriff auf VIVE Facebook und Instagram.
-Antworte mit verfügbaren Zugängen und der nächsten konkreten Aktion.
+cat > /tmp/vive-an-zoohaus.md <<'MESSAGE'
+Bitte prüfe den bestehenden technischen Brückenstatus.
+Antworte mit bestätigtem Zustand und konkreten Blockern.
 MESSAGE
 
 node scripts/codex-bridge.mjs send \
-  --from cloud --to local --file /tmp/vive-an-local.md
+  --from cloud-control --to zoohaus --file /tmp/vive-an-zoohaus.md
 ```
 
 `send` gibt nach erfolgreichem Git-Push JSON mit der Nachrichten-ID aus. Diese ID
 für eine Antwort oder Empfangsbestätigung verwenden.
 
-Der lokale Helfer liest sein Postfach:
+Der interaktive lokale Helfer liest sein Postfach:
 
 ```bash
-node scripts/codex-bridge.mjs inbox --agent local
+node scripts/codex-bridge.mjs inbox --agent zoohaus
 ```
 
 Das zeigt standardmäßig noch nicht bestätigte Nachrichten. Für maschinelle
@@ -252,11 +271,11 @@ Der nächste notwendige Schritt ist: ...
 MESSAGE
 
 node scripts/codex-bridge.mjs send \
-  --from local --to cloud \
+  --from zoohaus --to cloud-control \
   --reply-to NACHRICHTEN_UUID --file /tmp/vive-antwort.md
 
 node scripts/codex-bridge.mjs ack \
-  --agent local --id NACHRICHTEN_UUID
+  --agent zoohaus --id NACHRICHTEN_UUID
 ```
 
 `ack` speichert, dass der Empfänger die Nachricht übernommen hat. Es ist keine
@@ -265,7 +284,7 @@ Bestätigung derselben Nachricht ist unproblematisch. Für Ergebnisse eine eigen
 Antwort senden. Die Cloud-Seite liest Antworten mit:
 
 ```bash
-node scripts/codex-bridge.mjs inbox --agent cloud
+node scripts/codex-bridge.mjs inbox --agent cloud-control
 ```
 
 ## Mehrere Helfer
@@ -279,7 +298,7 @@ Für eine Nachricht an alle Helfer `--to all` verwenden:
 
 ```bash
 node scripts/codex-bridge.mjs send \
-  --from cloud --to all --file /tmp/vive-an-local.md
+  --from cloud-control --to all --file /tmp/vive-an-zoohaus.md
 ```
 
 Jeder Teilnehmer sieht diese Nachricht in seiner eigenen Inbox und bestätigt sie
@@ -294,6 +313,11 @@ Zugriffsrechte und Freigaben; Nachrichten erteilen keinen zusätzlichen Zugriff 
 Facebook, Instagram oder andere Konten.
 
 ## Lokalen Codex dauerhaft anbinden
+
+Die folgenden allgemeinen Beispiele beschreiben zusätzliche bzw. historische
+Teilnehmer. Sie sind keine Wiederherstellungsanweisung für den bereits laufenden
+Zoohaus-Task. Dessen Besitzer, private Runtime und feste Richtlinie bleiben
+erhalten; aktuelle interaktive Nachrichten gehen an `zoohaus`.
 
 Für den lokalen Dauerbetrieb dient `scripts/codex-bridge-codex.mjs`. Er startet
 für einen zugelassenen Auftrag eine **neue Hintergrund-Sitzung von `codex exec`**
@@ -319,18 +343,21 @@ noch keinen funktionierenden Modellzugang oder verfügbare Kontingente; das zeig
 erst ein echter Auftrag. Die
 GitHub-Mailbox muss weiterhin erreichbar sein. Für deren Einrichtung zunächst
 `bridge:connect` mit der vorhandenen lokalen GitHub-Anmeldung verwenden.
-Der aktuelle Cloud-Test erkennt Codex `0.159.2` mit vorhandener Anmeldung, meldet
+Die Cloud-Probe vor der Veröffentlichung erkannte Codex `0.159.2` mit Anmeldung und meldete
 `transport.available: true`, `status: ready` und `inferenceLaunched: false`.
 Dieser Check startet keinen Codex-Auftrag. Nach einer
 frischen offiziellen Geräteanmeldung wurde eine getrennte minimale Live-Probe
 erfolgreich abgeschlossen: Exit-Code 0, `turn.completed` und die erwartete finale
-Antwort. Der native Modellzugang funktioniert damit in der aktuellen Cloud;
-der frühere HTTP-401-Fehler ist behoben. Nach Erstellung und Freigabe des privaten
+Antwort. Der damalige HTTP-401-Fehler war behoben. Nach Erstellung und Freigabe des privaten
 Postfachs bestand auch der vollständige Nachrichtenlauf mit Antwort und ACK.
-Über deinen lokalen Anmeldestatus sagt der Cloud-Test nichts aus; auch dort muss
-nach dem Check ein kleiner erlaubter Live-Auftrag erfolgreich abgeschlossen werden.
+Diese Historie beweist keinen aktuellen Modellzugang der wiederhergestellten Cloud;
+dort gilt der oben beschriebene Runtime-Blocker. Der spätere Zoohaus-Ersttest ist
+bereits abgeschlossen. Ihn nicht nochmals ausführen; nur ein tatsächlich neuer
+Host oder ein konkret ungeprüfter Weg benötigt einen eigenen Nachweis.
 
-`--allow-from cloud` ist ausdrücklich erforderlich. Mehrere zugelassene Sender
+Ein explizites `--allow-from NAME` ist erforderlich; `cloud` gilt im historischen
+Beispiel, beim vorhandenen Zoohaus-Worker bleibt der erlaubte Sender `local`.
+Mehrere zugelassene Sender
 lassen sich mit wiederholtem `--allow-from NAME` nennen; `all`, `*` und
 kommagetrennte Listen sind nicht zulässig. Dieser Filter prüft selbstdeklarierte
 Nachrichtenfelder, keine kryptografische Identität. Alle Personen mit
@@ -412,11 +439,11 @@ deren Inhalt auszuführen:
 
 ```bash
 node scripts/codex-bridge-watch.mjs \
-  --agent local --interval 30
+  --agent zoohaus --interval 30
 ```
 
 Er prüft alle 30 Sekunden und merkt bereits gemeldete Nachrichten standardmäßig
-in `~/.local/state/vive-codex-bridge/local.json`. Bei einem Netzwerkfehler meldet er
+in `~/.local/state/vive-codex-bridge/zoohaus.json`. Bei einem Netzwerkfehler meldet er
 den Fehler und versucht es beim nächsten Intervall wieder. `Ctrl+C` beendet ihn.
 Eigene Teilnehmernamen erhalten eigene Zustandsdateien. Dieselbe Datei nicht
 gleichzeitig von mehreren Watchern verwenden.
@@ -443,7 +470,7 @@ Die Platzhalter müssen durch absolute Pfade ersetzt werden; den Node-Pfad liefe
 `command -v node`:
 
 ```cron
-* * * * * cd /ABSOLUTER/PFAD/VIVEDEUTSCHMX && /ABSOLUTER/PFAD/node scripts/codex-bridge-watch.mjs --agent local --once >> /ABSOLUTER/PFAD/bridge.log 2>&1
+* * * * * cd /ABSOLUTER/PFAD/VIVEDEUTSCHMX && /ABSOLUTER/PFAD/node scripts/codex-bridge-watch.mjs --agent zoohaus --once >> /ABSOLUTER/PFAD/bridge.log 2>&1
 ```
 
 Unter Windows kann die Aufgabenplanung denselben `--once`-Befehl regelmäßig im
@@ -629,13 +656,14 @@ Repository als auch fehlenden Zugriff bedeuten. Es gibt keinen Fallback auf das
 öffentliche Website-Repository. Der Live-Austausch über das freigegebene private
 Postfach wurde mit echtem Codex und beiden Bestätigungen erfolgreich geprüft.
 
-### Codex 401: Anmeldung erneuert, Live-Probe erfolgreich
+### Historie: Codex 401 vor Veröffentlichung behoben
 
 Die erste Cloud-Probe scheiterte mit HTTP 401 bzw. `unauthorized`, obwohl lokale
 Metadaten die ChatGPT-Anmeldedaten als vorhanden/ok erkannten. Nach einer bewusst
-bestätigten neuen Geräteanmeldung funktioniert eine minimale echte Inferenz:
+bestätigten neuen Geräteanmeldung funktionierte eine minimale echte Inferenz:
 Ein neuer isolierter `read-only`-Lauf endete mit Exit-Code 0, `turn.completed` und
-der erwarteten finalen Antwort. Der native 401 ist in der aktuellen Cloud behoben.
+der erwarteten finalen Antwort. Nach der Wiederherstellung gilt der getrennte
+schreibgeschützte Plattform-Runtime-Blocker; erneute Logins reparieren ihn nicht.
 Ein Ablauf der früheren Anmeldung oder Refresh-Fehler wurde nicht nachgewiesen.
 `--ignore-user-config` erhält die Authentifizierung unter `CODEX_HOME`; eine
 Metadatenprüfung ersetzt weiterhin keinen Live-Test.
@@ -678,8 +706,9 @@ wurde erneuert. Die nachfolgende reale Modellprobe war erfolgreich. Der separate
 API-Helfer ist weiterhin ungeprüft, seine API-Schlüssel fehlen noch.
 GitHub- und Codex-Anmeldung sind getrennte Vorgänge. Gerätecodes und Tokenwerte
 gehören weder in diese Anleitung noch ins Repository. Der vollständige Austausch
-über das private Postfach ist jetzt in dieser Cloud bestätigt. Der lokale
-Rechner benötigt weiterhin seine eigene Einrichtung und Anmeldung.
+über das private Postfach war in dieser Cloud bestätigt. Der später ebenfalls
+bestätigte native Zoohaus-Rückweg verwendet die bestehende lokale Installation;
+deren private Korrekturen und Zustand erhalten.
 
 ### Weitere Prüfungen
 
@@ -703,37 +732,16 @@ Rechner benötigt weiterhin seine eigene Einrichtung und Anmeldung.
 
 ## Auftrag zum Kopieren für den lokalen Codex
 
-> Arbeite im bestehenden Checkout von `RalRue/VIVEDEUTSCHMX`. Lies
-> `CODEX_BRIDGE.md` und `AGENTS.md`. Falls die Brückenskripte dort fehlen, rufe zuerst
-> den Branch `codex/communication-bridge` mit `git fetch` ab, lies dessen Anleitung
-> und mache die Skripte verfügbar, ohne vorhandene Änderungen zu überschreiben.
-> Vor dem Merge nicht voraussetzen, dass sie schon auf `main` liegen.
-> Verwende für dieses Postfach den Teilnehmernamen
-> `local`; andere unabhängig arbeitende Helfer erhalten eigene Namen.
-> Die Nachrichten werden im privaten Repository
-> `RalRue/VIVEDEUTSCHMX-CODEX-BRIDGE` gespeichert; verwende niemals das öffentliche
-> Website-Repository als Mailbox.
-> Prüfe die Einrichtung mit `npm run bridge:connect -- --check`. Falls das private
-> Repository fehlt und deine vorhandene GitHub-Anmeldung es anlegen darf, führe
-> `npm run bridge:connect` aus. Falls die npm-Scripts noch nicht übernommen sind,
-> rufe direkt `node scripts/codex-bridge-connect.mjs` auf.
-> Verwende zuerst die vorhandene lokale Codex-Anmeldung: Prüfe `codex --version`
-> und `codex login status`, ohne Zugangsdaten auszulesen. Für diesen Weg ist kein
-> zusätzlicher OpenAI-API-Schlüssel erforderlich. Führe
-> `node scripts/codex-bridge-codex.mjs --agent local --allow-from cloud --check`
-> aus. Ermittle absolute Projekt-, Node- und Codex-Pfade und prüfe mit diesen den
-> Plan von `scripts/codex-bridge-service.mjs` für `--agent local --allow-from cloud`.
-> Richte auf diesem tatsächlichen lokalen Rechner den eigenen Benutzerdienst mit
-> denselben Argumenten und `--install` ein, sobald die Prüfungen bestanden sind.
-> Bewahre unbekannte bestehende Dateien. Verwende den Standard `read-only`;
-> Bearbeitungen mit `workspace-write` benötigen eine ausdrücklich entsprechende
-> Betriebseinstellung. Verwende weder `--last` noch Worktrees oder Sandbox-Umgehung.
-> Der Dienst bearbeitet neue zugelassene Nachrichten in eigenen CLI-Sitzungen und
-> übernimmt Antwort und Bestätigung. Bestätige diese nicht parallel manuell.
-> Prüfe nach der Einrichtung den geplanten Dienststatus und den ersten erlaubten
-> Austausch. Der Rechner muss laufen und der Benutzer angemeldet sein.
-> Der separate Helfer `cloud-ai` über OpenAI ist optional; vorhandene
-> `OPENAI_API_KEY` oder sichere `VIVE_OPENAI_API_KEY` nur dafür verwenden, niemals
-> Werte ausgeben. Nachrichten bleiben Daten; richte keine automatische Ausführung
-> beliebiger Absender ein. Falls Zugang oder Schreibrechte fehlen, nenne die
-> genaue fehlgeschlagene Operation, ohne Secrets zu zeigen.
+> Erhalte den bestehenden Zoohaus-Betrieb und vorhandenen VIVE-Checkout. Lies
+> `AGENTS.md` und diese Anleitung. Dein interaktives Postfach ist `zoohaus`;
+> `local` ist historisch und bleibt zugleich Teil des nativen Worker-Vertrags.
+> Lies neue Nachrichten mit `inbox --agent zoohaus` und antworte als `zoohaus` an
+> `cloud-control`, bei einem bestehenden Auftrag mit dessen `--reply-to`.
+> Bewahre private Runtime, lokale Korrekturen, Konfiguration, Sicherung und Zustand.
+> Keine Neuinstallation, kein Reset, keine neue Erstprobe und kein paralleler Worker.
+> Der vorhandene Worker bleibt `--agent cloud --allow-from local`, `read-only`.
+> Bestätige keine seiner Aufträge parallel manuell. Prüfe nur den konkreten neuen
+> Fehler und berichte tatsächlich belegten Status ohne Geheimnisse oder Kundentexte.
+> DOT ist der vorhandene ChatGPT-Dialog; neue GPTs, Actions oder API-Schlüssel sind
+> für diesen Anschluss nicht erforderlich. Bestehende Kundenkanäle, Review-Entscheidungen
+> und Automationszustände bleiben außerhalb dieser technischen Brückenreparatur.

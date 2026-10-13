@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { createHandler } from '../api/codex-bridge.mjs';
 import { createAckHandler } from '../api/codex-bridge-ack.mjs';
-import { nativeReplyId } from '../lib/codex-bridge-protocol.mjs';
+import { isBridgeTimestamp, nativeReplyId } from '../lib/codex-bridge-protocol.mjs';
 import { parseSmokeArgs, PROOF, runSmoke } from './smoke-codex-bridge-action.mjs';
 
 // Every GitHub HTTP response is injected. The interoperability check uses local Git only.
@@ -347,6 +347,63 @@ await test('GET returns only the exact correlated native result and keeps it rea
   assert.equal(fake.mutations().length, 0);
   assert.equal((await call(handler.ack, { url: '/api/codex-bridge-ack', body: { taskId, replyId } })).code, 200);
   assert.deepEqual((await get(handler.task)).body, result.body);
+});
+
+await test('existing UTC-second tasks, results and ACKs remain readable and immutable across API retries', async () => {
+  for (const times of [
+    { task: '2026-10-12T00:00:00Z', reply: '2026-10-12T00:00:00.001Z', ack: '2026-10-12T00:00:01Z' },
+    { task: '2024-02-29T23:59:58.000Z', reply: '2024-02-29T23:59:59Z', ack: '2024-03-01T00:00:00.000Z' },
+  ]) {
+    const fake = new FakeGitHub();
+    fake.seedRecord(message(taskId, 'Existing immutable timestamp fixture', { createdAt: times.task }));
+    seedReply(fake, taskId, { createdAt: times.reply });
+    const acknowledgement = { schema: 'codex-bridge/v1', type: 'acknowledgement', id: replyId,
+      agent: 'local', createdAt: times.ack };
+    const ackPath = `acknowledgements/local/${replyId}.json`;
+    fake.seedRecord(acknowledgement, ackPath);
+    const originalFiles = [...fake.files];
+    const handler = handlers(fake);
+    assert.deepEqual((await get(handler.task)).body,
+      { taskId, status: 'completed', replyId, result: 'Aufgabe geprüft und beantwortet.' });
+    assert.equal((await call(handler.task, { body: { taskId, body: 'Existing immutable timestamp fixture' } })).code, 202);
+    assert.deepEqual((await call(handler.ack, { url: '/api/codex-bridge-ack', body: { taskId, replyId } })).body,
+      { taskId, replyId, acknowledged: true });
+    assert.equal(fake.mutations().length, 0);
+    assert.deepEqual([...fake.files], originalFiles);
+    assert.deepEqual(fake.read(ackPath), acknowledgement);
+    assert.equal(fake.read(`messages/${taskId}.json`).createdAt, times.task);
+    assert.equal(fake.read(`messages/${replyId}.json`).createdAt, times.reply);
+  }
+});
+
+await test('invalid calendar dates and unsupported timestamp syntax cannot complete or acknowledge API tasks', async () => {
+  const invalidDates = [
+    '2026-02-30T00:00:00Z', '2025-02-29T00:00:00.000Z',
+    '2026-01-01T24:00:00Z', '2026-01-01T00:00:60.000Z',
+    '2026-01-01T00:00:00.0Z', '2026-01-01T00:00:00.00Z', '2026-01-01T00:00:00.0000Z',
+    '2026-01-01T00:00:00+00:00', '2026-01-01T00:00:00',
+  ];
+  for (const createdAt of invalidDates) {
+    assert.equal(isBridgeTimestamp(createdAt), false, createdAt);
+    for (const invalidType of ['task', 'reply', 'acknowledgement']) {
+      const fake = new FakeGitHub();
+      fake.seedRecord(message(taskId, 'Requested task', invalidType === 'task' ? { createdAt } : {}));
+      seedReply(fake, taskId, invalidType === 'reply' ? { createdAt } : {});
+      if (invalidType === 'acknowledgement') {
+        fake.seedRecord({ schema: 'codex-bridge/v1', type: 'acknowledgement', id: replyId,
+          agent: 'local', createdAt }, `acknowledgements/local/${replyId}.json`);
+      }
+      const handler = handlers(fake);
+      if (invalidType !== 'acknowledgement') {
+        const result = await get(handler.task);
+        assert.equal(result.code, 502);
+        assert.deepEqual(result.body, { error: 'mailbox_invalid_record' });
+      }
+      const acknowledgement = await call(handler.ack, { url: '/api/codex-bridge-ack', body: { taskId, replyId } });
+      assert.equal(acknowledgement.code, invalidType === 'acknowledgement' ? 409 : 502);
+      assert.equal(fake.mutations().length, 0);
+    }
+  }
 });
 
 await test('wrong sender, recipient, task correlation, path identity or machine marker cannot complete a task', async () => {

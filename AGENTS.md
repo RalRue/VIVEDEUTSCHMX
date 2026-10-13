@@ -13,35 +13,42 @@ Read `CODEX_BRIDGE.md` before using the bridge. It stores messages in the separa
 private repository `RalRue/VIVEDEUTSCHMX-CODEX-BRIDGE`, not in this public website
 repository. Existing Git authentication must have access to that repository.
 
-The user's selected partner is **VIVE’s DOT, a custom GPT in ChatGPT**. Its
-connection is the authenticated Actions API described in `DOT_BRIDGE.md`, not a
-local CLI service. The Action submits `local` → `cloud` tasks and retrieves the
-correlated `cloud` → `local` result. Only the private GPT or trusted users should
-have access to its Action: its configured API key gives those users bridge access.
-Do not claim that an idle DOT conversation can be awakened or that API code in
-a pull request is deployed or configured in the GPT editor.
+The user's selected partner is **VIVE’s DOT, the existing ChatGPT dialog**,
+according to the local report. The earlier Custom GPT assumption was incorrect.
+`DOT_BRIDGE.md` separates this existing dialogue from the optional Actions API.
+Do not request new GPTs, keys or account permissions for that old assumption.
+An ordinary dialogue does not automatically gain Actions or wake from a mailbox
+message. App listing/reading is available in the current Cloud; direct handoff,
+dialog creation and sending are not established by those read tools.
 
 The user also identified **Zoohaus as the local PC with both Codex and ChatGPT**.
-The prepared Windows connector is described in `ZOOHAUS_BRIDGE.md`. It runs the
-`cloud` inbox worker on Zoohaus with `--allow-from local` to serve DOT's existing
-Action contract; these names describe routing, not which computer runs the job.
-Zoohaus is the intended sole executing owner of that inbox. Its installation
-and native model access are not verified from this Linux cloud. Do not start a
-second cloud worker here while Zoohaus may be active. Preserve queued messages
-and coordinate an explicit ownership transfer before moving the worker.
+The Windows connector is described in `ZOOHAUS_BRIDGE.md`. Its fixed native route
+is `local` → `cloud` → `local`, with `--agent cloud --allow-from local`. These names
+describe routing, not which computer runs the job. Zoohaus reports an installed
+task and one actual native model execution; the correlated mailbox reply and ACKs
+were verified. Direct inspection of the PC remains unavailable. Preserve its
+existing locally corrected runtime, configuration and state; do not reinstall or
+repeat the completed first test. Do not start a second cloud worker here while
+Zoohaus may be active. Coordinate an explicit ownership transfer before moving it.
 Ordinary ChatGPT browser chats do not automatically receive GPT Actions.
 
 New native results use `nativeReplyId` from `lib/codex-bridge-protocol.mjs`.
 Keep this mapping stable: the Actions API retrieves that exact immutable message
 path without scanning private history. `send --id` retries must preserve the
 original record and timestamp and reject changes to the same ID's content.
+Readers accept valid UTC ISO timestamps with seconds or exactly three fractional
+digits; writers emit the canonical three-fractional-digit form. Preserve records.
 
 At the start of a task, when the bridge script exists, check the appropriate inbox:
 
 - Cloud coordination session: `node scripts/codex-bridge.mjs inbox --agent cloud-control --json`
 - Executing DOT worker: `node scripts/codex-bridge.mjs inbox --agent cloud --json`
-- Local session: `node scripts/codex-bridge.mjs inbox --agent local --json`
+- Interactive Zoohaus helper: `node scripts/codex-bridge.mjs inbox --agent zoohaus --json`
 - Helpers: use their assigned stable agent identifier and check that inbox.
+
+Interactive coordination goes `cloud-control` → `zoohaus`, with reports returning
+`zoohaus` → `cloud-control`. `local` is the historical interactive inbox and still
+the native worker's producer/result label; do not change that worker contract.
 
 If the mailbox is unavailable, report the error and continue independent work.
 Do not claim that unreadable messages were processed. Acknowledge a message only
@@ -101,3 +108,7 @@ per run and no automatic failed-task retry. Respect its private config and state
 never overwrite unrelated schedules or copy authentication files. Keep its
 runtime bundle separate from the user's checkout when PR files are unavailable
 on the local branch, rather than switching branches or overwriting user work.
+Installation instructions are for a new host or an explicitly necessary recovery;
+preserve the existing Zoohaus task and private runtime variant. Bridge recovery
+does not change separate customer-channel permissions, review decisions or
+automation state and must not introduce a parallel customer-message sender.

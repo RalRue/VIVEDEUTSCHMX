@@ -1,34 +1,37 @@
 # VIVE’s DOT mit der Codex-Brücke verbinden
 
-VIVE’s DOT ist der Custom GPT in ChatGPT. Seine **Actions** können technische
-Aufträge an ein privates Git-Postfach schicken und Codex-Ergebnisse abrufen. Ein
-aktiver Codex-Worker bearbeitet diese Aufträge in einer eigenen Sitzung mit
-`read-only`-Sandbox. Bestehende ChatGPT- oder Codex-Chats werden dadurch nicht
-automatisch geweckt. Der Worker muss tatsächlich laufen; das Postfach bewahrt
-Aufträge auch während einer Unterbrechung auf.
+VIVE’s DOT ist laut lokalem Bericht **der bestehende ChatGPT-Dialog**. Die frühere
+Custom-GPT-Annahme ist zurückgenommen. Keine neue GPT-Erstellung, API-Schlüssel
+oder Account-Rechte für diese Annahme einfordern. Der lokale Bericht bestätigt
+die Übergabe technischer Informationen im vorhandenen Dialog; die Cloud hat
+dessen Browseransicht nicht direkt geprüft. Ein Git-Eingang weckt keinen
+ruhenden Dialog und fügt ihm keine Tools hinzu.
 
-Der Nutzer hat Zoohaus als lokalen PC mit Codex und ChatGPT benannt. Der
-vorbereitete [Zoohaus-Anschluss](ZOOHAUS_BRIDGE.md) kann den passenden `cloud`-
-Worker dort betreiben. Er bedient denselben Actions-Vertrag mit lokaler
-Codex-Anmeldung und ist dann unabhängig vom CLI-Startfehler dieser Cloud.
-Zoohaus ist der geplante einzige ausführende Betreiber; sein tatsächlicher
-Start und Modellzugriff sind noch nicht geprüft. ChatGPT auf dem PC nutzt diesen
-Weg über VIVE’s DOT mit eingerichteten Actions. Vercel-Secrets, Bereitstellung
-und GPT-Konfiguration bleiben erforderlich.
+Der interaktive Helfer auf Zoohaus empfängt unter `zoohaus` und berichtet an
+`cloud-control`. Daneben betreibt Zoohaus den nativen Worker mit unverändertem
+Vertrag `local` → `cloud` → `local` und `--agent cloud --allow-from local`.
+Sein Ersttest mit korrelierter Antwort und Bestätigungen ist belegt; Installation
+und einmalige Inferenz sind zusätzlich lokal berichtet. Vorhandenen Task,
+private Runtime-Korrekturen und Zustand erhalten, keinen weiteren Worker starten.
+
+Der unten beschriebene **Actions-Adapter ist ein optionaler separater Weg**.
+Er ist nicht der bestätigte Anschluss des vorhandenen Dialogs und keine
+Voraussetzung des bestehenden privaten Git-/Zoohaus-Betriebs.
 
 ## Stand und Voraussetzungen
 
-Die Schnittstelle ist als Code zur Prüfung vorbereitet. **Deployment,
-Produktions-Secrets, DOT-Konfiguration und vollständiger Live-Austausch sind noch
-nicht bestätigt.** Die Produktionsadresse
-`https://vive-deutsch-mx.vercel.app` wurde aus `vercel.json` abgeleitet; die neuen
-Endpunkte müssen dort erst bereitgestellt und geprüft werden.
+Der Quellcode ist auf `main` veröffentlicht. Auf
+`https://vive-deutsch-mx.vercel.app` liefert das Actions-Schema HTTP 200 und
+entspricht dem Quellschema. Die optionale API meldet weiterhin
+`503 bridge_not_configured`: fehlende oder ungültige Serverkonfiguration, ohne
+Nachweis einer konkret fehlenden Variable. Gehostete Actions wurden nicht
+vollständig geprüft; das beeinträchtigt nicht den belegten nativen Zoohaus-Rückweg.
 
 Nach Wiederherstellung der Cloud scheitert Codex `0.159.2` beim Schreiben seiner
 `installation_id` im schreibgeschützten Plattform-Runtime-Pfad, bevor ein
 Modell-Turn startet. Das ist kein neuer 401; der ausführende Worker wurde nicht
-neu gestartet. Vor automatischen DOT-Ergebnissen wird eine unterstützte
-beschreibbare CLI-Runtime mit sicher erhaltenem Authentifizierungszugang benötigt.
+neu gestartet. Dieser Host-Fehler ist unabhängig vom bestehenden Zoohaus-Worker;
+ihn nicht durch Neuinstallation oder Login-Versuche auf Zoohaus behandeln.
 Den [aktuellen Cloud-Stand](CODEX_BRIDGE.md#stand-nach-wiederherstellung-der-cloud)
 beachten. Der separate API-Helfer ist weiterhin nicht konfiguriert.
 
@@ -40,14 +43,21 @@ den privaten Transport und die Zuordnung von Auftrag und Antwort. Dabei liefen
 weder eine native Modellinferenz noch eine veröffentlichte DOT-Action; diese
 Schritte bleiben getrennt zu prüfen.
 
-Benötigt werden das private Repository `RalRue/VIVEDEUTSCHMX-CODEX-BRIDGE`,
-ein Vercel-Zugang zum Website-Projekt und Bearbeitungsrechte für VIVE’s DOT im
-GPT-Builder. Die Cloud besitzt derzeit keine Werkzeuge, um die persönlichen
-Vercel-Einstellungen oder den GPT-Builder zu bearbeiten.
+App-Liste und Lesen sind hier verfügbar. Direkte Übergabe, Dialogerstellung oder
+Versand sind daraus nicht ableitbar. Der native technische Worker erteilt keine
+zusätzlichen Kundenkanal-Rechte und verändert deren bestehenden Ablauf nicht.
 
-DOTs Actions verwenden einen gemeinsamen Zugangsschlüssel. Jeder Benutzer dieses
+## Optionaler Actions-Adapter: Einrichtung nur bei passendem Auftrag
+
+Die folgenden Schritte gelten nur für einen später ausdrücklich gewählten
+Actions-fähigen GPT, nicht für den vorhandenen DOT-Dialog oder dessen Wiederherstellung.
+Sie benötigen das private Repository `RalRue/VIVEDEUTSCHMX-CODEX-BRIDGE`, einen
+Vercel-Zugang und Bearbeitungsrechte im GPT-Builder. Die persönlichen Vercel- und
+Builder-Einstellungen sind durch die Cloud-Lesewerkzeuge nicht editierbar.
+
+Die Actions des optionalen GPTs verwenden einen gemeinsamen Schlüssel. Jeder Benutzer dieses
 GPTs kann damit Aufträge auslösen und bekannte Ergebnisse abrufen, auch wenn er
-den Schlüssel nicht sieht. DOT deshalb privat halten oder ausschließlich mit
+den Schlüssel nicht sieht. Diesen GPT deshalb privat halten oder ausschließlich mit
 vertrauenswürdigen Teammitgliedern teilen.
 
 In Vercel zwei Secrets für das betreffende Deployment sicher einrichten:
@@ -82,8 +92,9 @@ Die vorhandene Cloud-GitHub-App und deren eingeschränkte Proxyroute ersetzen
 diesen Zugang nicht. Der Codex-Worker benötigt ebenfalls Git-Zugriff auf dasselbe
 Postfach; dessen Einrichtung beschreibt `CODEX_BRIDGE.md`.
 
-Die API stellt Aufträge von `local` an `cloud` ein. Der passende Worker läuft im
-bestehenden Checkout mit funktionierender Codex-Anmeldung und privatem Git-Zugang:
+Die API verwendet denselben Vertrag `local` → `cloud`. Zoohaus besitzt diese
+Inbox bereits. Folgenden Worker nur nach ausdrücklich koordiniertem
+Besitzerwechsel auf einem neuen Host verwenden, nicht zusätzlich starten:
 
 ```bash
 node scripts/codex-bridge-codex.mjs \
@@ -95,10 +106,10 @@ verfügbaren Rechner den Benutzerdienst mit denselben Teilnehmern konfigurieren;
 die Anleitung steht in `CODEX_BRIDGE.md`. Eine laufende Cloud-Sitzung garantiert
 keinen Betrieb rund um die Uhr.
 
-## DOT im GPT-Builder einrichten
+## Optionalen Actions-fähigen GPT einrichten
 
 1. Das geprüfte Deployment samt Secrets bereitstellen und die Endpunkte testen.
-2. VIVE’s DOT bearbeiten und unter **Actions** das veröffentlichte Schema
+2. Den ausdrücklich ausgewählten GPT bearbeiten und unter **Actions** das Schema
    importieren:
    `https://vive-deutsch-mx.vercel.app/codex-bridge-actions.json`.
 3. Als Authentifizierung **API Key → Bearer** wählen und dort den sicheren Wert
@@ -108,12 +119,12 @@ keinen Betrieb rund um die Uhr.
    testen. Erst erfolgreiche Übermittlung, Codex-Antwort und Bestätigung belegen
    die gesamte Verbindung.
 
-Das Schema kann vor dem Deployment als Datei aus diesem Repository zur Prüfung
-importiert werden. Dadurch sind die Endpunkte noch nicht online. Bei einer anderen
+Das Schema kann auch als Datei aus diesem Repository zur Prüfung importiert
+werden. Ein Schemaimport allein konfiguriert oder aktiviert die API nicht. Bei einer anderen
 bestätigten Produktionsdomain die Serveradresse im Schema und die Import-URL
 gemeinsam aktualisieren.
 
-## Verbindung testen
+## Optionalen Adapter testen
 
 Der Test benötigt Node.js 24 und den sicher in seiner Umgebung bereitgestellten
 `VIVE_BRIDGE_ACTION_TOKEN`. Er verwendet ausschließlich die festgelegte
@@ -131,14 +142,18 @@ laufendem Worker einen einzelnen echten Austausch testen:
 npm run smoke:bridge-action -- --run
 ```
 
-`--run` übermittelt einen festen kurzen technischen Testauftrag, wartet höchstens
+Den abgeschlossenen Zoohaus-Ersttest nicht über diesen Weg wiederholen.
+`--run` ist nur für einen konkret noch ungeprüften, autorisierten Adapter-Auftrag
+gedacht. Es übermittelt einen festen technischen Testauftrag und wartet höchstens
 120 Sekunden auf die erwartete Antwort und bestätigt sie. Der Modelllauf nutzt
 den Zugang und das Kontingent des Workers. Bleibt das Ergebnis unklar, die
 ausgegebene `taskId` bewahren und einen weiteren Test mit
 `--run --task-id DIESELBE_UUID` fortsetzen. So wird kein neuer Auftrag erzeugt.
-Erst anschließend die drei Actions auch in DOT selbst prüfen.
+Erst anschließend die drei Actions im ausdrücklich ausgewählten GPT prüfen.
 
-## Anweisungen zum Einfügen in DOT
+## Optionale Anweisungen für den Actions-fähigen GPT
+
+Diese Anweisungen erzeugen keine Tools im vorhandenen DOT-Dialog.
 
 > Du arbeitest mit der VIVE-Codex-Brücke. Sende ausschließlich kurze technische
 > Aufträge, die der Benutzer ausdrücklich beauftragt hat. Übertrage keine
