@@ -4,11 +4,22 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import {sheetValues,sheetDisplay,sheetWriteMethods} from './synthetic-sheet.cjs';
+import {base64EncodeWebSafe,computeHmacSha256Signature} from './synthetic-utilities.cjs';
 import {issueToken,verifyToken,readingScores,VERSION,LEGACY_VERSION,KEYS,validatePlacement} from '../api/_placement.mjs';
 import {createHandler} from '../api/placement.mjs';
 const parent='ca30b8bc-743b-44f9-bae8-a5296ab89c9b',id='ba30b8bc-743b-44f9-bae8-a5296ab89c9b';
 const secret='s'.repeat(64),now=Date.now();
 const env={VIVE_PLACEMENT_ENABLED:'true',VIVE_INQUIRY_MODE:'test',VIVE_INQUIRY_SECRET:secret,VIVE_INQUIRY_RECEIVER_URL:'https://script.google.com/macros/s/test/exec'};
+function assertIssuedAccess(result,expectedId,expectedTest){
+ assert.equal(result.ok,true);
+ assert.match(result.token,/^[A-Za-z0-9_-]+\.[a-f0-9]{64}$/,'Issued access must open in the browser without Base64 padding');
+ const auth=verifyToken(result.token,secret,Date.now());assert.ok(auth,'Issued access must have a valid signature and lifetime');
+ assert.equal(auth.id,expectedId,'Issued access must bind exactly the requested existing inquiry');
+ assert.equal(auth.test,expectedTest,'Issued access must preserve the original TEST/live identity');
+ assert.equal(auth.version,VERSION);
+ const claims=JSON.parse(Buffer.from(result.token.split('.')[0],'base64url'));
+ assert.deepEqual(Object.keys(claims).sort(),['expires','id','issued','test','version'],'No contact or private source identity in public access');
+}
 const token=issueToken(parent,true,secret,now,LEGACY_VERSION);
 assert.equal(verifyToken(token,secret,now).id,parent);
 assert.equal(verifyToken(token,secret,now+86400001),null);
@@ -27,7 +38,7 @@ const context=vm.createContext({Date,JSON,Number,String,Math,Array,
  PropertiesService:{getScriptProperties:()=>({getProperty:k=>k==='VIVE_INQUIRY_SECRET'?secret:k==='VIVE_PLACEMENT_ENABLED'?(receiverEnabled?'true':'false'):(aliasProperties[k]??null),setProperties:values=>{aliasPropertyWrites++;Object.assign(aliasProperties,values);}})},
  SpreadsheetApp:{openById:()=>({getSheetByName:name=>data[name]?sheet(name):null}),flush(){}},
  LockService:{getScriptLock:()=>({tryLock:()=>true,releaseLock(){}})},
- Utilities:{base64EncodeWebSafe:s=>Buffer.from(s).toString('base64url'),computeHmacSha256Signature:(message,key)=>Array.from(createHmac('sha256',key).update(message).digest())},
+ Utilities:{base64EncodeWebSafe,computeHmacSha256Signature},
  MailApp:{sendEmail(){mails++;}},ContentService:{MimeType:{JSON:'json'},createTextOutput:value=>({setMimeType:()=>JSON.parse(value)})}});
 const receiverPath=process.env.VIVE_PRIVATE_RECEIVER_PATH||new URL('../../../outputs/VIVE-DEUTSCH-MX-Projekt/operations/private/inquiry-apps-script/Code.gs',import.meta.url);
 if(process.env.VIVE_PRIVATE_RECEIVER_PATH)assert.ok(path.isAbsolute(receiverPath),'VIVE_PRIVATE_RECEIVER_PATH must be an absolute private source path');
@@ -122,12 +133,12 @@ assert.equal(context.receivePlacement_({...validatePlacement(modern),consent:und
 const ownerParent='ca30b8bc-743b-44f9-bae8-000000000900';
 data.Website_Anfragen.push([ownerParent,'','','','','','','','','','','TEST']);
 const beforeOwner=JSON.stringify(data),access=context.issuePlacementForExistingInquiry_(ownerParent,'TEST');
-assert.equal(access.ok,true);assert.equal(verifyToken(access.token,secret,Date.now()).version,VERSION);
+assertIssuedAccess(access,ownerParent,true);
 assert.equal(JSON.stringify(data),beforeOwner,'Existing access must not create another form or row');
 const ownerLive='ca30b8bc-743b-44f9-bae8-000000000904';
 data.Website_Anfragen.push([ownerLive,'','','','','','','','','','','INQUIRY']);
 const liveOwnerBefore=JSON.stringify(data),liveAccess=context.issuePlacementForExistingInquiry_(ownerLive,'INQUIRY');
-assert.equal(liveAccess.ok,true);assert.equal(verifyToken(liveAccess.token,secret,Date.now()).test,false);
+assertIssuedAccess(liveAccess,ownerLive,false);
 assert.equal(JSON.stringify(data),liveOwnerBefore,'Existing INQUIRY access is read-only; no new form, row or mail');
 assert.equal(context.issuePlacementForExistingInquiry_(ownerParent,'INQUIRY').ok,false);
 assert.equal(context.issuePlacementForExistingInquiry_('wa-inquiry-synthetic','INQUIRY').ok,false);
@@ -198,7 +209,7 @@ for(const bad of [{...aliasRecord,id:'aa30b8bc-743b-44f9-bae8-000000001101'},{..
 assert.equal(aliasPropertyWrites,1);
 const aliasBeforeIssue=JSON.stringify({data,aliasProperties});
 const aliasAccess=context.issuePlacementForExistingWhatsappInquiry_(aliasId,aliasCase,aliasRecord.sourceReceiptSha256,Date.now());
-assert.equal(aliasAccess.ok,true);assert.equal(verifyToken(aliasAccess.token,secret,Date.now()).id,aliasId);
+assertIssuedAccess(aliasAccess,aliasId,true);
 const publicAliasClaims=JSON.parse(Buffer.from(aliasAccess.token.split('.')[0],'base64url'));
 assert.deepEqual(Object.keys(publicAliasClaims).sort(),['expires','id','issued','test','version']);
 assert(!JSON.stringify(publicAliasClaims).includes(aliasCase),'Private source identity is never in client token');
@@ -218,7 +229,8 @@ assert.equal(context.issuePlacementForExistingInquiry_(aliasId,'TEST').ok,false)
 const liveAliasId='aa30b8bc-743b-44f9-bae8-000000001102',liveAliasCase='wa-inquiry-ABCDEF0123456791';
 const liveAliasRecord={...aliasRecord,id:liveAliasId,sourceId:liveAliasCase,ownerVerifiedAt:Date.now(),test:false};
 assert.equal(context.registerPlacementAliasForExistingWhatsappInquiry_(liveAliasRecord).stored,true);
-const liveAliasAccess=context.issuePlacementForExistingWhatsappInquiry_(liveAliasId,liveAliasCase,liveAliasRecord.sourceReceiptSha256,Date.now());assert.equal(liveAliasAccess.ok,true);
+const liveAliasAccess=context.issuePlacementForExistingWhatsappInquiry_(liveAliasId,liveAliasCase,liveAliasRecord.sourceReceiptSha256,Date.now());
+assertIssuedAccess(liveAliasAccess,liveAliasId,false);
 assert.equal(context.issuePlacementForExistingWhatsappInquiry_(liveAliasId,aliasCase,liveAliasRecord.sourceReceiptSha256,Date.now()).ok,false);
 assert.equal(context.issuePlacementForExistingWhatsappInquiry_(liveAliasId,liveAliasCase,'b'.repeat(64),Date.now()).ok,false);
 assert.equal(context.issuePlacementForExistingWhatsappInquiry_(liveAliasId,liveAliasCase,liveAliasRecord.sourceReceiptSha256,Date.now()-86400000).ok,false);

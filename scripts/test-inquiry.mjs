@@ -4,6 +4,7 @@ import {readFileSync, existsSync} from 'node:fs';
 import {isAbsolute} from 'node:path';
 import vm from 'node:vm';
 import {sheetValues,sheetDisplay,sheetWriteMethods} from './synthetic-sheet.cjs';
+import {computeHmacSha256Signature} from './synthetic-utilities.cjs';
 import {createHandler, validate} from '../api/inquiry.mjs';
 import {measurementPlan, safeAttribution} from '../consulta/measurement.mjs';
 
@@ -141,7 +142,7 @@ const context=vm.createContext({Date,JSON,Number,String,Math,
   SpreadsheetApp:{openById:()=>({getSheetByName:()=>sheet}),flush(){}},
   MailApp:{sendEmail(...args){mails.push(args);}},
   PropertiesService:{getScriptProperties:()=>({getProperty:k=>k==='VIVE_INQUIRY_SECRET'?env.VIVE_INQUIRY_SECRET:props[k],setProperties:o=>Object.assign(props,o)})},
-  Utilities:{computeHmacSha256Signature:(message,key)=>Array.from(createHmac('sha256',key).update(message).digest())},
+  Utilities:{computeHmacSha256Signature},
   LockService:{getScriptLock:()=>({tryLock:()=>true,releaseLock(){}})},
   ContentService:{MimeType:{JSON:'json'},createTextOutput:v=>({setMimeType:()=>JSON.parse(v)})}});
 vm.runInContext(receiver,context);
