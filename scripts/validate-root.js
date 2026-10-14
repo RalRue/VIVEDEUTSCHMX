@@ -15,8 +15,8 @@ function assert(condition, message) {
 }
 
 const homepage = read("index.html");
-const errorTrainer = read(path.join("deutsch-fehlertrainer", "index.html"));
-const vocabTrainer = read(path.join("vokabeltrainer", "index.html"));
+const errorTrainer = read(path.join("deutsch-fehlertrainer", "index.html")) + read(path.join("deutsch-fehlertrainer", "trainer.js"));
+const vocabTrainer = read(path.join("vokabeltrainer", "index.html")) + read(path.join("vokabeltrainer", "trainer.js"));
 const analytics = read("analytics.js");
 const privacyPages = ["aviso-privacidad.html", "privacy.html", "datenschutz.html"].map(read);
 const translations = read("translations.js");
