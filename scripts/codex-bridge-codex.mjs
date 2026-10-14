@@ -10,7 +10,7 @@ import { pathToFileURL } from 'node:url';
 import { DEFAULT_REMOTE, validateAgent, validateId, validateMessage, validateRemote } from './codex-bridge.mjs';
 import { createBridgeClient } from './codex-bridge-ai.mjs';
 import { acquireStateLock, writeJsonAtomic } from './codex-bridge-watch.mjs';
-import { nativeReplyId } from '../lib/codex-bridge-protocol.mjs';
+import { nativeReplyId, hasCredentialPattern } from '../lib/codex-bridge-protocol.mjs';
 
 export const CODEX_MARKER = '[codex-bridge-run/v1]';
 export const MAX_TASK_BYTES = 16_384;
@@ -140,7 +140,7 @@ export function taskPrompt(message) {
 }
 
 function rejectCredentials(text, env) {
-  if (/\b(?:sk-(?:proj-|svcacct-)?[a-zA-Z0-9_-]{16,}|gh[pousr]_[a-zA-Z0-9]{20,}|github_pat_[a-zA-Z0-9_]{20,}|AIza[a-zA-Z0-9_-]{35}|eyJ[a-zA-Z0-9_-]{5,}\.eyJ[a-zA-Z0-9_-]{5,}\.[a-zA-Z0-9_-]{10,})\b|-----BEGIN (?:[A-Z ]+ )?PRIVATE KEY-----/m.test(text)) {
+  if (hasCredentialPattern(text)) {
     throw new CodexWorkerError('Task or final message may contain credentials. Processing was blocked; inspect the local task safely.');
   }
   for (const [name, value] of Object.entries(env)) {

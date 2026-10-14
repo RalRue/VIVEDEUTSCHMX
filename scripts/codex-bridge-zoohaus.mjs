@@ -288,9 +288,9 @@ export function createZoohausConnector({ platform = process.platform, pathApi = 
       }
     }
   }
-  async function outsideProjectAndRuntime(config) {
-    const project = await existing(config.project, true);
-    const runtime = await existing(config.runtime, true);
+  async function outsideProjectAndRuntime(config, launchRequired = true) {
+    const project = launchRequired ? await existing(config.project, true) : await resolveFuturePath(config.project);
+    const runtime = launchRequired ? await existing(config.runtime, true) : await resolveFuturePath(config.runtime);
     for (const filename of [config.config, config.state]) {
       const resolved = await resolveFuturePath(filename);
       if (inside(project, resolved, p) || inside(runtime, resolved, p)) {
@@ -370,18 +370,22 @@ export function createZoohausConnector({ platform = process.platform, pathApi = 
       throw new ZoohausError('Refusing to change a task that is not owned by this user and exact Zoohaus policy.');
     }
   }
-  async function checkFiles(config) {
+  async function checkFiles(config, launchRequired = true) {
     validateConfig(config, { config: fixedConfig(), connector: cleanPath(scriptPath, p), node: cleanPath(nodePath, p), ownerSid: await identity() }, p);
-    for (const name of ['project', 'runtime']) await existing(config[name], true);
-    for (const name of ['node', 'codex', 'git', 'connector', 'helper']) await existing(config[name]);
+    if (launchRequired) {
+      for (const name of ['project', 'runtime']) await existing(config[name], true);
+      for (const name of ['node', 'codex', 'git', 'connector', 'helper']) await existing(config[name]);
+    } else {
+      for (const name of ['node', 'codex', 'git', 'connector', 'helper']) await noLinks(config[name], true);
+    }
     await noLinks(config.config, true); await noLinks(config.state, true);
-    await outsideProjectAndRuntime(config);
+    await outsideProjectAndRuntime(config, launchRequired);
     try {
       const state = await fs.lstat(config.state);
       if (!state.isFile()) throw new ZoohausError('Existing private state must be a regular file; preserving it.');
     } catch (error) { if (error.code !== 'ENOENT') throw error; }
   }
-  async function load(options = {}) {
+  async function load(options = {}, launchRequired = true) {
     requireWindows();
     const filename = fixedConfig(options);
     await noLinks(filename);
@@ -389,7 +393,7 @@ export function createZoohausConnector({ platform = process.platform, pathApi = 
     if (!metadata.isFile() || metadata.size > 32_768) throw new ZoohausError('The managed configuration is not a regular bounded JSON file.');
     let config;
     try { config = JSON.parse(await fs.readFile(filename, 'utf8')); } catch { throw new ZoohausError('Unmanaged or invalid configuration; preserving it.'); }
-    await checkFiles(config);
+    await checkFiles(config, launchRequired);
     const permission = await ps('verifyAcl', { directory: p.dirname(filename), sid: config.ownerSid });
     if (permission?.safe !== true) throw new ZoohausError('Private Windows ACL could not be verified for current user and SYSTEM only.');
     return config;
@@ -470,7 +474,7 @@ export function createZoohausConnector({ platform = process.platform, pathApi = 
       return { schema: SCHEMA, task: TASK_NAME, runCompleted: true, maxMessages: 1 };
     },
     async status(options = {}) {
-      const config = await load(options);
+      const config = await load(options, false);
       const task = await ps('inspect', taskData(config));
       assertOwnedTask(task, config);
       return { schema: SCHEMA, task: TASK_NAME, enabled: task.enabled === true,
@@ -482,7 +486,7 @@ export function createZoohausConnector({ platform = process.platform, pathApi = 
         inferenceVerified: false };
     },
     async pause(options = {}) {
-      const config = await load(options);
+      const config = await load(options, false);
       assertOwnedTask(await ps('inspect', taskData(config)), config);
       if ((await ps('pause', taskData(config)))?.ok !== true) throw new ZoohausError('Owned task pause could not be confirmed.');
       return { schema: SCHEMA, task: TASK_NAME, paused: true, runningJobMayFinish: true };

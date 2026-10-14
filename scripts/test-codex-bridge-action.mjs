@@ -256,6 +256,20 @@ await test('reserved machine prefixes are rejected before storage, including lea
   assert.equal((await call(handlers(fake).task, { body: { taskId, body: `Review this quoted marker: ${marker}` } })).code, 202);
 });
 
+await test('recognizable credential patterns are rejected before any mailbox access', async () => {
+  const samples = ['sk-proj-' + 'x'.repeat(24), 'ghp_' + 'x'.repeat(24),
+    'github_pat_' + 'x'.repeat(24), 'AIza' + 'x'.repeat(35),
+    'eyJ' + 'x'.repeat(8) + '.eyJ' + 'x'.repeat(8) + '.' + 'x'.repeat(12),
+    '-----BEGIN PRIVATE KEY-----'];
+  for (const sample of samples) {
+    const fake = new FakeGitHub();
+    const result = await call(handlers(fake).task, { body: { taskId, body: 'Review: ' + sample } });
+    assert.equal(result.code, 400);
+    assert.equal(result.body.error, 'sensitive_task');
+    assert.equal(fake.calls.length, 0);
+  }
+});
+
 await test('only the exact private repository may receive a task', async () => {
   for (const metadata of [{ ...new FakeGitHub().privateRecord, private: false },
     { full_name: repository, private: 'true' }, { full_name: 'another-owner/mailbox', private: true }]) {
