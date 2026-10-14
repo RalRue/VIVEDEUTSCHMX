@@ -2,6 +2,7 @@
     const measurementId = 'G-07SGVPMFHL';
     const storageKey = 'vivePrivacyConsentV1';
     let memoryConsent = null;
+    let consentStorageFailed = false;
 
     window.dataLayer = window.dataLayer || [];
     window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
@@ -29,6 +30,8 @@
     }
 
     function readConsent() {
+        // A failed write must not let an older stored grant override a withdrawal.
+        if (consentStorageFailed) return memoryConsent;
         try {
             const value = JSON.parse(localStorage.getItem(storageKey));
             if (value && typeof value.analytics === 'boolean' && typeof value.marketing === 'boolean') return value;
@@ -38,7 +41,14 @@
 
     function writeConsent(value) {
         memoryConsent = value;
-        try { localStorage.setItem(storageKey, JSON.stringify(value)); } catch (error) { /* Keep the choice for this page view. */ }
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(value));
+            consentStorageFailed = false;
+        } catch (error) {
+            consentStorageFailed = true; // Keep the latest choice for this page view.
+            // Quota failures can still allow removal, avoiding an old grant on reload.
+            try { localStorage.removeItem(storageKey); } catch (error) { /* Storage may be entirely read-only. */ }
+        }
     }
 
     function allows(category) {
@@ -49,12 +59,20 @@
     function updateGoogleConsent(consent) {
         const analyticsGranted = Boolean(consent && consent.analytics === true);
         const marketingGranted = Boolean(consent && consent.marketing === true);
+        window['ga-disable-' + measurementId] = !analyticsGranted;
         window.gtag('consent', 'update', {
             analytics_storage: analyticsGranted ? 'granted' : 'denied',
             ad_storage: marketingGranted ? 'granted' : 'denied',
             ad_user_data: marketingGranted ? 'granted' : 'denied',
             ad_personalization: marketingGranted ? 'granted' : 'denied'
         });
+        if (window.__viveDeutschGaLoaded) {
+            window.gtag('config', measurementId, {
+                allow_google_signals: marketingGranted,
+                allow_ad_personalization_signals: marketingGranted,
+                send_page_view: false
+            });
+        }
     }
 
     function loadAnalytics() {
@@ -86,6 +104,7 @@
         updateGoogleConsent(readConsent());
         document.getElementById('vive-consent-panel')?.remove();
         showSettingsButton();
+        document.getElementById('vive-consent-settings')?.focus();
         loadAnalytics();
         window.dispatchEvent(new CustomEvent('vive:consentchange', { detail: readConsent() }));
     }
@@ -105,8 +124,9 @@
         const panel = document.createElement('section');
         panel.id = 'vive-consent-panel';
         panel.setAttribute('role', 'dialog');
-        panel.setAttribute('aria-modal', 'true');
+        // This panel allows continued navigation; it is intentionally non-modal.
         panel.setAttribute('aria-labelledby', 'vive-consent-title');
+        panel.setAttribute('aria-describedby', 'vive-consent-text');
         panel.innerHTML = '<h2 id="vive-consent-title"></h2><p id="vive-consent-text"></p><a id="vive-consent-link"></a><div id="vive-consent-actions"><button type="button" data-choice="necessary"></button><button type="button" data-choice="analytics"></button><button type="button" class="primary" data-choice="all"></button></div>';
         panel.querySelector('#vive-consent-title').textContent = text.title;
         panel.querySelector('#vive-consent-text').textContent = text.text;

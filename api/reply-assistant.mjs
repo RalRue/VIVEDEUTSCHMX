@@ -60,6 +60,8 @@ const MEDIUM_RISK_TERMS = [
   "entrenador de errores", "resultado", "correctas", "nivel a1", "nivel a2", "nivel b1", "nivel b2", "nivel c1"
 ];
 
+const ANGELA_TERMS = ['traduccion oficial', 'perito', 'apostilla', 'tribunal', 'juzgado', 'documento oficial', 'traduccion certificada'];
+
 function normalize(value) {
   return String(value || "")
     .toLowerCase()
@@ -76,14 +78,18 @@ function containsAny(text, terms) {
 export function applySafetyGate(draft, message) {
   const normalized = normalize(message);
   const result = { ...draft };
+  const highRiskCategories = ['legal_or_immigration', 'perito_or_official_translation', 'complaint_or_refund', 'minor'];
+  const mediumRiskCategories = ['price', 'availability_or_group_start', 'trainer_result'];
 
-  if (containsAny(normalized, HIGH_RISK_TERMS)) {
+  if (highRiskCategories.includes(result.category) || containsAny(normalized, HIGH_RISK_TERMS)) {
     result.risk = "high";
     result.action = "escalate";
-  } else if (containsAny(normalized, MEDIUM_RISK_TERMS) && result.risk === "low") {
+  } else if ((mediumRiskCategories.includes(result.category) || containsAny(normalized, MEDIUM_RISK_TERMS)) && result.risk === "low") {
     result.risk = "medium";
     result.action = "escalate";
   }
+
+  if (result.category === 'perito_or_official_translation' || containsAny(normalized, ANGELA_TERMS)) result.owner = 'angela';
 
   if (!Number.isFinite(result.confidence) || result.confidence < 0.75 || result.category === "unknown") {
     result.category = "unknown";
@@ -94,7 +100,10 @@ export function applySafetyGate(draft, message) {
     result.reason = "Clasificacion incierta; requiere revision humana.";
   }
 
-  if (result.risk !== "low") result.action = "escalate";
+  if (result.risk !== "low") {
+    result.action = "escalate";
+    if (result.owner !== 'angela' && result.owner !== 'ralph') result.owner = 'ralph';
+  }
   if (result.action === "ignore") result.suggested_reply = "";
 
   return {

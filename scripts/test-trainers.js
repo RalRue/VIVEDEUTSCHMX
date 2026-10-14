@@ -113,3 +113,27 @@ assert.match(filteredResult.run('resultText()'), /Filtro de práctica: B1.*En es
 filteredResult.run('resetSession(); renderExercise();');
 assert.match(filteredResult.run('resultText()'), /no tengo resultado de esta sesión/);
 console.log('TRAINER_RESULT_SCOPE_TEST=PASS: current session and practice filter never relabel historical answers as a level result');
+
+const fullTranslations = setup('vokabeltrainer/index.html');
+for (const [de, es] of [['fahren', 'conducir / ir en vehículo'], ['fertig', 'listo / terminado'], ['stellen', 'poner de pie / colocar']]) {
+    fullTranslations.run(`nextCard(); currentDirection = 'de-es'; current = ${JSON.stringify({de, es})}; answerInput.value = ${JSON.stringify(es)}; checkAnswer();`);
+}
+assert.equal(fullTranslations.run('stats.right'), 3, 'The complete displayed translation must be accepted as well as its individual alternatives');
+assert.equal(fullTranslations.run('stats.wrong'), 0);
+
+const shortSession = setup('deutsch-fehlertrainer/index.html');
+shortSession.run("topicFilter.value = 'Edad'; applyFilter(); state.selected = currentExercise().correct; checkAnswer();");
+assert.equal(shortSession.run('state.filtered.length'), 1);
+assert.equal(shortSession.run('session.completed'), true);
+assert.match(shortSession.nodes.get('session-progress').textContent, /1\/1 correctas/);
+assert.doesNotMatch(shortSession.nodes.get('conversion-summary').textContent, /Haz|1\/3/, 'A completed short filter must not demand an unreachable third answer');
+assert.equal(shortSession.nodes.get('restart-session').textContent, 'Nueva sesión de 1');
+shortSession.run('nextExercise();');
+assert.equal(shortSession.nodes.get('check-answer').disabled, false, 'Next must permit continuing after completing all exercises in a short filter');
+assert.equal(shortSession.run('session.answeredIds.size'), 0);
+assert.equal(shortSession.run('state.stats.done'), 1, 'Starting another session must retain historical progress');
+shortSession.run('state.selected = currentExercise().correct; checkAnswer();');
+assert.equal(shortSession.run('state.stats.done'), 2);
+shortSession.run("topicFilter.value = 'missing'; applyFilter();");
+assert.match(shortSession.nodes.get('conversion-summary').textContent, /Prueba otro/);
+console.log('TRAINER_SHORT_SESSION_TEST=PASS: full translations, attainable filter targets, continued practice and local history');

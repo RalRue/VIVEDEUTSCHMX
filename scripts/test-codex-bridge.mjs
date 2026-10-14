@@ -6,6 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { parseWatchArgs, runWatcher } from './codex-bridge-watch.mjs';
+import { nativeReplyId } from '../lib/codex-bridge-protocol.mjs';
 
 // Real Git transport, isolated local repositories: no network or real origin pushes.
 const execute = promisify(execFile);
@@ -313,6 +314,42 @@ try {
   }), 0);
   assert.deepEqual(recoveredNotifications.filter(event => event.event === 'message').map(event => event.message.id), [watchMessage.id]);
   console.log('PASS: failed notification output cannot silently mark the message as delivered');
+
+  // Preserve completion of existing AI and differently named native workers
+  // during migration from a snapshot that predates conservative reservations.
+  const legacyWriter = path.join(temporary, 'legacy-writer');
+  const legacyRemote = path.join(temporary, 'legacy-mailbox.git');
+  await git(temporary, 'init', '--bare', '--initial-branch=main', legacyRemote);
+  await git(temporary, 'init', '--initial-branch', branch, legacyWriter);
+  await git(legacyWriter, 'config', 'user.name', 'Legacy Fixture');
+  await git(legacyWriter, 'config', 'user.email', 'legacy@example.invalid');
+  await mkdir(path.join(legacyWriter, 'messages'));
+  const legacyIds = [];
+  for (let index = 0; index < 171; index++) {
+    const id = `00000000-0000-4000-8000-${index.toString(16).padStart(12, '0')}`;
+    legacyIds.push(id);
+    await writeFile(path.join(legacyWriter, 'messages', `${id}.json`), `${JSON.stringify({ ...first.message,
+      id, from: 'local', to: index === 1 ? 'legacy-native' : 'legacy-ai', replyTo: null, body: 'Existing pending task' })}\n`);
+  }
+  await git(legacyWriter, 'add', '.');
+  await git(legacyWriter, 'commit', '-m', 'Legacy overbooked mailbox fixture');
+  await git(legacyWriter, 'push', legacyRemote, branch);
+  const initialLegacyTip = await git(legacyRemote, 'rev-parse', branch);
+  await fails(local, ['send', '--remote', legacyRemote, '--from', 'local', '--to', 'legacy-ai',
+    '--file', await payload('New initial work must wait for migration')], /capacity/i);
+  assert.equal(await git(legacyRemote, 'rev-parse', branch), initialLegacyTip);
+  for (const [index, agent, marker] of [[0, 'legacy-ai', '[codex-bridge-ai/v1]'], [1, 'legacy-native', '[codex-bridge-run/v1]']]) {
+    const sourceId = legacyIds[index];
+    const result = await bridge(local, 'send', '--remote', legacyRemote, '--from', agent, '--to', 'local',
+      '--reply-to', sourceId, '--file', await payload(`${marker}\nCached result without another model call`),
+      ...(index === 1 ? ['--id', nativeReplyId(sourceId, agent, 'local')] : []));
+    assert.equal((await bridge(local, 'ack', '--remote', legacyRemote, '--agent', agent, '--id', sourceId)).acknowledged, true);
+    assert.equal((await bridge(local, 'ack', '--remote', legacyRemote, '--agent', 'local', '--id', result.id)).acknowledged, true);
+  }
+  assert.equal((await bridge(local, 'status', '--remote', legacyRemote, '--json')).messages, 173);
+  await fails(local, ['send', '--remote', legacyRemote, '--from', 'local', '--to', 'legacy-ai',
+    '--file', await payload('New initial work still requires migration')], /capacity/i);
+  console.log('PASS: overbooked legacy AI and native tasks finish without admitting new work or changing old records');
 
   // Edit only the isolated transport branch to exercise existing immutable records.
   const corrupt = path.join(temporary, 'corrupt');

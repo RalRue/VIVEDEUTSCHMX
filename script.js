@@ -1,14 +1,18 @@
 // ===== LANGUAGE SWITCHER =====
 const langButtons = document.querySelectorAll('.lang-btn');
-let currentLang = localStorage.getItem('lang') || 'es';
+let currentLang = 'es';
+try { currentLang = localStorage.getItem('lang') || 'es'; } catch (error) { /* Preferences are optional. */ }
 
 function setLanguage(lang) {
+    if (!['es', 'en', 'de'].includes(lang)) lang = 'es';
     currentLang = lang;
     document.documentElement.lang = lang;
-    localStorage.setItem('lang', lang);
+    try { localStorage.setItem('lang', lang); } catch (error) { /* Keep the language for this page view. */ }
 
     document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
+        const key = el.classList.contains('blog-toggle') && el.closest('.blog-card')?.classList.contains('expanded')
+            ? 'blog.read-less'
+            : el.getAttribute('data-i18n');
         const value = translations[lang]?.[key];
         if (value !== undefined) el.textContent = value;
     });
@@ -91,7 +95,7 @@ function campaignContext() {
 }
 
 function trackSiteEvent(eventName, params = {}) {
-    if (typeof window.gtag !== 'function') return;
+    if (!window.viveConsent?.allows('analytics') || typeof window.gtag !== 'function') return;
 
     window.gtag('event', eventName, {
         ...campaignContext(),
@@ -279,6 +283,7 @@ document.querySelectorAll('.blog-toggle').forEach(btn => {
     btn.addEventListener('click', () => {
         const card = btn.closest('.blog-card');
         const isExpanded = card.classList.toggle('expanded');
+        btn.setAttribute('aria-expanded', String(isExpanded));
         btn.textContent = isExpanded
             ? translations[currentLang]['blog.read-less']
             : translations[currentLang]['blog.read-more'];

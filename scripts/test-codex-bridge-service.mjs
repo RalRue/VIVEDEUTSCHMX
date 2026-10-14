@@ -38,9 +38,40 @@ try {
   assert.match(mac.files[0].content, /<key>StartInterval<\/key><integer>60<\/integer>/);
   assert.ok(!mac.files[0].content.split('\n')[2].slice(4, -3).includes('--'));
   assert.deepEqual(mac.commands.start.args.slice(0, 2), ['bootstrap', 'gui/501']);
-  const windows = createServicePlan({ ...options, platform: 'win32' });
+  const macTarget = 'gui/501/mx.vivedeutsch.codex-bridge.local--helper';
+  assert.deepEqual(mac.commands.disable.steps, [
+    { executable: 'launchctl', args: ['disable', macTarget] },
+    { executable: 'launchctl', args: ['bootout', macTarget] },
+  ], 'Disabling a loaded LaunchAgent must prevent reloading and unload its interval definition.');
+  assert.deepEqual(mac.remove.steps, mac.commands.disable.steps, 'Removal must include unloading before deleting the plist.');
+  assert.match(mac.notes.join('\n'), /Bootout can terminate a running task; wait for it to finish first/);
+  assert.deepEqual(linux.remove.steps, [linux.commands.disable]);
+
+  const windowsArgs = ['--project', 'C:\\Work\\VIVE', '--node', 'C:\\Program Files\\nodejs\\node.exe',
+    '--codex', 'C:\\Tools\\Codex\\codex.exe', '--allow-from', 'local', '--state', 'C:\\Users\\Tester\\private\\cloud.json'];
+  const windowsOptions = parseServiceArgs([...windowsArgs, '--platform', 'win32'], { home: temporary, platform: 'linux' });
+  const windows = createServicePlan(windowsOptions);
   assert.equal(windows.files.length, 0);
   assert.ok(windows.notes.some(note => note.includes('unsupported')));
+  assert.equal(windows.commands.manual.executable, 'C:\\Program Files\\nodejs\\node.exe');
+  assert.equal(windows.commands.manual.args[0], 'C:\\Work\\VIVE\\scripts\\codex-bridge-codex.mjs');
+  assert.equal(windows.commands.check.cwd, 'C:\\Work\\VIVE');
+  assert.equal(windows.commands.check.environment.PATH, 'C:\\Tools\\Codex;C:\\Program Files\\nodejs');
+  assert.deepEqual(windows.directories, ['C:\\Users\\Tester\\private']);
+  assert.deepEqual(createServicePlan(parseServiceArgs(['--platform', 'win32', ...windowsArgs], { platform: 'linux' })), windows,
+    'The target platform must be selected independently of option order.');
+  const windowsDefaultState = parseServiceArgs(['--platform', 'win32', ...windowsArgs.slice(0, -2), '--home', 'C:\\Users\\Tester'], { platform: 'linux' });
+  assert.equal(windowsDefaultState.state, 'C:\\Users\\Tester\\.local\\state\\vive-codex-bridge\\codex-local.json');
+  assert.throws(() => parseServiceArgs([...windowsArgs, '--platform', 'win32', '--project', '\\Work\\VIVE']), /absolute target-platform/);
+  assert.throws(() => parseServiceArgs([...windowsArgs, '--platform', 'win32', '--state', 'c:\\work\\vive\\state.json']), /outside/);
+  assert.throws(() => parseServiceArgs([...windowsArgs, '--platform', 'win32', '--install'], { platform: 'linux' }), /Cross-platform/);
+  const posixPreview = createServicePlan(parseServiceArgs(['--platform', 'linux', '--project', '/srv/vive',
+    '--node', '/opt/node/bin/node', '--codex', '/opt/codex/bin/codex', '--allow-from', 'cloud', '--home', '/home/preview'],
+  { platform: 'win32', home: 'C:\\Users\\Host' }));
+  assert.equal(posixPreview.files[0].path, '/home/preview/.config/systemd/user/vive-codex-bridge-local.service');
+  assert.equal(posixPreview.commands.check.args[0], '/srv/vive/scripts/codex-bridge-codex.mjs');
+  assert.equal(posixPreview.commands.check.environment.PATH, '/opt/codex/bin:/opt/node/bin:/usr/local/bin:/usr/bin:/bin');
+  assert.throws(() => parseServiceArgs([...args, '--install', '--home', temporary]), /previews only/);
 
   assert.throws(() => parseServiceArgs(args.filter((_, index) => ![6, 7, 8, 9].includes(index))), /allow-from/);
   assert.throws(() => parseServiceArgs([...args, '--state', path.join(project, 'state.json')]), /outside/);

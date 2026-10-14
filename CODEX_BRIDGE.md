@@ -428,7 +428,20 @@ installiert. Der geplante Dienst startet begrenzte einzelne Läufe, ohne
 Benutzers. Der Rechner muss eingeschaltet sein; der Benutzerdienst benötigt die
 entsprechende laufende Benutzersitzung.
 Unter Linux werden Benutzer-Units für systemd verwendet, unter macOS ein
-LaunchAgent. Dieser allgemeine Installer unterstützt Windows nicht. Für Zoohaus
+LaunchAgent. Bei plattformübergreifenden Vorschauen bestimmt `--platform` die
+Pfadsyntax. Mit `--home` lässt sich ausschließlich für eine Vorschau das absolute
+Benutzerverzeichnis des Zielsystems angeben; bei `--install` ist dieser Override
+nicht erlaubt. Windows-Zielpfade müssen Laufwerk oder UNC-Freigabe enthalten.
+
+Der macOS-Plan enthält unter `commands.disable.steps` und `remove.steps` die
+geordneten Befehle `launchctl disable` und `launchctl bootout`. Beide Schritte
+ausführen: Deaktivieren allein entlädt eine bereits geladene Definition nicht.
+`bootout` beendet auch einen noch laufenden Auftrag; deshalb dessen Abschluss
+zuvor prüfen bzw. abwarten und den dauerhaften Zustand erhalten. Eine bereits
+entladene Definition kann beim zweiten Schritt entsprechend als abwesend gemeldet
+werden. Die Planvorschau führt diese Befehle nicht selbst aus.
+
+Dieser allgemeine Installer unterstützt Windows nicht. Für Zoohaus
 steht der separate Windows-Anschluss in [ZOOHAUS_BRIDGE.md](ZOOHAUS_BRIDGE.md)
 bereit; seine tatsächliche Installation muss auf diesem PC erfolgen.
 
@@ -608,6 +621,25 @@ nicht enthalten; `ack` löscht keine Nachricht. Den Branch nicht einfach lösche
 oder neu initialisieren, weil dadurch der aktive Antwort- und Bestätigungskontext
 verloren geht. Vor einer Migration beide Seiten anhalten, die bisherige private
 Historie sichern und beide Seiten auf dieselbe neue private Mailbox konfigurieren.
+
+Neue Schreibvorgänge reservieren zusätzlich Platz für das deterministische native
+Ergebnis (höchstens 32 KiB Antworttext samt JSON-Escaping) und die beiden
+Bestätigungen auf der Route `local` → `cloud` → `local`. Die Rechnung benötigt nur
+Dateipfade und Blobgrößen, keine zusätzlichen privaten Nachrichtenlesungen. Jede
+Nachricht, die nicht als deterministisches Ergebnis einer vorhandenen Nachricht
+erkennbar ist, zählt vorsichtshalber als möglicher Auftrag. Auch alte
+Koordinationsnachrichten können deshalb die Aufnahme neuer Vorgänge deutlich vor
+dem harten Limit begrenzen. Vorhandene Ergebnisse und ACKs verbrauchen ihre
+reservierten Plätze. Bereits überbuchte Altbestände dürfen nur noch bis zum
+harten Limit abgeschlossen werden; neue Arbeit erfordert dann die geplante
+Migration. Diese Reserve gilt für Actions und direkte CLI-Schreibvorgänge.
+
+Initiale Actions-Aufträge dürfen nach führendem Leerraum nicht mit
+`[codex-bridge-run/v1]` oder `[codex-bridge-ai/v1]` beginnen. Diese Präfixe sind für
+automatische Ergebnisse reserviert; die API lehnt sie vor dem Postfachzugriff mit
+HTTP 400 `reserved_task_prefix` ab, statt einen nicht verarbeitbaren Auftrag
+anzunehmen. Frühere Ergebnisse zum Prüfen nach einer normalen Auftragsbeschreibung
+einfügen.
 
 ## Diagnose
 

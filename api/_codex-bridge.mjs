@@ -1,14 +1,14 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
-import { isBridgeTimestamp, nativeReplyId } from '../lib/codex-bridge-protocol.mjs';
+import { BRIDGE_MAX_RECORDS, bridgeAppendCapacity, hasReservedBridgePrefix, isBridgeTimestamp,
+  NATIVE_MAX_RESULT_BYTES, NATIVE_REPLY_MARKER, nativeReplyId } from '../lib/codex-bridge-protocol.mjs';
 
 export const REPOSITORY = 'RalRue/VIVEDEUTSCHMX-CODEX-BRIDGE';
 export const BRANCH = 'codex-bridge-v1';
-export const MARKER = '[codex-bridge-run/v1]\n';
+export const MARKER = NATIVE_REPLY_MARKER;
 export const MAX_TASK_BYTES = 16_384;
-const MAX_RESULT_BYTES = 32_768;
+const MAX_RESULT_BYTES = NATIVE_MAX_RESULT_BYTES;
 const MAX_RECORD_BYTES = 65_536 * 6 + 2_048;
-const MAX_SNAPSHOT_BYTES = 32 * 1024 * 1024;
-const MAX_RECORDS = 10_000;
+const MAX_RECORDS = BRIDGE_MAX_RECORDS;
 const API_ROOT = `https://api.github.com/repos/${REPOSITORY}`;
 const SCHEMA = 'codex-bridge/v1';
 const ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
@@ -123,6 +123,7 @@ export function validateSubmission(taskId, body, env) {
   validId(taskId);
   if (typeof body === 'string' && Buffer.byteLength(body, 'utf8') > MAX_TASK_BYTES) throw new BridgeError(413, 'task_too_large');
   if (!text(body, MAX_TASK_BYTES)) throw new BridgeError(400, 'invalid_task');
+  if (hasReservedBridgePrefix(body)) throw new BridgeError(400, 'reserved_task_prefix');
   if ([env.VIVE_BRIDGE_ACTION_TOKEN, env.VIVE_BRIDGE_GITHUB_TOKEN].some(secret => secret && body.includes(secret))) throw new BridgeError(400, 'sensitive_task');
 }
 
@@ -222,14 +223,16 @@ export function createMailbox({ fetchImpl = globalThis.fetch, env = process.env,
     catch { throw new BridgeError(502, 'mailbox_invalid_record'); }
   }
 
-  async function budget(treeSha, additionalBytes, targetPath) {
+  async function budget(treeSha, additionalBytes, targetPath, value) {
     const result = await github('GET', `/git/trees/${treeSha}?recursive=1`, undefined, 4 * 1024 * 1024);
     const tree = result.value;
     if (result.missing) throw new BridgeError(503, 'mailbox_not_initialized');
     if (!tree || tree.sha !== treeSha || tree.truncated !== false || !Array.isArray(tree.tree) || tree.tree.length > MAX_RECORDS + 1_000) throw new BridgeError(503, 'mailbox_capacity_unconfirmed');
-    let records = 0;
-    let bytes = 0;
+    const entries = new Map();
+    const paths = new Set();
     for (const entry of tree.tree) {
+      if (!entry || typeof entry.path !== 'string' || !SHA_RE.test(entry.sha) || paths.has(entry.path)) throw new BridgeError(502, 'mailbox_invalid_tree');
+      paths.add(entry.path);
       if (entry.type === 'tree') {
         if (entry.mode !== '040000' || !(entry.path === 'messages' || entry.path === 'acknowledgements'
           || /^acknowledgements\/[a-z][a-z0-9._-]{0,63}$/.test(entry.path))) throw new BridgeError(502, 'mailbox_invalid_tree');
@@ -239,10 +242,13 @@ export function createMailbox({ fetchImpl = globalThis.fetch, env = process.env,
         || /^acknowledgements\/[a-z][a-z0-9._-]{0,63}\/([0-9a-f-]+)\.json$/.exec(entry.path);
       if (!parts || !ID_RE.test(parts[1]) || entry.type !== 'blob' || entry.mode !== '100644'
         || !Number.isSafeInteger(entry.size) || entry.size < 0 || entry.size > MAX_RECORD_BYTES) throw new BridgeError(502, 'mailbox_invalid_tree');
-      records++; bytes += entry.size;
+      entries.set(entry.path, { size: entry.size });
     }
-    if (!tree.tree.some(entry => entry.path === targetPath)
-      && (records >= MAX_RECORDS || bytes + additionalBytes > MAX_SNAPSHOT_BYTES)) throw new BridgeError(503, 'mailbox_capacity_reached');
+    if (!entries.has(targetPath)) {
+      const capacity = bridgeAppendCapacity(entries, targetPath, value, additionalBytes);
+      if (!capacity.allowed) throw new BridgeError(capacity.reason === 'reserved_path' ? 409 : 503,
+        capacity.reason === 'reserved_path' ? 'task_conflict' : 'mailbox_capacity_reached');
+    }
     return tree.tree;
   }
 
@@ -264,7 +270,7 @@ export function createMailbox({ fetchImpl = globalThis.fetch, env = process.env,
       const tip = ref.object.sha;
       const parent = await object('GET', `/git/commits/${tip}`);
       if (parent.sha !== tip || !SHA_RE.test(parent.tree?.sha)) throw new BridgeError(502, 'mailbox_invalid_response');
-      const tree = await budget(parent.tree.sha, bytes.length, path);
+      const tree = await budget(parent.tree.sha, bytes.length, path, value);
       if (tree.some(entry => entry.path === path)) {
         const pinned = await record(path, tip);
         if (pinned === null) throw new BridgeError(502, 'mailbox_invalid_record');
