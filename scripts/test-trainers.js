@@ -5,7 +5,11 @@ const vm = require('node:vm');
 
 function inlineScript(file) {
     const html = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
-    return [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].at(-1)[1];
+    const source = html.match(/<script src="(\/[^"]+\/trainer\.js)" defer><\/script>/);
+    assert.ok(source, 'Trainer must load its shared deferred engine');
+    const css = html.match(/<link rel="stylesheet" href="(\/[^"]+\/trainer\.css)">/);
+    assert.ok(css && fs.existsSync(path.join(__dirname, '..', css[1])), 'Shared stylesheet must exist');
+    return fs.readFileSync(path.join(__dirname, '..', source[1]), 'utf8');
 }
 
 function setup(file, saved = null) {

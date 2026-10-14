@@ -1,0 +1,307 @@
+
+        :root {
+            --black: #0b0b0b;
+            --panel: #151515;
+            --panel-soft: #1d1a17;
+            --text: #f7f3eb;
+            --muted: #b9b0a4;
+            --gold: #d4a256;
+            --gold-soft: #f0c779;
+            --green: #5ec78f;
+            --red: #f07a7a;
+            --border: rgba(212, 162, 86, 0.24);
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, system-ui, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 16% 12%, rgba(212, 162, 86, 0.14), transparent 34%),
+                linear-gradient(145deg, #090909 0%, #15110e 55%, #0b0b0b 100%);
+        }
+
+        .app {
+            width: min(1080px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 32px 0 48px;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .brand img {
+            width: 44px;
+            height: 44px;
+            border-radius: 0;
+            object-fit: contain;
+        }
+
+        .brand strong {
+            display: block;
+            font-size: 0.95rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .brand span {
+            display: block;
+            margin-top: 3px;
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .home-link {
+            color: var(--gold-soft);
+            text-decoration: none;
+            font-weight: 700;
+            white-space: normal;
+        }
+
+        .hero {
+            display: block;
+            margin-bottom: 24px;
+        }
+
+        .intro, .stats, .trainer {
+            background: rgba(21, 21, 21, 0.88);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .intro {
+            padding: 0;
+            border: 0;
+            background: transparent;
+        }
+
+        .eyebrow {
+            color: var(--gold);
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 12px 0 12px;
+            max-width: 760px;
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: 2.2rem;
+            line-height: 1.15;
+            overflow-wrap: anywhere;
+            letter-spacing: 0;
+        }
+
+        .intro p {
+            max-width: 720px;
+            color: var(--muted);
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+
+        .stats {
+            display: grid;
+            gap: 1px;
+            overflow: hidden;
+        }
+
+        .stat {
+            padding: 24px;
+            background: rgba(255,255,255,0.03);
+        }
+
+        .stat b {
+            display: block;
+            color: var(--gold-soft);
+            font-size: 1.6rem;
+        }
+
+        .stat span {
+            display: block;
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .trainer {
+            padding: 0;
+            border: 0;
+            background: transparent;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+
+        label {
+            display: grid;
+            gap: 7px;
+            color: var(--muted);
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        select, input {
+            min-width: 0;
+            width: 100%;
+            min-height: 46px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: #0f0f0f;
+            color: var(--text);
+            padding: 0 13px;
+            font: inherit;
+        }
+
+        .card {
+            display: grid;
+            gap: 18px;
+            min-height: 300px;
+            padding: clamp(20px, 4vw, 34px);
+            border: 1px solid rgba(212,162,86,0.18);
+            border-radius: 8px;
+            background: linear-gradient(155deg, rgba(212,162,86,0.08), rgba(255,255,255,0.02));
+        }
+
+        .prompt-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+        }
+
+        .prompt small {
+            display: block;
+            color: var(--muted);
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .prompt-word {
+            margin-top: 8px;
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: 2rem;
+            line-height: 1.15;
+            overflow-wrap: anywhere;
+        }
+
+        .badge {
+            flex: 0 0 auto;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 8px 12px;
+            color: var(--gold-soft);
+            font-weight: 800;
+            font-size: 0.84rem;
+        }
+
+        .answer-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto auto;
+            gap: 10px;
+            align-items: end;
+        }
+
+        button {
+            min-height: 46px;
+            border: 0;
+            border-radius: 6px;
+            padding: 0 16px;
+            color: #0b0b0b;
+            background: var(--gold);
+            font: inherit;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        button.secondary {
+            color: var(--text);
+            background: #28231e;
+            border: 1px solid var(--border);
+        }
+
+        button:disabled { cursor: not-allowed; opacity: 0.55; }
+
+        .course-next {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-top: 28px;
+            padding-top: 22px;
+            border-top: 1px solid var(--border);
+        }
+
+        .course-next p { margin: 0; color: var(--muted); line-height: 1.5; }
+        .course-next a { color: var(--gold-soft); font-weight: 700; white-space: nowrap; }
+
+        .intro, .trainer, .card, .prompt, .controls > label, .answer-grid > label { min-width: 0; }
+        .brand strong, .eyebrow, label, .prompt small, .progress span { letter-spacing: 0; }
+
+        .feedback {
+            min-height: 56px;
+            padding: 13px 14px;
+            border-radius: 6px;
+            color: var(--muted);
+            background: rgba(255,255,255,0.04);
+        }
+
+        .feedback.good { color: var(--green); }
+        .feedback.bad { color: var(--red); }
+
+        .progress {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .progress div {
+            padding: 12px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.04);
+        }
+
+        .progress b {
+            display: block;
+            color: var(--gold-soft);
+            font-size: 1.25rem;
+        }
+
+        .progress span {
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        @media (max-width: 760px) {
+            header { align-items: flex-start; }
+            .controls, .answer-grid { grid-template-columns: minmax(0, 1fr); }
+            .progress { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .prompt-row { display: grid; }
+            .answer-grid button { width: 100%; }
+            .course-next { align-items: flex-start; flex-direction: column; }
+        }
+    
