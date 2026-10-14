@@ -114,7 +114,8 @@ export function createZoohausPlan(config, { pathApi = path.win32 } = {}) {
     task: { name: TASK_NAME, description: OWNER,
       principal: { userId: config.ownerSid, logonType: 'Interactive', runLevel: 'Limited' },
       action: { execute: config.node, args: quoteWindowsArguments([config.connector, '--run', '--config', config.config]), workingDirectory: config.project },
-      triggers: ['logon', 'every-minute'], settings: { multipleInstances: 'IgnoreNew', wakeToRun: false, executionTimeLimit: 'PT20M' } },
+      triggers: ['logon', 'every-minute'], settings: { multipleInstances: 'IgnoreNew', wakeToRun: false,
+        executionTimeLimit: 'PT20M', startWhenAvailable: true } },
     notes: ['Preview only: no scheduled task or files have been installed.',
       'Uses existing local Git and Codex authentication; never saves secret values.',
       'Checks prove configuration and login metadata, not successful model inference.',
@@ -122,21 +123,84 @@ export function createZoohausPlan(config, { pathApi = path.win32 } = {}) {
       'The PC must be running and this user logged in. Pausing leaves any current bounded job to finish.'] };
 }
 
+function validTaskSchedule(task, ownerSid) {
+  if (task.executionTimeLimitSeconds !== 1_200 || task.startWhenAvailable !== true
+    || !Array.isArray(task.triggers) || task.triggers.length !== 2) return false;
+  if (task.triggers.some(trigger => !trigger || trigger.enabled !== true || trigger.endBoundary !== ''
+    || trigger.durationSeconds !== 0 || trigger.stopAtDurationEnd !== false)) return false;
+  const logon = task.triggers.filter(trigger => trigger.kind === 'logon');
+  const time = task.triggers.filter(trigger => trigger.kind === 'time');
+  return logon.length === 1 && time.length === 1
+    && logon[0].userId === ownerSid && logon[0].intervalSeconds === 0 && logon[0].delaySeconds === 0
+    && time[0].intervalSeconds === 60 && time[0].randomDelaySeconds === 0
+    && typeof time[0].startBoundary === 'string' && Number.isFinite(Date.parse(time[0].startBoundary));
+}
+
+function taskTime(value) {
+  return typeof value === 'string' && value.endsWith('Z') && Number.isFinite(Date.parse(value)) ? value : null;
+}
+
 function powerShellTemplate(operation, data) {
   const encoded = Buffer.from(JSON.stringify(data), 'utf8').toString('base64');
   const prefix = `# vive-zoohaus: ${operation}\n$ErrorActionPreference = 'Stop'\n$d = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${encoded}')) | ConvertFrom-Json\n`;
   const currentSid = `[Security.Principal.WindowsIdentity]::GetCurrent().User.Value`;
   const inspect = `$t = Get-ScheduledTask -TaskName $d.name -TaskPath '\\' -ErrorAction SilentlyContinue\n`;
-  const guard = `function Assert-Owned($task) {\n  if ($null -eq $task) { throw 'Task absent' }\n  $s = [string]$task.Principal.UserId\n  if (-not $s.StartsWith('S-1-')) { $s = ([Security.Principal.NTAccount]$s).Translate([Security.Principal.SecurityIdentifier]).Value }\n  if ($task.Description -cne $d.description -or $s -cne $d.sid -or $s -cne (${currentSid})) { throw 'Unmanaged task' }\n  if (@($task.Actions).Count -ne 1 -or $task.Actions[0].Execute -ine $d.execute -or $task.Actions[0].Arguments -cne $d.args -or $task.Actions[0].WorkingDirectory -ine $d.project) { throw 'Changed task action' }\n  if ([string]$task.Principal.LogonType -notin @('Interactive','3') -or [string]$task.Principal.RunLevel -notin @('Limited','0') -or [string]$task.Settings.MultipleInstances -notin @('IgnoreNew','2') -or [bool]$task.Settings.WakeToRun) { throw 'Changed task policy' }\n}\n`;
+  const schedule = String.raw`
+function Schedule-Seconds($value) {
+  if ([string]::IsNullOrEmpty([string]$value)) { return 0 }
+  return [System.Xml.XmlConvert]::ToTimeSpan([string]$value).TotalSeconds
+}
+function Read-Schedule($task) {
+  $triggers = @()
+  foreach ($trigger in @($task.Triggers)) {
+    $kind = switch ([string]$trigger.CimClass.CimClassName) {
+      'MSFT_TaskLogonTrigger' { 'logon' }
+      'MSFT_TaskTimeTrigger' { 'time' }
+      default { 'other' }
+    }
+    $user = [string]$trigger.UserId
+    if ($kind -eq 'logon' -and $user -and -not $user.StartsWith('S-1-')) {
+      $user = ([Security.Principal.NTAccount]$user).Translate([Security.Principal.SecurityIdentifier]).Value
+    }
+    $triggers += @{ kind=$kind; enabled=[bool]$trigger.Enabled; userId=$user;
+      startBoundary=[string]$trigger.StartBoundary; endBoundary=[string]$trigger.EndBoundary;
+      intervalSeconds=(Schedule-Seconds $trigger.Repetition.Interval);
+      durationSeconds=(Schedule-Seconds $trigger.Repetition.Duration);
+      stopAtDurationEnd=[bool]$trigger.Repetition.StopAtDurationEnd;
+      delaySeconds=(Schedule-Seconds $trigger.Delay); randomDelaySeconds=(Schedule-Seconds $trigger.RandomDelay) }
+  }
+  return @{ triggers=$triggers; executionTimeLimitSeconds=(Schedule-Seconds $task.Settings.ExecutionTimeLimit);
+    startWhenAvailable=[bool]$task.Settings.StartWhenAvailable }
+}
+function Assert-Schedule($task) {
+  $policy = Read-Schedule $task
+  $logons = @($policy.triggers | Where-Object { $_.kind -eq 'logon' })
+  $times = @($policy.triggers | Where-Object { $_.kind -eq 'time' })
+  if ($policy.executionTimeLimitSeconds -ne 1200 -or -not $policy.startWhenAvailable -or
+    @($policy.triggers).Count -ne 2 -or $logons.Count -ne 1 -or $times.Count -ne 1) { throw 'Changed task schedule' }
+  foreach ($trigger in $policy.triggers) {
+    if (-not $trigger.enabled -or $trigger.endBoundary -ne '' -or $trigger.durationSeconds -ne 0 -or
+      $trigger.stopAtDurationEnd) { throw 'Changed task schedule' }
+  }
+  if ($logons[0].userId -cne $d.sid -or $logons[0].intervalSeconds -ne 0 -or $logons[0].delaySeconds -ne 0 -or
+    $times[0].intervalSeconds -ne 60 -or $times[0].randomDelaySeconds -ne 0 -or
+    [string]::IsNullOrEmpty($times[0].startBoundary)) { throw 'Changed task schedule' }
+}
+function Task-Time($value) {
+  if ($null -eq $value -or $value.Year -lt 2000) { return $null }
+  return $value.ToUniversalTime().ToString('o')
+}
+`;
+  const guard = `function Assert-Owned($task) {\n  if ($null -eq $task) { throw 'Task absent' }\n  $s = [string]$task.Principal.UserId\n  if (-not $s.StartsWith('S-1-')) { $s = ([Security.Principal.NTAccount]$s).Translate([Security.Principal.SecurityIdentifier]).Value }\n  if ($task.Description -cne $d.description -or $s -cne $d.sid -or $s -cne (${currentSid})) { throw 'Unmanaged task' }\n  if (@($task.Actions).Count -ne 1 -or $task.Actions[0].Execute -ine $d.execute -or $task.Actions[0].Arguments -cne $d.args -or $task.Actions[0].WorkingDirectory -ine $d.project) { throw 'Changed task action' }\n  if ([string]$task.Principal.LogonType -notin @('Interactive','3') -or [string]$task.Principal.RunLevel -notin @('Limited','0') -or [string]$task.Settings.MultipleInstances -notin @('IgnoreNew','2') -or [bool]$task.Settings.WakeToRun) { throw 'Changed task policy' }\n  Assert-Schedule $task\n}\n`;
   if (operation === 'identity') return prefix + `@{sid=(${currentSid})} | ConvertTo-Json -Compress\n`;
-  if (operation === 'inspect') return prefix + inspect + `if ($null -eq $t) { @{exists=$false} | ConvertTo-Json -Compress } else {\n $s=[string]$t.Principal.UserId\n if (-not $s.StartsWith('S-1-')) { $s=([Security.Principal.NTAccount]$s).Translate([Security.Principal.SecurityIdentifier]).Value }\n @{exists=$true;description=$t.Description;sid=$s;execute=$t.Actions[0].Execute;args=$t.Actions[0].Arguments;workingDirectory=$t.Actions[0].WorkingDirectory;state=[string]$t.State;enabled=[bool]$t.Settings.Enabled;logonType=[string]$t.Principal.LogonType;runLevel=[string]$t.Principal.RunLevel;multipleInstances=[string]$t.Settings.MultipleInstances;wakeToRun=[bool]$t.Settings.WakeToRun;actionCount=@($t.Actions).Count} | ConvertTo-Json -Compress\n}\n`;
+  if (operation === 'inspect') return prefix + schedule + inspect + `if ($null -eq $t) { @{exists=$false} | ConvertTo-Json -Compress } else {\n $s=[string]$t.Principal.UserId\n if (-not $s.StartsWith('S-1-')) { $s=([Security.Principal.NTAccount]$s).Translate([Security.Principal.SecurityIdentifier]).Value }\n $policy=Read-Schedule $t\n $info=Get-ScheduledTaskInfo -TaskName $d.name -TaskPath '\\' -ErrorAction Stop\n @{exists=$true;description=$t.Description;sid=$s;execute=$t.Actions[0].Execute;args=$t.Actions[0].Arguments;workingDirectory=$t.Actions[0].WorkingDirectory;state=[string]$t.State;enabled=[bool]$t.Settings.Enabled;logonType=[string]$t.Principal.LogonType;runLevel=[string]$t.Principal.RunLevel;multipleInstances=[string]$t.Settings.MultipleInstances;wakeToRun=[bool]$t.Settings.WakeToRun;actionCount=@($t.Actions).Count;triggers=$policy.triggers;executionTimeLimitSeconds=$policy.executionTimeLimitSeconds;startWhenAvailable=$policy.startWhenAvailable;lastTaskResult=$info.LastTaskResult;lastRunTime=(Task-Time $info.LastRunTime);nextRunTime=(Task-Time $info.NextRunTime);missedRuns=$info.NumberOfMissedRuns} | ConvertTo-Json -Depth 5 -Compress\n}\n`;
   if (operation === 'secureAcl' || operation === 'verifyAcl') {
     const checkDirectory = `$item=Get-Item -LiteralPath $d.directory -Force\nif (-not $item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'Unsafe private directory' }\n`;
     const secure = operation === 'secureAcl' ? `$a = New-Object Security.AccessControl.DirectorySecurity\n$a.SetOwner([Security.Principal.SecurityIdentifier]$d.sid)\n$a.SetAccessRuleProtection($true,$false)\nforeach($s in @($d.sid,'S-1-5-18')) { $identity=[Security.Principal.SecurityIdentifier]$s; $rule=New-Object Security.AccessControl.FileSystemAccessRule($identity,'FullControl','ContainerInherit,ObjectInherit','None','Allow'); $a.AddAccessRule($rule) }\nSet-Acl -LiteralPath $d.directory -AclObject $a\n` : '';
     return prefix + checkDirectory + secure + `$a=Get-Acl -LiteralPath $d.directory\n$o=$a.Owner\nif (-not $o.StartsWith('S-1-')) { $o=([Security.Principal.NTAccount]$o).Translate([Security.Principal.SecurityIdentifier]).Value }\n$safe=$a.AreAccessRulesProtected -and $o -ceq $d.sid\n$user=$false;$system=$false\n$full=[Security.AccessControl.FileSystemRights]::FullControl\n$inherit=[Security.AccessControl.InheritanceFlags]'ContainerInherit,ObjectInherit'\nforeach($r in $a.Access) {\n $s=$r.IdentityReference.Translate([Security.Principal.SecurityIdentifier]).Value\n if ($s -notin @($d.sid,'S-1-5-18') -or [string]$r.AccessControlType -ne 'Allow') { $safe=$false }\n $covers=($r.FileSystemRights -band $full) -eq $full -and ($r.InheritanceFlags -band $inherit) -eq $inherit -and [string]$r.PropagationFlags -eq 'None'\n if ($s -eq $d.sid -and $covers) {$user=$true}; if ($s -eq 'S-1-5-18' -and $covers) {$system=$true}\n}\n@{safe=($safe -and $user -and $system)} | ConvertTo-Json -Compress\n`;
   }
-  if (operation === 'register') return prefix + guard + inspect + `if ($null -ne $t) { Assert-Owned $t; Enable-ScheduledTask -TaskName $d.name -TaskPath '\\' | Out-Null } else {\n $a=New-ScheduledTaskAction -Execute $d.execute -Argument $d.args -WorkingDirectory $d.project\n $p=New-ScheduledTaskPrincipal -UserId $d.sid -LogonType Interactive -RunLevel Limited\n $triggers=@((New-ScheduledTaskTrigger -AtLogOn -User $d.sid),(New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval ([TimeSpan]::FromMinutes(1))))\n $settings=New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit ([TimeSpan]::FromMinutes(20)) -StartWhenAvailable -WakeToRun:$false\n Register-ScheduledTask -TaskName $d.name -TaskPath '\\' -Action $a -Principal $p -Trigger $triggers -Settings $settings -Description $d.description | Out-Null\n}\n@{ok=$true} | ConvertTo-Json -Compress\n`;
-  if (operation === 'start' || operation === 'pause') return prefix + guard + inspect + `Assert-Owned $t\n${operation === 'start' ? 'Start' : 'Disable'}-ScheduledTask -TaskName $d.name -TaskPath '\\' | Out-Null\n@{ok=$true} | ConvertTo-Json -Compress\n`;
+  if (operation === 'register') return prefix + schedule + guard + inspect + `if ($null -ne $t) { Assert-Owned $t; Enable-ScheduledTask -TaskName $d.name -TaskPath '\\' | Out-Null } else {\n $a=New-ScheduledTaskAction -Execute $d.execute -Argument $d.args -WorkingDirectory $d.project\n $p=New-ScheduledTaskPrincipal -UserId $d.sid -LogonType Interactive -RunLevel Limited\n $triggers=@((New-ScheduledTaskTrigger -AtLogOn -User $d.sid),(New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval ([TimeSpan]::FromMinutes(1))))\n $settings=New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit ([TimeSpan]::FromMinutes(20)) -StartWhenAvailable -WakeToRun:$false\n Register-ScheduledTask -TaskName $d.name -TaskPath '\\' -Action $a -Principal $p -Trigger $triggers -Settings $settings -Description $d.description | Out-Null\n}\n@{ok=$true} | ConvertTo-Json -Compress\n`;
+  if (operation === 'start' || operation === 'pause') return prefix + schedule + guard + inspect + `Assert-Owned $t\n${operation === 'start' ? 'Start' : 'Disable'}-ScheduledTask -TaskName $d.name -TaskPath '\\' | Out-Null\n@{ok=$true} | ConvertTo-Json -Compress\n`;
   throw new ZoohausError('Unsupported management operation.');
 }
 
@@ -301,7 +365,8 @@ export function createZoohausConnector({ platform = process.platform, pathApi = 
       || !samePath(task.execute, expected.execute, p) || task.args !== expected.args || !samePath(task.workingDirectory, config.project, p)
       || task.actionCount !== 1
       || !['Interactive', '3'].includes(String(task.logonType)) || !['Limited', '0'].includes(String(task.runLevel))
-      || !['IgnoreNew', '2'].includes(String(task.multipleInstances)) || task.wakeToRun !== false) {
+      || !['IgnoreNew', '2'].includes(String(task.multipleInstances)) || task.wakeToRun !== false
+      || !validTaskSchedule(task, config.ownerSid)) {
       throw new ZoohausError('Refusing to change a task that is not owned by this user and exact Zoohaus policy.');
     }
   }
@@ -408,7 +473,13 @@ export function createZoohausConnector({ platform = process.platform, pathApi = 
       const config = await load(options);
       const task = await ps('inspect', taskData(config));
       assertOwnedTask(task, config);
-      return { schema: SCHEMA, task: TASK_NAME, enabled: task.enabled === true, state: ['Ready', 'Running', 'Disabled', 'Queued'].includes(task.state) ? task.state : 'Unknown', inferenceVerified: false };
+      return { schema: SCHEMA, task: TASK_NAME, enabled: task.enabled === true,
+        state: ['Ready', 'Running', 'Disabled', 'Queued'].includes(task.state) ? task.state : 'Unknown',
+        scheduleVerified: true, lastTaskResult: Number.isInteger(task.lastTaskResult) && task.lastTaskResult >= 0
+          && task.lastTaskResult <= 0xffffffff ? task.lastTaskResult : null,
+        lastRunTimeUtc: taskTime(task.lastRunTime), nextRunTimeUtc: taskTime(task.nextRunTime),
+        missedRuns: Number.isInteger(task.missedRuns) && task.missedRuns >= 0 ? task.missedRuns : null,
+        inferenceVerified: false };
     },
     async pause(options = {}) {
       const config = await load(options);

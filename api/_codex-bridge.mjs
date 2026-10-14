@@ -1,5 +1,5 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
-import { nativeReplyId } from '../lib/codex-bridge-protocol.mjs';
+import { isBridgeTimestamp, nativeReplyId } from '../lib/codex-bridge-protocol.mjs';
 
 export const REPOSITORY = 'RalRue/VIVEDEUTSCHMX-CODEX-BRIDGE';
 export const BRANCH = 'codex-bridge-v1';
@@ -37,8 +37,7 @@ function text(value, maximum) {
 }
 
 function timestamp(value) {
-  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value)
-    && !Number.isNaN(Date.parse(value)) && new Date(value).toISOString() === value;
+  return isBridgeTimestamp(value);
 }
 
 function message(record) {

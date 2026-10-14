@@ -314,12 +314,75 @@ try {
   assert.deepEqual(recoveredNotifications.filter(event => event.event === 'message').map(event => event.message.id), [watchMessage.id]);
   console.log('PASS: failed notification output cannot silently mark the message as delivered');
 
-  // Corrupt the isolated transport branch explicitly, then verify strict remote validation.
+  // Edit only the isolated transport branch to exercise existing immutable records.
   const corrupt = path.join(temporary, 'corrupt');
   await git(temporary, 'clone', '--single-branch', '--branch', branch, remote, corrupt);
   await git(corrupt, 'config', 'user.name', 'Bridge Test');
   await git(corrupt, 'config', 'user.email', 'bridge-test@example.invalid');
   await mkdir(path.join(corrupt, 'messages'), { recursive: true });
+  const timestampRecords = [
+    { id: 'e1111111-1111-4111-8111-111111111111', createdAt: '2026-10-13T01:31:00.001Z' },
+    { id: 'f2222222-2222-4222-8222-222222222222', createdAt: '2026-10-13T01:31:00Z' },
+    { id: 'd3333333-3333-4333-8333-333333333333', createdAt: '2026-10-13T01:31:00.000Z' },
+  ].map(record => ({ ...first.message, ...record, from: 'cloud-control', to: 'zoohaus',
+    replyTo: null, body: 'Synthetic Zoohaus coordination fixture.' }));
+  const timestampAcknowledgements = [
+    { schema: 'codex-bridge/v1', type: 'acknowledgement', id: timestampRecords[0].id,
+      agent: 'zoohaus', createdAt: '2026-10-13T01:59:45.001Z' },
+    { schema: 'codex-bridge/v1', type: 'acknowledgement', id: timestampRecords[1].id,
+      agent: 'zoohaus', createdAt: '2026-10-13T01:59:45Z' },
+  ];
+  const timestampPaths = timestampRecords.map(record => `messages/${record.id}.json`);
+  const acknowledgementPaths = timestampAcknowledgements.map(record => `acknowledgements/zoohaus/${record.id}.json`);
+  await mkdir(path.join(corrupt, 'acknowledgements', 'zoohaus'), { recursive: true });
+  for (const [index, record] of timestampRecords.entries()) {
+    await writeFile(path.join(corrupt, timestampPaths[index]), `${JSON.stringify(record)}\n`);
+  }
+  for (const [index, record] of timestampAcknowledgements.entries()) {
+    await writeFile(path.join(corrupt, acknowledgementPaths[index]), `${JSON.stringify(record)}\n`);
+  }
+  async function publishFixture(description) {
+    await git(corrupt, 'add', '--all');
+    await git(corrupt, 'commit', '-m', description);
+    await git(corrupt, 'push', 'origin', branch);
+  }
+  await publishFixture('Inject mixed UTC-second and millisecond fixtures');
+  const timestampIds = new Set(timestampRecords.map(record => record.id));
+  const timestampInbox = (await inbox(local, 'zoohaus', true)).messages.filter(record => timestampIds.has(record.id));
+  assert.deepEqual(timestampInbox.map(record => record.id),
+    [timestampRecords[2].id, timestampRecords[1].id, timestampRecords[0].id],
+    'Equal instants sort by ID, and the UTC-second instant precedes its .001Z successor');
+  for (const record of timestampRecords) {
+    assert.equal(timestampInbox.find(value => value.id === record.id)?.createdAt, record.createdAt);
+  }
+  assert.deepEqual(timestampInbox.map(record => record.acknowledged), [false, true, true]);
+  assert.deepEqual((await inbox(cloud, 'zoohaus')).messages.filter(record => timestampIds.has(record.id)).map(record => record.id),
+    [timestampRecords[2].id]);
+  await inbox(cloud, 'cloud'); // A valid Zoohaus record must not block another agent's whole mailbox.
+  const beforeTimestampRetry = (await git(remote, 'rev-parse', `refs/heads/${branch}`)).trim();
+  const preserved = await bridge(local, 'send', '--from', 'cloud-control', '--to', 'zoohaus',
+    '--id', timestampRecords[1].id, '--file', await payload(timestampRecords[1].body));
+  assert.equal(preserved.message.createdAt, timestampRecords[1].createdAt);
+  assert.equal((await bridge(cloud, 'ack', '--agent', 'zoohaus', '--id', timestampRecords[1].id)).alreadyAcknowledged, true);
+  assert.equal((await git(remote, 'rev-parse', `refs/heads/${branch}`)).trim(), beforeTimestampRetry);
+  assert.deepEqual(JSON.parse(await git(remote, 'show', `${branch}:${acknowledgementPaths[1]}`)), timestampAcknowledgements[1]);
+  console.log('PASS: mixed UTC-second messages and ACKs preserve Zoohaus routing, immutable retries and chronological order');
+
+  // Both message and ACK dates still reject impossible calendar days, without repairing remote data.
+  for (const [filename, original] of [[timestampPaths[1], timestampRecords[1]],
+    [acknowledgementPaths[1], timestampAcknowledgements[1]]]) {
+    for (const createdAt of ['2026-02-30T01:31:00Z', '2025-02-29T01:31:00.000Z']) {
+      await writeFile(path.join(corrupt, filename), `${JSON.stringify({ ...original, createdAt })}\n`);
+      await publishFixture('Inject impossible calendar timestamp fixture');
+      await fails(cloud, ['inbox', '--agent', 'cloud', '--json'], /invalid timestamp/i);
+    }
+    await writeFile(path.join(corrupt, filename), `${JSON.stringify(original)}\n`);
+    await publishFixture('Restore valid timestamp fixture');
+  }
+  assert.equal((await inbox(local, 'zoohaus', true)).messages.filter(record => timestampIds.has(record.id)).length, 3);
+  console.log('PASS: impossible calendar dates in messages and ACKs still reject the complete mailbox safely');
+
+  // Corrupt the isolated transport branch explicitly, then verify strict remote validation.
   const corruptFile = path.join(corrupt, 'messages', `${unknownId}.json`);
   await writeFile(corruptFile, '{ invalid json');
   await git(corrupt, 'add', `messages/${unknownId}.json`);

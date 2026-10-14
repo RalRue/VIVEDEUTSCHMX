@@ -5,6 +5,7 @@ import { constants } from 'node:fs';
 import { lstat, open } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { isBridgeTimestamp } from '../lib/codex-bridge-protocol.mjs';
 
 export const BRANCH = 'codex-bridge-v1';
 export const SCHEMA = 'codex-bridge/v1';
@@ -56,8 +57,7 @@ function exactFields(record, fields) {
 }
 
 function validateDate(value) {
-  if (typeof value !== 'string' || value.length !== 24 || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value)
-    || Number.isNaN(Date.parse(value)) || new Date(value).toISOString() !== value) {
+  if (!isBridgeTimestamp(value)) {
     throw new Error('Mailbox contains an invalid timestamp.');
   }
 }
@@ -106,7 +106,7 @@ function git(args, { input, maxBuffer = MAX_SNAPSHOT_BYTES + 2 * 1024 * 1024, ti
       '-c', 'commit.gpgsign=false', '-c', 'protocol.allow=never', '-c', 'protocol.https.allow=always',
       '-c', 'protocol.http.allow=always', '-c', 'protocol.ssh.allow=always', '-c', 'protocol.file.allow=always',
       '-c', 'protocol.ext.allow=never', ...args], {
-      encoding: 'buffer', timeout, killSignal: 'SIGKILL', maxBuffer,
+      encoding: 'buffer', timeout, killSignal: 'SIGKILL', maxBuffer, windowsHide: true,
       env: { ...process.env, GIT_TERMINAL_PROMPT: '0', GIT_OPTIONAL_LOCKS: '0' },
     }, (error, stdout) => {
       activeGitProcesses.delete(child);
@@ -437,7 +437,7 @@ export async function main(args = process.argv.slice(2)) {
       } else {
         const addressed = [...snapshot.messages.values()].filter(record => record.to === agent || record.to === 'all')
           .map(record => ({ ...record, acknowledged: snapshot.acknowledgements.has(`${agent}/${record.id}`) }))
-          .sort((left, right) => left.createdAt.localeCompare(right.createdAt) || left.id.localeCompare(right.id));
+          .sort((left, right) => Date.parse(left.createdAt) - Date.parse(right.createdAt) || left.id.localeCompare(right.id));
         const pending = addressed.filter(record => !record.acknowledged).length;
         const messages = options.all ? addressed : addressed.filter(record => !record.acknowledged);
         if (options.json) printJson({ agent, branch: BRANCH, messages, pending });
