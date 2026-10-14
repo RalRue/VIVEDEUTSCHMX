@@ -72,7 +72,9 @@ function normalize(value) {
 }
 
 function containsAny(text, terms) {
-  return terms.some((term) => text.includes(term));
+  return terms.some((term) => ['visa', 'nino', 'nina'].includes(term)
+    ? new RegExp(`\\b${term}s?\\b`).test(text)
+    : text.includes(term));
 }
 
 export function applySafetyGate(draft, message) {
@@ -103,6 +105,10 @@ export function applySafetyGate(draft, message) {
   if (result.risk !== "low") {
     result.action = "escalate";
     if (result.owner !== 'angela' && result.owner !== 'ralph') result.owner = 'ralph';
+  }
+  if (result.category === 'spam_repetition' && result.risk === 'low') {
+    result.action = 'ignore';
+    result.owner = 'none';
   }
   if (result.action === "ignore") result.suggested_reply = "";
 
@@ -174,7 +180,10 @@ export default async function handler(req, res) {
     }
   }
 
-  const message = String(body?.message || "").trim();
+  if (!body || typeof body !== 'object' || Array.isArray(body) || typeof body.message !== 'string') {
+    return send(res, 400, { error: 'invalid_message', max_length: MAX_MESSAGE_LENGTH });
+  }
+  const message = body.message.trim();
   if (!message || message.length > MAX_MESSAGE_LENGTH) {
     return send(res, 400, { error: "invalid_message", max_length: MAX_MESSAGE_LENGTH });
   }
@@ -186,6 +195,7 @@ export default async function handler(req, res) {
   try {
     const openAIResponse = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
+      signal: AbortSignal.timeout(20000),
       headers: {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json"

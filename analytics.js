@@ -1,6 +1,12 @@
 (function () {
     const measurementId = 'G-07SGVPMFHL';
     const storageKey = 'vivePrivacyConsentV1';
+    const internalFlag = new URLSearchParams(window.location.search).get('vive_internal');
+    const attribution = globalThis.viveSafeAttribution(window.location.search).toString();
+    const cleanPath = (window.location.pathname || '/') + (attribution ? '?' + attribution : '');
+    const pageLocation = 'https://vive-deutsch-mx.vercel.app' + cleanPath;
+    // Remove unapproved query fields before optional GA/Meta scripts can read them.
+    window.history?.replaceState(null, '', cleanPath + (window.location.hash || ''));
     let memoryConsent = null;
     let consentStorageFailed = false;
 
@@ -87,7 +93,6 @@
         script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(measurementId);
         document.head.appendChild(script);
         window.gtag('js', new Date());
-        const internalFlag = new URLSearchParams(window.location.search).get('vive_internal');
         let internalVisit = internalFlag === '1';
         // Keep test visits marked across pages in this tab, without a permanent identifier.
         try {
@@ -98,6 +103,8 @@
         if (internalVisit) window.gtag('set', { traffic_type: 'internal' });
         window.gtag('config', measurementId, {
             anonymize_ip: true,
+            page_location: pageLocation,
+            page_referrer: '',
             allow_google_signals: allows('marketing'),
             allow_ad_personalization_signals: allows('marketing')
         });

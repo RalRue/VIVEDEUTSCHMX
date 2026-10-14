@@ -77,6 +77,7 @@ function consentPage({saved = null, getFails = false, setFails = false, removeFa
         setItem(key, value) { if (setFails) throw new Error('QuotaExceededError'); stored.set(key, value); },
         removeItem(key) { if (removeFails) throw new Error('SecurityError'); stored.delete(key); }
     }, sessionStorage: {getItem() { return null; }, setItem() {}, removeItem() {}}});
+    vm.runInContext(read('attribution.js'), context);
     vm.runInContext(read('analytics.js'), context);
     vm.runInContext(read('meta-pixel.js'), context);
     document.listeners.DOMContentLoaded.forEach(callback => callback());
@@ -161,7 +162,7 @@ failedWithdrawal.choose('necessary');
 failedWithdrawal.window.dispatchEvent({type: 'storage', key: 'vivePrivacyConsentV1'});
 assert.equal(failedWithdrawal.window.viveConsent.allows('analytics'), false, 'Remote grant must not defeat an unpersisted local withdrawal');
 
-function homepage({savedLang = null, getFails = false, setFails = false} = {}) {
+function homepage({savedLang = null, getFails = false, setFails = false, search = ''} = {}) {
     const keyEvents = {};
     const document = {documentElement: {lang: 'es'}, addEventListener(name, callback) { keyEvents[name] = callback; }};
     const make = () => new Element('button', document);
@@ -178,10 +179,11 @@ function homepage({savedLang = null, getFails = false, setFails = false} = {}) {
     document.querySelector = selector => ({'.menu-toggle': menu, '.nav-links': links})[selector] || null;
     document.getElementById = id => ['year', 'navbar'].includes(id) ? make() : null;
     const events = [];
-    const window = {location: {search: ''}, addEventListener() {}, gtag: (...args) => events.push(args)};
+    const window = {location: {search}, addEventListener() {}, gtag: (...args) => events.push(args)};
     const context = vm.createContext({window, document, URLSearchParams,
         localStorage: {getItem() { if (getFails) throw new Error('SecurityError'); return savedLang; }, setItem() { if (setFails) throw new Error('QuotaExceededError'); }},
         IntersectionObserver: class {observe() {}}});
+    vm.runInContext(read('attribution.js'), context);
     vm.runInContext(read('translations.js'), context);
     vm.runInContext(read('script.js'), context);
     return {document, window, buttons, card, toggle, school, angela, menu, firstLink, keyEvents, events, run: code => vm.runInContext(code, context)};
@@ -225,3 +227,10 @@ for (const tag of html.matchAll(/<a\b[^>]*class="[^"]*(?:school-whatsapp-link|an
     assert.match(tag[0], /href="https:\/\/wa\.me\/52315110(?:9282|4908)\?text=[^"]+"/, 'Contact links must also work before JavaScript runs');
 }
 console.log('SITE_PRIVACY=PASS: storage failures, withdrawal, provider gates, focus semantics, static contacts, language and blog navigation');
+
+const polluted = homepage({search:'?utm_campaign=synthetic@example.invalid&utm_content=synthetic_private_answer'});
+polluted.window.viveConsent={allows:()=>true};polluted.run("trackSiteEvent('review')");
+assert.equal(polluted.events[0][2].campaign_id,'none');assert.equal(polluted.events[0][2].campaign_content,'none');
+const clean = homepage({search:'?utm_source=facebook&utm_campaign=a1_cafe_202610&utm_content=mini01'});
+clean.window.viveConsent={allows:()=>true};clean.run("trackSiteEvent('review')");
+assert.equal(clean.events[0][2].campaign_id,'a1_cafe_202610');assert.equal(clean.events[0][2].campaign_content,'mini01');

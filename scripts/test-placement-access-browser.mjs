@@ -63,7 +63,7 @@ const server=createServer(async(req,res)=>{
       res.end('<!doctype html><title>Synthetic external app</title><a id="external-link" href="#">Open personal orientation</a>');return;
     }
     const files={'/consulta/':['consulta/index.html','text/html'],'/consulta/inquiry.js':['consulta/inquiry.js','text/javascript'],
-      '/consulta/measurement.mjs':['consulta/measurement.mjs','text/javascript'],'/consulta/inquiry.css':['consulta/inquiry.css','text/css'],'/logo.png':['logo.png','image/png'],
+      '/consulta/measurement.mjs':['consulta/measurement.mjs','text/javascript'],'/consulta/inquiry.css':['consulta/inquiry.css','text/css'],'/logo.png':['logo.png','image/png'],'/logo.webp':['logo.webp','image/webp'],'/attribution.js':['attribution.js','text/javascript'],
       '/consulta/nivel/':['consulta/nivel/index.html','text/html'],'/consulta/nivel/nivel.js':['consulta/nivel/nivel.js','text/javascript'],
       '/consulta/nivel/questions.js':['consulta/nivel/questions.js','text/javascript'],'/consulta/nivel/nivel.css':['consulta/nivel/nivel.css','text/css'],
       '/consulta/nivel/privacidad.html':['consulta/nivel/privacidad.html','text/html']};
