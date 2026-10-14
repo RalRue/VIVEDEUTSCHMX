@@ -44,3 +44,16 @@ Grüne öffentliche Tests bestätigen keine private Speicherung oder Providerzus
 Historische Receiverdateien nicht als Ersatz für den heutigen Stand unter den
 erwarteten Pfad kopieren. Die privaten Tests führen den Quelltext ausschließlich
 mit synthetischen Tabellen, Properties und Mailfunktionen aus.
+
+Die gemeinsamen Utilities-Fixtures in `scripts/synthetic-utilities.cjs` erhalten
+das von Apps Script gelieferte Base64-Padding und bilden signierte HMAC-Bytes ab.
+Der öffentliche Build prüft sie gegen die Beispiele der Utilities-Referenz und
+einen RFC-4231-Vektor. Die private Placementprüfung verlangt zusätzlich für alle
+vier bestehenden Ausgabewege (Website TEST/INQUIRY und WhatsApp TEST/live) einen
+Token ohne Padding, der zur Browserfragmentprüfung passt und exakt die angefragte
+Anfrage-ID, TEST/live-Identität sowie Version bindet. Zusätzliche Kontakt- oder
+private Quellfelder sind in den Tokenclaims unzulässig. Ein vom Server lesbarer
+Token allein belegt diesen Linkvertrag nicht. Bei einem getrennten öffentlichen
+Testpaket muss auch `scripts/synthetic-utilities.cjs` aus demselben Release
+enthalten sein. Ein Fehlschlag mit der aktuellen privaten Quelle wird konkret
+untersucht; der Mock entfernt das Padding nicht stellvertretend für den Receiver.
