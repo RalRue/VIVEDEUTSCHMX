@@ -78,3 +78,23 @@ assert.equal(disabledResponse.body.error, "reply_ai_disabled");
 process.env.VIVE_REPLY_AI_ENABLED = oldEnabled;
 
 console.log("REPLY_ASSISTANT_TEST=PASS (routine, keyword/category risk floors, human ownership, uncertainty and disabled endpoint)");
+
+const regressionDraft={category:'online_classes',risk:'low',confidence:0.99,owner:'ralph',action:'draft',suggested_reply:'Ofrecemos clases por Zoom.',reason:'Consulta rutinaria.'};
+for(const message of ['Puedo revisar las lecciones por Zoom','Curso femenino'])assert.equal(applySafetyGate(regressionDraft,message).risk,'low');
+for(const message of ['Consulta sobre visas','Clases para niños','Clases para niñas'])assert.equal(applySafetyGate(regressionDraft,message).risk,'high');
+const spam=applySafetyGate({...regressionDraft,category:'spam_repetition'},'hola hola');assert.equal(spam.action,'ignore');assert.equal(spam.suggested_reply,'');
+assert.equal(applySafetyGate({...regressionDraft,category:'spam_repetition'},'Necesito una visa').action,'escalate');
+const savedBindings=Object.fromEntries(['VIVE_REPLY_AI_ENABLED','VIVE_REPLY_ADMIN_TOKEN','OPENAI_API_KEY'].map(key=>[key,process.env[key]]));
+const savedFetch=globalThis.fetch;let providerCalls=0;
+try {
+ Object.assign(process.env,{VIVE_REPLY_AI_ENABLED:'true',VIVE_REPLY_ADMIN_TOKEN:'synthetic-admin',OPENAI_API_KEY:'synthetic-provider'});
+ globalThis.fetch=async(url,options)=>{providerCalls++;assert.ok(options.signal instanceof AbortSignal);return {ok:true,headers:{get:()=>null},json:async()=>({output_text:JSON.stringify(regressionDraft)})};};
+ for(const message of [{},42,['Hola'],{toString:null}]){
+  const response=responseRecorder();await handler({method:'POST',headers:{authorization:'Bearer synthetic-admin'},body:{message}},response);assert.equal(response.statusCode,400);
+ }
+ assert.equal(providerCalls,0,'Malformed messages must never reach a provider');
+ const valid=responseRecorder();await handler({method:'POST',headers:{authorization:'Bearer synthetic-admin'},body:{message:'Hola, quiero clases por Zoom'}},valid);assert.equal(valid.statusCode,200);assert.equal(providerCalls,1);assert.equal(valid.body.result.can_send_automatically_now,false);
+} finally {
+ globalThis.fetch=savedFetch;
+ for(const [key,value] of Object.entries(savedBindings))if(value===undefined)delete process.env[key];else process.env[key]=value;
+}

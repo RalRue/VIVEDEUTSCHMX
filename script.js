@@ -83,7 +83,7 @@ function updateContactLinks() {
 updateContactLinks();
 
 // ===== LIGHTWEIGHT GA4 CLICK TRACKING =====
-const campaignParams = new URLSearchParams(window.location.search);
+const campaignParams = globalThis.viveSafeAttribution(window.location.search);
 
 function campaignContext() {
     return {

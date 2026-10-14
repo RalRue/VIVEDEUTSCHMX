@@ -6,10 +6,7 @@ import handler from "../api/reply-assistant.mjs";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const envPath = path.join(root, ".env.local");
 
-for (const line of fs.readFileSync(envPath, "utf8").split(/\r?\n/)) {
-  const match = /^([^#=]+)=(.*)$/.exec(line);
-  if (match && !process.env[match[1].trim()]) process.env[match[1].trim()] = match[2].trim();
-}
+if (fs.existsSync(envPath)) process.loadEnvFile(envPath);
 
 const response = {
   statusCode: 200,
