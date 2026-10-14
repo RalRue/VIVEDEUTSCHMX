@@ -1,0 +1,161 @@
+// Optional local Chromium integration test. All HTTP requests stay on loopback;
+// persistence and the placement destination use synthetic, in-process fixtures.
+import assert from 'node:assert/strict';
+import {createServer} from 'node:http';
+import {readFileSync,existsSync,mkdtempSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {spawn} from 'node:child_process';
+import {createHandler as inquiryHandler} from '../api/inquiry.mjs';
+import {createHandler as accessHandler} from '../api/placement-access.mjs';
+import {verifyToken} from '../api/_placement.mjs';
+
+const binary=process.env.VIVE_CHROMIUM_BINARY||'/usr/bin/chromium';
+assert.ok(existsSync(binary),'Set VIVE_CHROMIUM_BINARY to a local Chromium executable');
+const secret='s'.repeat(64),env={VIVE_INQUIRY_ENABLED:'true',VIVE_INQUIRY_MODE:'live',VIVE_PLACEMENT_ENABLED:'true',
+  VIVE_INQUIRY_SECRET:secret,VIVE_INQUIRY_RECEIVER_URL:'https://script.google.com/macros/s/test/exec'};
+const receive=inquiryHandler({env,send:async(url,options)=>({ok:true,json:async()=>({ok:true,stored:true,id:JSON.parse(JSON.parse(options.body).payload).id})})});
+const access=accessHandler({env});
+const requests=[];
+const server=createServer(async(req,res)=>{
+  try {
+    const path=new URL(req.url,'http://localhost').pathname;
+    requests.push({path,method:req.method,hasQuery:req.url.includes('?'),mode:req.headers['sec-fetch-mode'],destination:req.headers['sec-fetch-dest'],site:req.headers['sec-fetch-site']});
+    res.status=code=>{res.statusCode=code;return res;};
+    res.json=value=>{res.setHeader('Content-Type','application/json');res.end(JSON.stringify(value));};
+    res.send=value=>res.end(value);
+    if(path==='/api/inquiry') {
+      let raw='';for await(const chunk of req)raw+=chunk;
+      req.body=raw;await receive(req,res);return;
+    }
+    if(path==='/api/placement-access'){await access(req,res);return;}
+    if(path==='/consulta/nivel/') {
+      res.setHeader('Content-Type','text/html');
+      res.end('<!doctype html><title>TEST PLACEMENT</title><script>window.accessToken=location.hash.slice(1);window.openerWasNull=opener===null;history.replaceState(null,"",location.pathname);</script>');return;
+    }
+    const files={'/consulta/':['consulta/index.html','text/html'],'/consulta/inquiry.js':['consulta/inquiry.js','text/javascript'],
+      '/consulta/measurement.mjs':['consulta/measurement.mjs','text/javascript'],'/consulta/inquiry.css':['consulta/inquiry.css','text/css'],'/logo.png':['logo.png','image/png']};
+    if(!files[path]){res.statusCode=404;res.end();return;}
+    res.setHeader('Content-Type',files[path][1]);res.end(readFileSync(new URL('../'+files[path][0],import.meta.url)));
+  } catch(error) {res.statusCode=500;res.end('Local fixture failed');console.error(error);}
+});
+await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+const origin='http://localhost:'+server.address().port;
+env.VIVE_INQUIRY_PREVIEW_ORIGIN=origin;
+const profile=mkdtempSync(join(tmpdir(),'vive-placement-browser-'));
+const browser=spawn(binary,['--headless','--no-sandbox','--disable-gpu','--disable-background-networking','--disable-component-update',
+  '--no-first-run','--no-default-browser-check','--remote-debugging-pipe','--user-data-dir='+profile,
+  '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost','about:blank'],{stdio:['ignore','ignore','pipe','pipe','pipe']});
+let pending=new Map(),sequence=0,buffer='';
+browser.stderr.on('data',()=>{});
+browser.stdio[4].on('data',chunk=>{
+  buffer+=chunk.toString();let end;
+  while((end=buffer.indexOf('\0'))>=0) {
+    const raw=buffer.slice(0,end);buffer=buffer.slice(end+1);
+    if(!raw)continue;
+    const message=JSON.parse(raw),request=pending.get(message.id);
+    if(request){pending.delete(message.id);clearTimeout(request.timer);message.error?request.reject(new Error(message.error.message)):request.resolve(message.result);}
+    if(message.method==='Fetch.requestPaused') {
+      const probe='(()=>{const result={domHasToken:document.body.innerHTML.includes("/consulta/nivel/#"),cookieHasToken:document.cookie.includes("vive-placement")};fetch(document.querySelector("#placement-link").href).then(async response=>{result.status=response.status;result.responseHasToken=(await response.text()).includes("/consulta/nivel/#");(window.measurementProbes||=[]).push(result);});})();';
+      command('Fetch.fulfillRequest',{requestId:message.params.requestId,responseCode:200,responseHeaders:[{name:'Content-Type',value:'text/javascript'}],body:Buffer.from(probe).toString('base64')},message.sessionId).catch(()=>{});
+    }
+  }
+});
+const command=(method,params={},sessionId)=>new Promise((resolve,reject)=>{
+  const id=++sequence,timer=setTimeout(()=>{pending.delete(id);reject(new Error('Chromium timed out: '+method));},10000);
+  pending.set(id,{resolve,reject,timer});browser.stdio[3].write(JSON.stringify({id,method,params,...(sessionId?{sessionId}:{})})+'\0');
+});
+const evaluate=async(session,expression)=>{
+  const result=await command('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true},session);
+  if(result.exceptionDetails)throw new Error(result.exceptionDetails.text+': '+result.exceptionDetails.exception?.description);
+  return result.result.value;
+};
+async function until(fn,label){const limit=Date.now()+8000;while(Date.now()<limit){try{const result=await fn();if(result)return result;}catch{}await new Promise(resolve=>setTimeout(resolve,30));}throw new Error('Timed out: '+label);}
+async function page(url){const {targetId}=await command('Target.createTarget',{url});const {sessionId}=await command('Target.attachToTarget',{targetId,flatten:true});return{targetId,sessionId};}
+async function fill(session,email,measurement=false){return evaluate(session,`(()=>{const f=document.querySelector('#inquiry');for(const [name,value]of Object.entries({name:'TEST SYNTHETIC',email:${JSON.stringify(email)},course:'A1',experience:'Desde cero'}))f.elements[name].value=value;f.elements.privacy.checked=true;f.elements.analytics.checked=f.elements.marketing.checked=${measurement};const valid=f.reportValidity();f.requestSubmit();return valid;})()`);}
+async function click(session,selector,button='left') {
+  const point=await evaluate(session,`(()=>{const e=document.querySelector(${JSON.stringify(selector)});e.scrollIntoView();const r=e.getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2};})()`);
+  await command('Input.dispatchMouseEvent',{type:'mousePressed',...point,button,clickCount:1},session);
+  await command('Input.dispatchMouseEvent',{type:'mouseReleased',...point,button,clickCount:1},session);
+}
+try {
+  const first=await page(origin+'/consulta/');
+  await command('Fetch.enable',{patterns:[{urlPattern:'https://*',requestStage:'Request'}]},first.sessionId);
+  await until(()=>evaluate(first.sessionId,"document.readyState==='complete'&&!!document.querySelector('#inquiry')"),'form ready');
+  assert.equal(await fill(first.sessionId,'a@b'),true,'Exercise real HTML email validation before server rejection');
+  await until(()=>evaluate(first.sessionId,"document.querySelector('#status').textContent.includes('No se guardó')"),'definitive rejection');
+  await fill(first.sessionId,'first@example.invalid',true);
+  await until(()=>evaluate(first.sessionId,"!document.querySelector('#placement-pilot').hidden"),'corrected inquiry accepted');
+  const firstUrl=await evaluate(first.sessionId,"document.querySelector('#placement-link').href");
+  const probes=await until(()=>evaluate(first.sessionId,'window.measurementProbes?.length===2&&window.measurementProbes'),'both measurement scripts probed');
+  for(const probe of probes)assert.deepEqual(probe,{domHasToken:false,cookieHasToken:false,status:403,responseHasToken:false},'Scripts loaded at the real GA/Meta insertion points must not obtain capabilities');
+  const second=await page(origin+'/consulta/');
+  await until(()=>evaluate(second.sessionId,"document.readyState==='complete'&&!!document.querySelector('#inquiry')"),'second form ready');
+  await fill(second.sessionId,'second@example.invalid');
+  await until(()=>evaluate(second.sessionId,"!document.querySelector('#placement-pilot').hidden"),'second inquiry accepted');
+  const secondUrl=await evaluate(second.sessionId,"document.querySelector('#placement-link').href");
+  assert.notEqual(firstUrl,secondUrl);
+  const cookies=(await command('Network.getCookies',{urls:[origin+'/api/placement-access']},first.sessionId)).cookies;
+  assert.equal(cookies.filter(cookie=>cookie.name.startsWith('__Secure-vive-placement-')).length,2);
+  assert.ok(cookies.every(cookie=>cookie.httpOnly&&cookie.secure&&cookie.sameSite==='Strict'&&cookie.path==='/api/placement-access'));
+  assert.equal(await evaluate(first.sessionId,"document.cookie.includes('vive-placement')"),false);
+  assert.equal(await evaluate(first.sessionId,"document.body.innerHTML.includes('/consulta/nivel/#')"),false);
+  const denied=await evaluate(first.sessionId,`fetch(${JSON.stringify(firstUrl)}).then(async r=>({status:r.status,body:await r.text()}))`);
+  assert.equal(denied.status,403);assert.equal(denied.body.includes('/consulta/nivel/#'),false);
+  assert.equal(await evaluate(first.sessionId,'localStorage.length+sessionStorage.length'),0,'No capability is stored in browser-readable storage');
+
+  const opened=new Set();
+  async function destination() {
+    const info=await until(async()=>{const {targetInfos}=await command('Target.getTargets');return targetInfos.find(target=>target.url===origin+'/consulta/nivel/'&&!opened.has(target.targetId));},'native new-tab destination');
+    opened.add(info.targetId);
+    const {sessionId}=await command('Target.attachToTarget',{targetId:info.targetId,flatten:true});
+    const token=await until(()=>evaluate(sessionId,'window.accessToken'),'destination fragment');
+    assert.equal(await evaluate(sessionId,'window.openerWasNull'),true);
+    return verifyToken(token,secret).id;
+  }
+  await click(first.sessionId,'#placement-link','middle');
+  assert.equal(await destination(),new URL(firstUrl).searchParams.get('inquiryId'),'Middle click preserves the first inquiry association');
+  await click(second.sessionId,'#placement-link','middle');
+  assert.equal(await destination(),new URL(secondUrl).searchParams.get('inquiryId'),'A second inquiry tab retains its own association');
+
+  await evaluate(first.sessionId,`(()=>{const b=document.createElement('button');b.id='attack-popup';b.textContent='TEST';b.onclick=()=>{window.attackWindow=window.open(${JSON.stringify(firstUrl)},'vive-attack-test');};document.body.append(b);})()`);
+  await click(first.sessionId,'#attack-popup');
+  assert.equal(await destination(),new URL(firstUrl).searchParams.get('inquiryId'));
+  assert.equal(await evaluate(first.sessionId,'window.attackWindow.closed'),true,'COOP must sever an opener retained by same-origin script after a genuine user click');
+  const probe=await evaluate(first.sessionId,'(()=>{try{return window.attackWindow.location.href;}catch{return "unreadable";}})()');
+  assert.equal(probe,'unreadable','The opener must never recover the token through popup.location');
+  const nojs=await page('about:blank');
+  await command('Emulation.setScriptExecutionDisabled',{value:true},nojs.sessionId);
+  await command('Page.navigate',{url:origin+'/consulta/'},nojs.sessionId);
+  await until(async()=>{
+    const {root}=await command('DOM.getDocument',{},nojs.sessionId);
+    const {nodeId}=await command('DOM.querySelector',{nodeId:root.nodeId,selector:'#inquiry'},nojs.sessionId);
+    return nodeId;
+  },'no-JavaScript form');
+  const {root}=await command('DOM.getDocument',{},nojs.sessionId);
+  for(const [selector,value]of [['input[name=name]','TEST SYNTHETIC'],['input[name=email]','nojs@example.invalid']]) {
+    const {nodeId}=await command('DOM.querySelector',{nodeId:root.nodeId,selector},nojs.sessionId);
+    await command('DOM.setAttributeValue',{nodeId,name:'value',value},nojs.sessionId);
+  }
+  const {nodeId:submit}=await command('DOM.querySelector',{nodeId:root.nodeId,selector:'button[type=submit]'},nojs.sessionId);
+  await command('DOM.scrollIntoViewIfNeeded',{nodeId:submit},nojs.sessionId);
+  const {model}=await command('DOM.getBoxModel',{nodeId:submit},nojs.sessionId);
+  const point={x:(model.border[0]+model.border[2])/2,y:(model.border[1]+model.border[5])/2};
+  await command('Input.dispatchMouseEvent',{type:'mousePressed',...point,button:'left',clickCount:1},nojs.sessionId);
+  await command('Input.dispatchMouseEvent',{type:'mouseReleased',...point,button:'left',clickCount:1},nojs.sessionId);
+  await until(async()=>{const {targetInfos}=await command('Target.getTargets');return targetInfos.some(target=>target.targetId===nojs.targetId&&target.url===origin+'/api/inquiry');},'native POST without query parameters');
+  const nativeRequest=requests.filter(req=>req.path==='/api/inquiry').at(-1);
+  assert.equal(nativeRequest.method,'POST');assert.equal(nativeRequest.hasQuery,false);
+  const {root:rejectionRoot}=await command('DOM.getDocument',{},nojs.sessionId);
+  const {outerHTML}=await command('DOM.getOuterHTML',{nodeId:rejectionRoot.nodeId},nojs.sessionId);
+  assert.match(outerHTML,/storageAttempted[^a-z]+false/,'No-script native POST is safely rejected before storage');
+  assert.ok(requests.some(req=>req.path==='/api/placement-access'&&req.mode==='navigate'&&req.destination==='document'));
+  assert.ok(requests.every(req=>req.path.startsWith('/')));
+  console.log('PLACEMENT_ACCESS_BROWSER=PASS: Chromium real validation/correction, HttpOnly cookies, GA/Meta script probes denied, native middle-click, two inquiry tabs, COOP severed activated popup, no-JavaScript POST without PII URL');
+} finally {
+  try{await command('Browser.close');}catch{}
+  browser.kill();server.closeAllConnections();await new Promise(resolve=>server.close(resolve));
+  for(const request of pending.values()){clearTimeout(request.timer);request.reject(new Error('Browser closed'));}pending.clear();
+  await new Promise(resolve=>browser.exitCode!==null?resolve():browser.once('exit',resolve));
+  rmSync(profile,{recursive:true,force:true});
+}

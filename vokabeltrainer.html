@@ -627,7 +627,7 @@
                 feedback.textContent = "Escribe una respuesta antes de revisar.";
                 return;
             }
-            const expected = target.split(/\s*\/\s*/).map(normalize);
+            const expected = [target, ...target.split(/\s*\/\s*/)].map(normalize);
             answered = true;
             checkBtn.disabled = true;
             stats.done += 1;
@@ -663,7 +663,7 @@
         modeSelect.addEventListener("change", nextCard);
 
         document.getElementById("course-inquiry").addEventListener("click", () => {
-            if (typeof window.gtag === "function") window.gtag("event", "learning_group_inquiry_clicked", {trainer: "vocabulary"});
+            if (window.viveConsent?.allows("analytics") && typeof window.gtag === "function") window.gtag("event", "learning_group_inquiry_clicked", {trainer: "vocabulary"});
         });
 
         fillCategories();

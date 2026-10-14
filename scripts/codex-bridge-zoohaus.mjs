@@ -211,7 +211,7 @@ export function createZoohausConnector({ platform = process.platform, pathApi = 
   const p = pathApi;
   function requireWindows() { if (platform !== 'win32') throw new ZoohausError('Install and management must run on the actual Windows Zoohaus PC.'); }
   async function execute(program, args, options = {}) {
-    try { return await execFile(program, args, { env, encoding: 'utf8', timeout: 30_000, maxBuffer: 256 * 1024, ...options, shell: false }); }
+    try { return await execFile(program, args, { env, encoding: 'utf8', timeout: 30_000, maxBuffer: 256 * 1024, ...options, windowsHide: true, shell: false }); }
     catch { throw new ZoohausError('A local prerequisite or management command failed. Check it locally; credential output is never echoed.'); }
   }
   async function runHelper(config) {

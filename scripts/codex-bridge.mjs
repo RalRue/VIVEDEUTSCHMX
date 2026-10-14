@@ -5,15 +5,16 @@ import { constants } from 'node:fs';
 import { lstat, open } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { isBridgeTimestamp } from '../lib/codex-bridge-protocol.mjs';
+import { BRIDGE_MAX_RECORDS, BRIDGE_MAX_SNAPSHOT_BYTES, bridgeAppendCapacity,
+  isBridgeTimestamp } from '../lib/codex-bridge-protocol.mjs';
 
 export const BRANCH = 'codex-bridge-v1';
 export const SCHEMA = 'codex-bridge/v1';
 export const DEFAULT_REMOTE = 'https://github.com/RalRue/VIVEDEUTSCHMX-CODEX-BRIDGE.git';
 export const MAX_BODY_BYTES = 65_536;
 const MAX_RECORD_BYTES = MAX_BODY_BYTES * 6 + 2_048;
-const MAX_RECORDS = 10_000;
-const MAX_SNAPSHOT_BYTES = 32 * 1024 * 1024;
+const MAX_RECORDS = BRIDGE_MAX_RECORDS;
+const MAX_SNAPSHOT_BYTES = BRIDGE_MAX_SNAPSHOT_BYTES;
 const REMOTE_REF = `refs/heads/${BRANCH}`;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const AGENT_RE = /^[a-z][a-z0-9._-]{0,63}$/;
@@ -256,11 +257,10 @@ async function appendRecord(remote, privateRef, { path, record, check }) {
     }
     const existing = check(snapshot);
     if (existing) return existing;
-    if (snapshot.entries.size >= MAX_RECORDS) throw new Error('Mailbox record limit reached; archive it before continuing.');
-    const snapshotBytes = [...snapshot.entries.values()].reduce((total, entry) => total + entry.size, 0);
-    if (snapshotBytes + encoded(record).length > MAX_SNAPSHOT_BYTES) {
-      throw new Error('Mailbox snapshot size limit reached; archive it before continuing.');
-    }
+    const capacity = bridgeAppendCapacity(snapshot.entries, path, record, encoded(record).length);
+    if (!capacity.allowed) throw new Error(capacity.reason === 'reserved_path'
+      ? 'Message ID occupies a reserved native result path; refusing to publish.'
+      : 'Mailbox capacity is reserved for outstanding native results and acknowledgements, or its hard limit is reached; archive it before new work.');
     const commit = await makeCommit(snapshot, path, record);
     try {
       await git(['push', '--quiet', remote, `${commit}:${REMOTE_REF}`]);

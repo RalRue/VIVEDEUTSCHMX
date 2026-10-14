@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {createHmac} from 'node:crypto';
 import {readFileSync, existsSync} from 'node:fs';
+import {isAbsolute} from 'node:path';
 import vm from 'node:vm';
 import {sheetValues,sheetDisplay,sheetWriteMethods} from './synthetic-sheet.cjs';
 import {createHandler, validate} from '../api/inquiry.mjs';
@@ -23,6 +24,13 @@ async function invoke(changes={}, deps={}) {
 }
 assert.ok(validate(body));
 for (const invalid of [{...body,privacy:false},{...body,id:'bad'},{...body,email:'bad'}, {...body,name:''}, {...body,goal:'x'.repeat(301)}, {...body,website:'spam'}, {...body,token:'extra'}, {...body,marketing:'yes'}]) assert.equal(validate(invalid),null);
+for (const invalidId of [[id], {}, 12, true, null, undefined]) {
+  assert.equal(validate({...body,id:invalidId}),null,'UUID input must be a string');
+  const rejected = await invoke({body:{...body,id:invalidId}});
+  assert.equal(rejected.status,400);
+  assert.deepEqual(rejected.result,{ok:false,storageAttempted:false});
+}
+assert.equal(sent,0,'Invalid UUID types must never reach persistence');
 assert.equal((await invoke()).status,200);
 assert.equal(envelope.signature,createHmac('sha256',env.VIVE_INQUIRY_SECRET).update('1000.'+envelope.payload).digest('hex'));
 assert.equal(JSON.parse(envelope.payload).test,true);
@@ -52,12 +60,15 @@ assert.equal(routing.redirects.filter(route=>route.source==='/consulta'||route.s
 assert.equal((await invoke({body:'{'})).status,400);
 assert.equal((await invoke({body:' '.repeat(8001)})).status,413);
 assert.equal((await invoke({}, {env:{}})).status,503);
+assert.deepEqual((await invoke({}, {env:{}})).result,{ok:false,storageAttempted:false});
 assert.equal((await invoke({}, {send:async()=>({ok:true,json:async()=>({ok:true,stored:false,id})})})).status,502);
 assert.equal((await invoke({}, {send:async()=>({ok:true,json:async()=>({ok:true,stored:true,id:'wrong'})})})).status,502);
 assert.equal((await invoke({}, {send:async()=>{throw new Error('secret details');}})).status,502);
 assert.equal((await invoke({}, {send:async()=>({ok:false,status:403})})).status,502);
+assert.equal((await invoke({}, {send:async()=>({ok:false,status:400})})).result.storageAttempted,undefined,
+  'An upstream rejection does not prove that storage was never attempted');
 assert.equal((await invoke({}, {send:async()=>({ok:true,headers:{get:()=> 'text/html'}})})).status,502);
-assert.deepEqual(diagnostics,['upstream_storage_not_confirmed','upstream_storage_not_confirmed','upstream_network_or_parse','upstream_http_403','upstream_non_json']);
+assert.deepEqual(diagnostics,['upstream_storage_not_confirmed','upstream_storage_not_confirmed','upstream_network_or_parse','upstream_http_403','upstream_http_400','upstream_non_json']);
 const successful = (await invoke({}, {env:{...env,VIVE_INQUIRY_MODE:'live'}})).result;
 assert.deepEqual(Object.keys(successful).sort(),['duplicate','id','ok','stored','test']);
 assert.equal(JSON.stringify(successful).includes('example.com'),false);
@@ -103,6 +114,8 @@ console.log('Approved numeric attribution: exact IDs, campaign binding, ambiguou
 assert.ok(!/analytics\.js|meta-pixel\.js|googletagmanager|fbevents/.test(html));
 assert.ok(!/checked/.test(html));
 assert.ok(html.includes('type="email"'));
+assert.match(html,/<form\b[^>]*method="post"[^>]*action="\/api\/inquiry"/,'Native submission must never put contact data in a URL');
+assert.match(html,/<noscript>.*ralph_stoecker@live\.com/);
 const ui = readFileSync(new URL('../consulta/inquiry.js',import.meta.url),'utf8');
 assert.ok(ui.includes("fetch('/api/inquiry'"));
 assert.ok(ui.includes("credentials: 'same-origin'"));
@@ -110,8 +123,9 @@ assert.ok(ui.indexOf('form.remove()')<ui.lastIndexOf('sendMeasurement('));
 console.log('Inquiry API, fail-closed storage, signed requests, privacy, test exclusion and measurement gates: PASS');
 
 // An actual persistence acknowledgment, not an HTTP 200 or button click, gates success.
-const receiverPath = new URL('../../../outputs/VIVE-DEUTSCH-MX-Projekt/operations/private/inquiry-apps-script/Code.gs',import.meta.url);
-if (process.argv.includes('--require-receiver')) assert.ok(existsSync(receiverPath), 'Private receiver source is required for the operations check');
+if (process.env.VIVE_PRIVATE_RECEIVER_PATH) assert.ok(isAbsolute(process.env.VIVE_PRIVATE_RECEIVER_PATH),'VIVE_PRIVATE_RECEIVER_PATH must be absolute');
+const receiverPath = process.env.VIVE_PRIVATE_RECEIVER_PATH || new URL('../../../outputs/VIVE-DEUTSCH-MX-Projekt/operations/private/inquiry-apps-script/Code.gs',import.meta.url);
+if (process.argv.includes('--require-receiver') || process.env.VIVE_PRIVATE_RECEIVER_PATH) assert.ok(existsSync(receiverPath), 'Private receiver source is required for the operations check');
 if (existsSync(receiverPath)) {
 let rows=[], props={}, mails=[],formats=[];
 let notices=[],inquiryFormulaColumn=null;
@@ -122,7 +136,7 @@ const sheet={setFrozenRows(){},appendRow:r=>rows.push(r),getLastRow:()=>rows.len
     getDisplayValues:()=>[sheetDisplay(rows[row-1],col-1,numCols,formats[row-1])],getValues:()=>[sheetValues(rows[row-1],col-1,numCols)],
     getFormulas:()=>[Array.from({length:numCols},(_,i)=>col-1+i===inquiryFormulaColumn?'=DATE(2026,9,27)':'')],
     setValue:value=>notices.push(value)};}};
-const receiver=readFileSync(new URL('../../../outputs/VIVE-DEUTSCH-MX-Projekt/operations/private/inquiry-apps-script/Code.gs',import.meta.url),'utf8');
+const receiver=readFileSync(receiverPath,'utf8');
 const context=vm.createContext({Date,JSON,Number,String,Math,
   SpreadsheetApp:{openById:()=>({getSheetByName:()=>sheet}),flush(){}},
   MailApp:{sendEmail(...args){mails.push(args);}},

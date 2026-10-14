@@ -13,6 +13,7 @@ function setup(hash='#abc.'+'a'.repeat(64)){
  return {context,get,events,sent,blobs,location,selected,run:code=>vm.runInContext(code,context),calls:()=>calls,mode:v=>mode=v,release:()=>pending.splice(0).forEach(fn=>fn())};
 }
 (async()=>{
+ const {validatePlacement}=await import('../api/_placement.mjs');
  const ui=setup(),{get,run}=ui;assert.equal(ui.location.hash,'');
  const unload=()=>{let prevented=false;ui.events.beforeunload({preventDefault(){prevented=true;}});return prevented;};
  assert.equal(unload(),false);get('start').onclick();get('test').onsubmit({preventDefault(){}});assert.equal(unload(),false,'Visited empty block must not warn');
@@ -34,6 +35,19 @@ function setup(hash='#abc.'+'a'.repeat(64)){
  for(const mode of ['expired','conflict']){const fail=setup();fail.get('consent').checked=true;fail.run("writingTask=0;writing[0]='Hallo'");fail.mode(mode);await fail.get('send').onclick();assert.equal(fail.run('stored'),false);assert.equal(fail.get('send').disabled,true);await fail.get('send').onclick();assert.equal(fail.calls(),1);}
  const wrongVersion=setup();wrongVersion.get('consent').checked=true;wrongVersion.run("writingTask=0;writing[0]='Hallo'");wrongVersion.mode('wrong-version');await wrongVersion.get('send').onclick();assert.equal(wrongVersion.run('stored'),false);
  const badProfile=setup();badProfile.get('consent').checked=true;badProfile.run("writingTask=0;writing[0]='Hallo'");badProfile.mode('bad-profile');await badProfile.get('send').onclick();assert.equal(badProfile.run('stored'),false,'Missing server profile cannot confirm success');
- const choice=setup();choice.run("step=3;writingTask=0;writing[0]='Hallo';render()");choice.get('writing-choice').value='1';choice.get('writing-choice').onchange();assert.equal(choice.run('writingTask'),1);assert.equal(choice.run("writing.every(v=>v==='')"),true,'Only selected sample retained');
- console.log('PLACEMENT UI 2.1 PASS: consent, blank/unknown, edit/review, text escaping, no early scores, uncertain/exact retry, stored lock, beginner, preview no send, reload loss, token-free download, single writing sample, empty-page unload');
+ const choice=setup();choice.run("step=3;writingTask=0;writing[0]='Hallo';render()");
+ const choose=value=>{choice.get('writing-choice').value=value;choice.get('writing-choice').onchange();};
+ choose('1');assert.equal(choice.run('writingTask'),1);assert.equal(choice.run('writing[0]'),'Hallo','Switching tasks preserves the first draft');assert.equal(choice.get('writing').value,'');
+ choice.get('writing').value='Zweite Schreibprobe';choice.get('writing').oninput();
+ choose('');assert.equal(choice.run('writingTask'),null);assert.equal(choice.run('writing[1]'),'Zweite Schreibprobe','Skipping preserves drafts');assert.equal(choice.run('hasLanguageEvidence()'),false,'Unselected drafts are not submitted evidence');
+ choice.get('consent').checked=true;await choice.get('send').onclick();assert.equal(choice.calls(),0,'Drafts alone cannot submit when writing is skipped');
+ choice.get('download').onclick();const skippedReport=JSON.parse(await choice.blobs.at(-1).text());assert.deepEqual(skippedReport.writing,['','','']);assert.equal(skippedReport.writingStatus,'not_assessed');assert.deepEqual(skippedReport.unsentWritingDrafts,['Hallo','Zweite Schreibprobe',''],'Download clearly separates unsent drafts from the chosen sample');
+ choose('0');assert.equal(choice.get('writing').value,'Hallo','Returning to the first task restores its draft');
+ choose('1');assert.equal(choice.get('writing').value,'Zweite Schreibprobe','Returning to the second task restores its draft');
+ choice.run('review()');assert.equal(choice.get('review').children.some(n=>n.textContent==='Hallo'),false,'Review contains only the chosen sample');
+ await choice.get('send').onclick();const chosenBody=JSON.parse(choice.sent[0]);assert.deepEqual(chosenBody.writing,['','Zweite Schreibprobe','']);assert.equal(chosenBody.writingTask,1);assert.equal('unsentWritingDrafts' in chosenBody,false);assert.notEqual(validatePlacement(chosenBody),null,'Preserved drafts do not break the single-sample API contract');
+ choice.mode('ok');await choice.get('send').onclick();assert.equal(choice.sent[0],choice.sent[1],'Retry keeps the exact selected sample');assert.equal(choice.run('stored'),true);
+ let draftUnload=false;choice.events.beforeunload({preventDefault(){draftUnload=true;}});assert.equal(draftUnload,true,'Unsent drafts remain protected after the selected sample is stored');
+ choice.get('download').onclick();const chosenReport=JSON.parse(await choice.blobs.at(-1).text());assert.deepEqual(chosenReport.writing,['','Zweite Schreibprobe','']);assert.deepEqual(chosenReport.unsentWritingDrafts,['Hallo','','']);assert.equal(chosenReport.submissionState,'confirmed');assert.equal(chosenReport.writingStatus,'pending_teacher_review');
+ console.log('PLACEMENT UI 2.1 PASS: consent, blank/unknown, edit/review, text escaping, no early scores, uncertain/exact retry, stored lock, beginner, preview no send, reload loss, token-free download, preserved task drafts, selected-only evidence/submission, separate draft export, unload protection');
 })().catch(e=>{console.error(e);process.exitCode=1;});

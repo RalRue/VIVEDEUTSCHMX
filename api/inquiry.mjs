@@ -1,5 +1,6 @@
 import { createHmac } from 'node:crypto';
 import {issueToken} from './_placement.mjs';
+import {placementCookieName} from './placement-access.mjs';
 
 const ORIGIN = 'https://vive-deutsch-mx.vercel.app';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -7,7 +8,8 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{1
 export function validate(body) {
   if (!body || Array.isArray(body) || typeof body !== 'object') return null;
   const allowed = ['id','name','email','course','experience','goal','schedule','privacy','analytics','marketing','website'];
-  if (Object.keys(body).some(key => !allowed.includes(key)) || body.website || body.privacy !== true || !UUID.test(body.id || '')) return null;
+  if (Object.keys(body).some(key => !allowed.includes(key)) || body.website || body.privacy !== true ||
+      typeof body.id !== 'string' || !UUID.test(body.id)) return null;
   const text = (key, max, required = true) => typeof body[key] === 'string' && body[key].length <= max &&
     !/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(body[key]) && (!required || body[key].trim().length > 0);
   if (!text('name', 100) || !text('email', 254) || !text('goal', 300, false) || !text('schedule', 300, false)) return null;
@@ -24,25 +26,27 @@ export function createHandler({env = process.env, send = fetch, now = Date.now, 
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('X-Content-Type-Options', 'nosniff');
     const reply = (status, value) => res.status(status).json(value);
-    if (req.method !== 'POST') { res.setHeader('Allow', 'POST'); return reply(405, {ok: false}); }
+    // These rejections occur before any request can reach the persistence receiver.
+    const rejectBeforeStorage = status => reply(status, {ok: false, storageAttempted: false});
+    if (req.method !== 'POST') { res.setHeader('Allow', 'POST'); return rejectBeforeStorage(405); }
     const isPreview = env.VERCEL_ENV === 'preview';
     const previewOrigins = isPreview ? [env.VERCEL_URL, env.VERCEL_BRANCH_URL]
       .filter(host => /^[a-z0-9-]+\.vercel\.app$/i.test(host || '')).map(host => 'https://' + host) : [];
     if (env.VIVE_INQUIRY_PREVIEW_ORIGIN) previewOrigins.push(env.VIVE_INQUIRY_PREVIEW_ORIGIN);
-    if (req.headers.origin !== ORIGIN && !previewOrigins.includes(req.headers.origin)) return reply(403, {ok: false});
-    if (!String(req.headers['content-type'] || '').startsWith('application/json')) return reply(415, {ok: false});
+    if (req.headers.origin !== ORIGIN && !previewOrigins.includes(req.headers.origin)) return rejectBeforeStorage(403);
+    if (!String(req.headers['content-type'] || '').startsWith('application/json')) return rejectBeforeStorage(415);
     let body;
     try {
       const raw = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
-      if (!raw || Buffer.byteLength(raw) > 8000) return reply(413, {ok: false});
+      if (!raw || Buffer.byteLength(raw) > 8000) return rejectBeforeStorage(413);
       body = JSON.parse(raw);
-    } catch { return reply(400, {ok: false}); }
+    } catch { return rejectBeforeStorage(400); }
     const data = validate(body);
-    if (!data) return reply(400, {ok: false});
+    if (!data) return rejectBeforeStorage(400);
     const endpoint = env.VIVE_INQUIRY_RECEIVER_URL;
     const secret = env.VIVE_INQUIRY_SECRET?.trim();
     if (env.VIVE_INQUIRY_ENABLED !== 'true' || !secret || secret.length < 40 ||
-        !/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(endpoint || '')) return reply(503, {ok: false});
+        !/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(endpoint || '')) return rejectBeforeStorage(503);
     data.test = isPreview || env.VIVE_INQUIRY_MODE !== 'live';
     // Apps Script can decode raw non-ASCII POST bytes differently before HMAC verification.
     const payload = JSON.stringify(data).replace(/[^\x00-\x7f]/g,
@@ -61,7 +65,12 @@ export function createHandler({env = process.env, send = fetch, now = Date.now, 
         report('upstream_storage_not_confirmed'); return reply(502, {ok: false});
       }
       // No contact, course, or learning answers leave through the success response.
-      const placement = env.VIVE_PLACEMENT_ENABLED === 'true' ? {placementToken: issueToken(data.id, data.test, secret, now())} : {};
+      const placement = {};
+      if (env.VIVE_PLACEMENT_ENABLED === 'true') {
+        const token = issueToken(data.id, data.test, secret, now());
+        res.setHeader('Set-Cookie', placementCookieName(data.id) + '=' + token + '; Max-Age=86400; Path=/api/placement-access; Secure; HttpOnly; SameSite=Strict');
+        placement.placementAccessUrl = '/api/placement-access?inquiryId=' + data.id;
+      }
       return reply(200, {ok: true, stored: true, id: data.id, duplicate: result.duplicate === true, test: data.test, ...placement});
     } catch { report('upstream_network_or_parse'); return reply(502, {ok: false}); }
   };

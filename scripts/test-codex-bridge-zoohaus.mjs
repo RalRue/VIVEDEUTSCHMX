@@ -162,6 +162,7 @@ function fixture({ platform = 'win32', dependencies = {} } = {}) {
   const behavior = { currentSid: sid, task: null, safeAcl: true, ready: true, nativeDiscovery: codex, gitRoot: project, workerPromise: null };
   const respondToExecution = async (program, args, options = {}) => {
     assert.notEqual(options.shell, true, 'Shell execution is forbidden');
+    assert.equal(options.windowsHide, true, 'Native management and helper children must hide their console windows');
     calls.push({ program, args, options });
     const executable = win.basename(program).toLowerCase();
     if (executable === 'where.exe') return { stdout: `${behavior.nativeDiscovery}\r\n`, stderr: '' };
@@ -229,6 +230,7 @@ function fixture({ platform = 'win32', dependencies = {} } = {}) {
   const execFile = (program, args, options = {}) => {
     if (win.basename(program).toLowerCase() === 'node.exe' && args.includes('--once') && behavior.workerPromise) {
       assert.equal(options.shell, false);
+      assert.equal(options.windowsHide, true);
       calls.push({ program, args, options });
       return behavior.workerPromise;
     }

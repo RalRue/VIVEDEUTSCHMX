@@ -22,12 +22,21 @@ form.addEventListener('submit', async event => {
     status.textContent = 'El primer envío podría estar guardado. Estos cambios no se han enviado. Para corregir tus datos, escribe a ralph_stoecker@live.com. Si deseas reintentar el mismo envío, restablece los datos originales.';
     return;
   }
-  attemptedBody = serialized;
   busy = true; button.disabled = true; button.textContent = 'Enviando…'; status.textContent = '';
   try {
     const response = await fetch('/api/inquiry', {method: 'POST', headers: {'Content-Type': 'application/json'},
       body: serialized, credentials: 'same-origin', signal: AbortSignal.timeout(25000)});
     const result = await response.json();
+    if (!response.ok && [400,403,413,415,503].includes(response.status) && result.ok === false && result.storageAttempted === false) {
+      // A later rejection cannot disprove storage by an earlier, unconfirmed attempt.
+      status.textContent = attemptedBody !== null
+        ? 'Este intento fue rechazado, pero el primer envío podría estar guardado. Reintenta con los mismos datos o escribe a ralph_stoecker@live.com.'
+        : response.status === 400
+          ? 'No se guardó la consulta. Revisa tu nombre y correo electrónico (por ejemplo, nombre@dominio.com), corrige los datos e inténtalo de nuevo.'
+          : 'No se guardó la consulta. Puedes revisar tus datos e intentarlo más tarde.';
+      busy = false; button.disabled = false; button.textContent = 'Reintentar envío';
+      return;
+    }
     if (!response.ok || result.ok !== true || result.stored !== true || result.id !== requestId) throw new Error('not-confirmed');
     // Remove PII and any unexpected URL parameters before loading measurement libraries.
     form.reset(); form.remove();
@@ -37,17 +46,17 @@ form.addEventListener('submit', async event => {
     document.body.dataset.test = String(result.test);
     document.querySelector('#success').hidden = false;
     document.querySelector('#success').focus();
-    if (typeof result.placementToken === 'string' && /^[A-Za-z0-9_-]+\.[a-f0-9]{64}$/.test(result.placementToken)) {
-      const access = result.placementToken;
+    if (result.placementAccessUrl === '/api/placement-access?inquiryId=' + requestId) {
       const link = document.querySelector('#placement-link');
-      link.href = '/consulta/nivel/';
-      // Keep the capability out of the DOM while optional measurement libraries are loaded.
-      link.onclick = event => { event.preventDefault(); location.assign('/consulta/nivel/#' + access); };
+      // Native links support new tabs; the signed capability stays in an HttpOnly cookie.
+      link.href = result.placementAccessUrl;
+      link.rel = 'noopener noreferrer';
       document.querySelector('#placement-pilot').hidden = false;
     }
     status.textContent = '';
     try { sendMeasurement(result, consent, attribution); } catch { /* Measurement must never undo confirmed receipt. */ }
   } catch {
+    attemptedBody = serialized;
     status.textContent = 'No pudimos confirmar el envío. Tus datos siguen aquí. Inténtalo de nuevo; no se generará una consulta duplicada.';
     busy = false; button.disabled = false; button.textContent = 'Reintentar envío';
   }

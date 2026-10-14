@@ -3193,8 +3193,11 @@
             const mistakes = Math.max(done - correct, 0);
             const level = levelFilter.value === 'all' ? 'A1-B1' : levelFilter.value;
 
-            conversionSummary.textContent = done < 3
-                ? `Haz tres ejercicios. Llevas ${done}/3. Después puedes consultar qué grupo se adapta a tu nivel.`
+            const target = Math.min(3, state.filtered.length);
+            conversionSummary.textContent = !target
+                ? 'Prueba otro nivel o tema para empezar la práctica.'
+                : done < target
+                ? `Haz ${target} ${target === 1 ? 'ejercicio' : 'ejercicios'}. Llevas ${done}/${target}. Después puedes consultar qué grupo se adapta a tu nivel.`
                 : `Tu práctica actual: ${correct}/${done} correctas, ${mistakes} dudas, filtro ${level}. Puedes consultar por un grupo.`;
         }
 
@@ -3213,9 +3216,11 @@
 
         function updateSessionProgress() {
             updateGroupCta();
+            const target = Math.min(3, state.filtered.length);
+            document.getElementById('restart-session').textContent = `Nueva sesión de ${target || 3}`;
             document.getElementById('session-progress').textContent = session.completed
                 ? 'Sesión terminada: ' + session.correct + '/' + Math.min(3, state.filtered.length) + ' correctas. Puedes seguir practicando o iniciar una nueva sesión.'
-                : 'Sesión de 3: ' + session.answeredIds.size + '/' + Math.min(3, state.filtered.length) + ' respuestas evaluadas. ' + state.filtered.length + ' tareas en este filtro.';
+                : 'Sesión de ' + target + ': ' + session.answeredIds.size + '/' + Math.min(3, state.filtered.length) + ' respuestas evaluadas. ' + state.filtered.length + ' tareas en este filtro.';
         }
 
         function currentExercise() {
@@ -3319,6 +3324,7 @@
 
         function nextExercise() {
             if (!state.filtered.length) return;
+            if (session.completed) resetSession();
             state.index = (state.index + 1) % state.filtered.length;
             renderExercise();
         }

@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { createHandler } from '../api/codex-bridge.mjs';
 import { createAckHandler } from '../api/codex-bridge-ack.mjs';
-import { isBridgeTimestamp, nativeReplyId } from '../lib/codex-bridge-protocol.mjs';
+import { bridgeAppendCapacity, isBridgeTimestamp, nativeReplyId } from '../lib/codex-bridge-protocol.mjs';
 import { parseSmokeArgs, PROOF, runSmoke } from './smoke-codex-bridge-action.mjs';
 
 // Every GitHub HTTP response is injected. The interoperability check uses local Git only.
@@ -192,6 +192,22 @@ function seedReply(fake, id = taskId, overrides = {}) {
   return deterministic;
 }
 
+function completedExchanges(fake, count) {
+  const files = new Map();
+  const add = (filename, value) => files.set(filename, fake.storeBlob(`${JSON.stringify(value, null, 2)}\n`));
+  for (let index = 0; index < count; index++) {
+    const id = `00000000-0000-4000-8000-${index.toString(16).padStart(12, '0')}`;
+    const resultId = nativeReplyId(id, 'cloud', 'local');
+    add(`messages/${id}.json`, message(id, 'Completed archived task'));
+    add(`messages/${resultId}.json`, message(resultId, `${marker}Completed archived result`, { from: 'cloud', to: 'local', replyTo: id }));
+    for (const [agent, target] of [['cloud', id], ['local', resultId]]) {
+      add(`acknowledgements/${agent}/${target}.json`, { schema: 'codex-bridge/v1', type: 'acknowledgement',
+        id: target, agent, createdAt: now().toISOString() });
+    }
+  }
+  return files;
+}
+
 async function test(name, run) { await run(); passed++; console.log(`PASS: ${name}`); }
 
 await test('authentication and missing configuration reject requests before any GitHub call', async () => {
@@ -226,6 +242,18 @@ await test('invalid IDs, request shapes, UTF-8, sizes and content types never re
   const fake = new FakeGitHub();
   assert.equal((await call(handlers(fake).task, { contentType: 'text/plain' })).code, 415);
   assert.equal(fake.calls.length, 0);
+});
+
+await test('reserved machine prefixes are rejected before storage, including leading whitespace', async () => {
+  for (const body of [`${marker}Review a previous report`, ' \n\t[codex-bridge-ai/v1]\nReview this reply']) {
+    const fake = new FakeGitHub();
+    const result = await call(handlers(fake).task, { body: { taskId, body } });
+    assert.equal(result.code, 400);
+    assert.equal(result.body.error, 'reserved_task_prefix');
+    assert.equal(fake.calls.length, 0);
+  }
+  const fake = new FakeGitHub();
+  assert.equal((await call(handlers(fake).task, { body: { taskId, body: `Review this quoted marker: ${marker}` } })).code, 202);
 });
 
 await test('only the exact private repository may receive a task', async () => {
@@ -297,21 +325,98 @@ await test('a lost successful ref-update response is reconciled without a duplic
   assert.equal(fake.read(`messages/${taskId}.json`).id, taskId);
 });
 
-await test('budget checking is atomic at the 10000-record capacity during concurrent writes', async () => {
+await test('concurrent admission reserves the last result and both ACK slots within 10000 records', async () => {
   const fake = new FakeGitHub();
-  const files = new Map();
-  for (let index = 0; index < 9999; index++) {
-    const id = `00000000-0000-4000-8000-${index.toString(16).padStart(12, '0')}`;
-    files.set(`messages/${id}.json`, fake.storeBlob(JSON.stringify(message(id, 'Short archived task'))));
-  }
-  fake.install(files);
+  fake.install(completedExchanges(fake, 2499));
   const handler = handlers(fake).task;
   const results = await Promise.all([
     call(handler, { body: { taskId, body: 'Last available record A' } }),
     call(handler, { body: { taskId: otherId, body: 'Last available record B' } }),
   ]);
   assert.deepEqual(results.map(value => value.code).sort(), [202, 503]);
+  assert.equal(fake.files.size, 9997);
+  const winner = [taskId, otherId][results.findIndex(value => value.code === 202)];
+  seedReply(fake, winner);
+  assert.equal((await call(handlers(fake).ack, { body: { taskId: winner, replyId: nativeReplyId(winner, 'cloud', 'local') } })).code, 200);
+  assert.equal(fake.files.size, 9999);
+});
+
+await test('legacy overbooked mailboxes reject new tasks but still accept pending result ACKs up to the hard limit', async () => {
+  const fake = new FakeGitHub();
+  const files = new Map();
+  for (let index = 0; index < 9997; index++) {
+    const id = `00000000-0000-4000-8000-${index.toString(16).padStart(12, '0')}`;
+    files.set(`messages/${id}.json`, fake.storeBlob(JSON.stringify(message(id, 'Legacy coordination'))));
+  }
+  fake.install(files);
+  fake.seedRecord(message(taskId, 'Existing native task'));
+  seedReply(fake);
+  assert.equal(fake.files.size, 9999);
+  assert.equal((await call(handlers(fake).task, { body: { taskId: otherId, body: 'New task must wait for migration' } })).code, 503);
+  assert.equal((await call(handlers(fake).ack, { body: { taskId, replyId } })).code, 200);
   assert.equal(fake.files.size, 10000);
+  assert.equal((await call(handlers(fake).ack, { body: { taskId, replyId } })).code, 200);
+  assert.equal((await call(handlers(fake).task, { body: { taskId: otherId, body: 'Still no new work' } })).code, 503);
+});
+
+await test('legacy generic completions cannot steal compliant native reserves or exceed either hard limit', async () => {
+  const entries = (count, size = 300) => new Map(Array.from({ length: count }, (_, index) =>
+    [`messages/00000000-0000-4000-8000-${index.toString(16).padStart(12, '0')}.json`, { size }]));
+  const sourceId = '00000000-0000-4000-8000-000000000000';
+  const result = message(taskId, '[codex-bridge-ai/v1]\nExisting cached result', { from: 'legacy-ai', to: 'local', replyTo: sourceId });
+  const resultPath = `messages/${taskId}.json`;
+  assert.equal(bridgeAppendCapacity(entries(169), resultPath, result, 300).allowed, false,
+    'A generic result must not consume another admitted task\'s native guarantee');
+  assert.equal(bridgeAppendCapacity(entries(171), resultPath, result, 300).allowed, true,
+    'A previously overbooked legacy AI task must still be able to publish');
+  assert.equal(bridgeAppendCapacity(entries(171), resultPath, { ...result, replyTo: null }, 300).allowed, false);
+  assert.equal(bridgeAppendCapacity(entries(10_000), resultPath, result, 300).allowed, false);
+  assert.equal(bridgeAppendCapacity(entries(96, 349_525), resultPath, result, 300).allowed, false);
+});
+
+await test('worst-case JSON escaping is reserved within 32 MiB before admitting a task', async () => {
+  const fake = new FakeGitHub();
+  const files = completedExchanges(fake, 200);
+  // Complete historical exchanges may contain much larger coordination records
+  // than native results. Their actual serialized bytes still count in full.
+  for (const [filename, blob] of files) {
+    if (!filename.startsWith('messages/')) continue;
+    const value = JSON.parse(fake.blobs.get(blob));
+    value.body = '\u0001'.repeat(13_900);
+    files.set(filename, fake.storeBlob(`${JSON.stringify(value, null, 2)}\n`));
+  }
+  fake.install(files);
+  const occupied = [...files.values()].reduce((sum, id) => sum + fake.blobs.get(id).length, 0);
+  assert.ok(occupied < 32 * 1024 * 1024 && occupied > 32 * 1024 * 1024 - 196_608);
+  const before = fake.mutations().length;
+  assert.equal((await call(handlers(fake).task)).code, 503);
+  assert.equal(fake.mutations().length, before);
+  for (const [filename, blob] of files) {
+    if (!filename.startsWith('messages/')) continue;
+    const value = JSON.parse(fake.blobs.get(blob));
+    value.body = '\u0001'.repeat(13_800);
+    files.set(filename, fake.storeBlob(`${JSON.stringify(value, null, 2)}\n`));
+  }
+  fake.install(files);
+  assert.equal((await call(handlers(fake).task)).code, 202);
+  seedReply(fake, taskId, { body: `${marker}${'\u0001'.repeat(32_768)}` });
+  assert.equal((await get(handlers(fake).task)).code, 200);
+  assert.equal((await call(handlers(fake).ack, { body: { taskId, replyId } })).code, 200);
+  fake.seedRecord({ schema: 'codex-bridge/v1', type: 'acknowledgement', id: taskId, agent: 'cloud',
+    createdAt: now().toISOString() }, `acknowledgements/cloud/${taskId}.json`);
+  assert.ok([...fake.files.values()].reduce((sum, id) => sum + fake.blobs.get(id).length, 0) <= 32 * 1024 * 1024);
+});
+
+await test('a new task cannot consume an existing task\'s deterministic result reservation', async () => {
+  const fake = new FakeGitHub();
+  fake.seedRecord(message(taskId, 'Existing source'));
+  const result = await call(handlers(fake).task, { body: { taskId: replyId, body: 'Conflicting initial task' } });
+  assert.equal(result.code, 409);
+  assert.equal(fake.mutations().length, 0);
+  const occupied = new FakeGitHub();
+  occupied.seedRecord(message(replyId, 'An older independent initial task'));
+  assert.equal((await call(handlers(occupied).task)).code, 409);
+  assert.equal(occupied.mutations().length, 0);
 });
 
 await test('unknown or truncated capacity never permits a write', async () => {
@@ -319,6 +424,11 @@ await test('unknown or truncated capacity never permits a write', async () => {
   fake.treeOverride = { truncated: true };
   assert.equal((await call(handlers(fake).task)).code, 503);
   assert.equal(fake.mutations().length, 0);
+  const duplicate = new FakeGitHub();
+  const entry = { path: `messages/${otherId}.json`, mode: '100644', type: 'blob', size: 1, sha: sha('duplicate fixture') };
+  duplicate.treeOverride = { tree: [entry, entry] };
+  assert.equal((await call(handlers(duplicate).task)).code, 502);
+  assert.equal(duplicate.mutations().length, 0);
 });
 
 await test('GET remains queued until the deterministic native reply exists and reads no history', async () => {
@@ -497,6 +607,7 @@ await test('GitHub denial, malformed replies and raw transport diagnostics never
 
 await test('API-produced tasks, deterministic CLI replies and API ACKs interoperate through a real local Git mailbox', async () => {
   const fake = new FakeGitHub();
+  fake.install(completedExchanges(fake, 2499));
   const handler = handlers(fake);
   assert.equal((await call(handler.task, { body: { taskId, body: 'Interoperability task' } })).code, 202);
   const temporary = await mkdtemp(path.join(tmpdir(), 'vive-codex-action-test-'));
@@ -513,9 +624,10 @@ await test('API-produced tasks, deterministic CLI replies and API ACKs interoper
     await run('git', ['init', '--initial-branch', branch, writer]);
     await run('git', ['config', 'user.name', 'Action Protocol Test'], writer);
     await run('git', ['config', 'user.email', 'action-protocol-test@example.invalid'], writer);
-    const taskPath = `messages/${taskId}.json`;
-    await mkdir(path.join(writer, 'messages'));
-    await writeFile(path.join(writer, taskPath), fake.blobs.get(fake.files.get(taskPath)));
+    for (const [filename, id] of fake.files) {
+      await mkdir(path.dirname(path.join(writer, filename)), { recursive: true });
+      await writeFile(path.join(writer, filename), fake.blobs.get(id));
+    }
     await run('git', ['add', '.'], writer);
     await run('git', ['commit', '-m', 'API task fixture'], writer);
     await run('git', ['remote', 'add', 'origin', remote], writer);
@@ -528,10 +640,15 @@ await test('API-produced tasks, deterministic CLI replies and API ACKs interoper
     assert.equal(sent.id, replyId);
     const replyRaw = await run('git', ['show', `${branch}:messages/${replyId}.json`], remote);
     fake.seedRaw(replyRaw, `messages/${replyId}.json`);
+    await run(process.execPath, [cli, 'ack', '--agent', 'cloud', '--id', taskId], client);
+    const taskAckPath = `acknowledgements/cloud/${taskId}.json`;
+    fake.seedRaw(await run('git', ['show', `${branch}:${taskAckPath}`], remote), taskAckPath);
     const result = await get(handler.task);
     assert.equal(result.code, 200);
     assert.deepEqual(result.body, { taskId, status: 'completed', replyId, result: 'Der native CLI-Worker hat geantwortet.' });
     assert.equal((await call(handler.ack, { url: '/api/codex-bridge-ack', body: { taskId, replyId } })).code, 200);
+    assert.equal(fake.files.size, 10000);
+    assert.equal((await call(handler.task, { body: { taskId: otherId, body: 'Cannot steal a completion slot' } })).code, 503);
     await run('git', ['pull', '--ff-only', 'origin', branch], writer);
     const ackPath = `acknowledgements/local/${replyId}.json`;
     await mkdir(path.dirname(path.join(writer, ackPath)), { recursive: true });
@@ -539,9 +656,14 @@ await test('API-produced tasks, deterministic CLI replies and API ACKs interoper
     await run('git', ['add', ackPath], writer);
     await run('git', ['commit', '-m', 'API acknowledgement fixture'], writer);
     await run('git', ['push', 'origin', branch], writer);
+    await assert.rejects(run(process.execPath, [cli, 'send', '--from', 'local', '--to', 'cloud',
+      '--file', path.join(client, 'user-work.txt')], client), error => {
+      assert.match(error.stderr, /capacity/i);
+      return true;
+    });
     const inbox = JSON.parse(await run(process.execPath, [cli, 'inbox', '--agent', 'local', '--all', '--json'], client));
     assert.equal(inbox.messages.find(value => value.id === replyId)?.acknowledged, true);
-    const pending = JSON.parse(await run(process.execPath, [cli, 'inbox', '--agent', 'cloud', '--json'], client));
+    const pending = JSON.parse(await run(process.execPath, [cli, 'inbox', '--agent', 'cloud', '--all', '--json'], client));
     assert.equal(pending.messages.find(value => value.id === taskId)?.body, 'Interoperability task');
     assert.equal(await readFile(path.join(client, 'user-work.txt'), 'utf8'), 'Untracked user work remains intact.');
   } finally { await rm(temporary, { recursive: true, force: true }); }

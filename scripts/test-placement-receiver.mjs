@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {createHmac} from 'node:crypto';
 import fs from 'node:fs';
+import path from 'node:path';
 import vm from 'node:vm';
 import {sheetValues,sheetDisplay,sheetWriteMethods} from './synthetic-sheet.cjs';
 import {issueToken,verifyToken,readingScores,VERSION,LEGACY_VERSION,KEYS,validatePlacement} from '../api/_placement.mjs';
@@ -28,7 +29,10 @@ const context=vm.createContext({Date,JSON,Number,String,Math,Array,
  LockService:{getScriptLock:()=>({tryLock:()=>true,releaseLock(){}})},
  Utilities:{base64EncodeWebSafe:s=>Buffer.from(s).toString('base64url'),computeHmacSha256Signature:(message,key)=>Array.from(createHmac('sha256',key).update(message).digest())},
  MailApp:{sendEmail(){mails++;}},ContentService:{MimeType:{JSON:'json'},createTextOutput:value=>({setMimeType:()=>JSON.parse(value)})}});
-vm.runInContext(fs.readFileSync(new URL('../../../outputs/VIVE-DEUTSCH-MX-Projekt/operations/private/inquiry-apps-script/Code.gs',import.meta.url),'utf8'),context);
+const receiverPath=process.env.VIVE_PRIVATE_RECEIVER_PATH||new URL('../../../outputs/VIVE-DEUTSCH-MX-Projekt/operations/private/inquiry-apps-script/Code.gs',import.meta.url);
+if(process.env.VIVE_PRIVATE_RECEIVER_PATH)assert.ok(path.isAbsolute(receiverPath),'VIVE_PRIVATE_RECEIVER_PATH must be an absolute private source path');
+assert.ok(fs.existsSync(receiverPath),'Current private receiver source is required; set VIVE_PRIVATE_RECEIVER_PATH to its absolute path');
+vm.runInContext(fs.readFileSync(receiverPath,'utf8'),context);
 const transport=async(url,options)=>({ok:true,json:async()=>context.doPost({postData:{contents:options.body}})});
 async function call(value=body,overrides={},deps={}){let status,result;await createHandler({env,send:transport,now:()=>now,...deps})({method:'POST',headers:{origin:'https://vive-deutsch-mx.vercel.app','content-type':'application/json'},body:value,...overrides},{setHeader(){},status(v){status=v;return this;},json(v){result=v;}});return {status,result};}
 assert.equal((await call()).status,200);

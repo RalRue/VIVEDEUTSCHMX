@@ -24,6 +24,7 @@ const HELP = `Usage: node scripts/codex-bridge-service.mjs --project /ABS/REPO -
   --interval SECONDS  Schedule interval (default: 60; minimum: 30)
   --timeout SECONDS   Codex task limit (default: 900; range: 10..900)
   --platform NAME     linux, darwin, or win32; cross-platform preview only
+  --home PATH         Target user home for previews only (default: this user's home)
   --help              Show this help
 
 The service processes at most one message per run in the read-only sandbox.
@@ -35,14 +36,23 @@ function validAgent(value) {
   return typeof value === 'string' && /^[a-z][a-z0-9._-]{0,63}$/.test(value) && value !== 'all';
 }
 
-function inside(parent, child) {
-  const relative = path.relative(parent, child);
-  return relative === '' || (!relative.startsWith(`..${path.sep}`) && relative !== '..' && !path.isAbsolute(relative));
+function targetPaths(platform) {
+  if (!['linux', 'darwin', 'win32'].includes(platform)) throw new Error('Supported previews are linux, darwin, and win32.');
+  return platform === 'win32' ? path.win32 : path.posix;
 }
 
-function cleanPath(value, flag) {
-  if (!value || !path.isAbsolute(value) || /[\u0000-\u001f\u007f]/.test(value)) throw new Error(`${flag} requires an absolute path without control characters.`);
-  return path.normalize(value);
+function inside(parent, child, paths = path) {
+  const relative = paths.relative(parent, child);
+  return relative === '' || (!relative.startsWith(`..${paths.sep}`) && relative !== '..' && !paths.isAbsolute(relative));
+}
+
+function cleanPath(value, flag, paths) {
+  // A Windows root without a drive or UNC share still depends on the current
+  // drive; it is not a portable absolute destination for a preview.
+  const rooted = typeof value === 'string' && paths.isAbsolute(value)
+    && (paths !== path.win32 || /^(?:[a-z]:[\\/]|[\\/]{2}[^\\/]+[\\/][^\\/]+(?:[\\/]|$))/i.test(value));
+  if (!rooted || /[\u0000-\u001f\u007f]/.test(value)) throw new Error(`${flag} requires an absolute target-platform path without control characters.`);
+  return paths.normalize(value);
 }
 
 export function parseServiceArgs(argv, { home = homedir(), platform = process.platform } = {}) {
@@ -58,7 +68,7 @@ export function parseServiceArgs(argv, { home = homedir(), platform = process.pl
       else options[flag.slice(2)] = true;
       continue;
     }
-    if (!['--project', '--node', '--codex', '--agent', '--allow-from', '--state', '--remote', '--interval', '--timeout', '--platform'].includes(flag)) {
+    if (!['--project', '--node', '--codex', '--agent', '--allow-from', '--state', '--remote', '--interval', '--timeout', '--platform', '--home'].includes(flag)) {
       throw new Error('Unknown option. See --help.');
     }
     const value = equals < 0 ? argv[++index] : argument.slice(equals + 1);
@@ -68,20 +78,27 @@ export function parseServiceArgs(argv, { home = homedir(), platform = process.pl
   }
   if (options.help) return options;
   if (explicitPlan && options.install) throw new Error('Use either --plan or --install.');
+  const paths = targetPaths(options.platform);
+  const explicitHome = argv.some(argument => argument === '--home' || argument.startsWith('--home='));
+  if (options.install && explicitHome) throw new Error('--home is for previews only; installation uses the current user home.');
   if (!validAgent(options.agent) || !options.allowFrom.length || options.allowFrom.some(sender => !validAgent(sender))) {
     throw new Error('A valid agent and at least one explicit --allow-from sender are required; wildcards are not supported.');
   }
   options.allowFrom = [...new Set(options.allowFrom)];
-  for (const name of ['project', 'node', 'codex']) options[name] = cleanPath(options[name], `--${name}`);
-  if (!['codex', ...(options.platform === 'win32' ? ['codex.exe'] : [])].includes(path.basename(options.codex))) {
+  for (const name of ['project', 'node', 'codex']) options[name] = cleanPath(options[name], `--${name}`, paths);
+  const executableName = paths.basename(options.codex);
+  if (!['codex', ...(options.platform === 'win32' ? ['codex.exe'] : [])].includes(options.platform === 'win32' ? executableName.toLowerCase() : executableName)) {
     throw new Error('--codex must point to the executable named codex (Windows: codex.exe); its directory is added to the service PATH.');
   }
-  if (options.platform !== 'win32' && [options.node, options.codex].some(filename => path.dirname(filename).includes(':'))) throw new Error('Executable directories must not contain a PATH separator (:).');
-  options.state = cleanPath(options.state ?? path.join(home, '.local', 'state', 'vive-codex-bridge', `codex-${options.agent}.json`), '--state');
-  if (inside(options.project, options.state)) throw new Error('--state must be outside the project checkout.');
+  const pathSeparator = options.platform === 'win32' ? ';' : ':';
+  if ([options.node, options.codex].some(filename => paths.dirname(filename).includes(pathSeparator))) throw new Error(`Executable directories must not contain a PATH separator (${pathSeparator}).`);
+  if (options.platform !== 'win32' || options.state === undefined || explicitHome) {
+    options.home = cleanPath(options.home, '--home (or specify --state for a Windows preview)', paths);
+  }
+  options.state = cleanPath(options.state ?? paths.join(options.home, '.local', 'state', 'vive-codex-bridge', `codex-${options.agent}.json`), '--state', paths);
+  if (inside(options.project, options.state, paths)) throw new Error('--state must be outside the project checkout.');
   if (!Number.isInteger(options.interval) || options.interval < 30 || options.interval > 86_400) throw new Error('--interval must be an integer between 30 and 86400 seconds.');
   if (!Number.isInteger(options.timeout) || options.timeout < 10 || options.timeout > 900) throw new Error('--timeout must be an integer between 10 and 900 seconds.');
-  if (!['linux', 'darwin', 'win32'].includes(options.platform)) throw new Error('Supported previews are linux, darwin, and win32.');
   if (options.platform === 'linux' && (/[\s\\]$/.test(options.project))) throw new Error('Linux WorkingDirectory paths cannot end in whitespace or a backslash.');
   if (options.install && options.platform !== platform) throw new Error('Cross-platform preview cannot be installed on this computer.');
   if (options.remote && (/[\u0000-\u001f\u007f]/.test(options.remote) || /^[a-z][a-z0-9+.-]*:\/\/[^/]*@/i.test(options.remote))) {
@@ -112,14 +129,15 @@ function command(executable, args, extra = {}) {
 }
 
 export function createServicePlan(options, { uid = process.getuid?.() ?? 'UID' } = {}) {
-  const launcher = path.join(options.project, 'scripts', 'codex-bridge-codex.mjs');
+  const paths = targetPaths(options.platform);
+  const launcher = paths.join(options.project, 'scripts', 'codex-bridge-codex.mjs');
   const flags = ['--agent', options.agent, ...options.allowFrom.flatMap(sender => ['--allow-from', sender]),
     '--sandbox', 'read-only', '--state', options.state, '--max-messages', '1', '--timeout', String(options.timeout)];
   if (options.remote) flags.push('--remote', options.remote);
   const args = [launcher, ...flags, '--once'];
   const executableDirectories = options.platform === 'win32'
-    ? [path.dirname(options.codex), path.dirname(options.node)]
-    : [path.dirname(options.codex), path.dirname(options.node), '/usr/local/bin', '/usr/bin', '/bin'];
+    ? [paths.dirname(options.codex), paths.dirname(options.node)]
+    : [paths.dirname(options.codex), paths.dirname(options.node), '/usr/local/bin', '/usr/bin', '/bin'];
   const executionPath = [...new Set(executableDirectories)].join(options.platform === 'win32' ? ';' : ':');
   const check = command(options.node, [launcher, ...flags, '--check'], { cwd: options.project, environment: { PATH: executionPath } });
   // Hex keeps agent names containing "--" valid inside an XML comment.
@@ -135,16 +153,16 @@ export function createServicePlan(options, { uid = process.getuid?.() ?? 'UID' }
       'One message per run, read-only sandbox, no automatic retry of failed Codex tasks.',
       'Sender labels are routing metadata, not authenticated identities. Trust every writer of the private mailbox. This does not wake a web chat.',
     ],
-    directories: [path.dirname(options.state)],
+    directories: [paths.dirname(options.state)],
   };
   if (options.platform === 'linux') {
     const name = `vive-codex-bridge-${options.agent}`;
-    const directory = path.join(options.home, '.config', 'systemd', 'user');
+    const directory = paths.join(options.home, '.config', 'systemd', 'user');
     const service = `${name}.service`;
     const timer = `${name}.timer`;
     const serviceContent = `# ${marker}\n[Unit]\nDescription=VIVE Codex bridge (${options.agent})\n\n[Service]\nType=oneshot\nWorkingDirectory=${options.project.replaceAll('%', '%%')}\nEnvironment=${systemdQuote(`PATH=${executionPath}`)}\nExecStart=${[options.node, ...args].map(value => systemdQuote(value, true)).join(' ')}\nUMask=0077\nTimeoutStartSec=${options.timeout + 300}\n`;
     const timerContent = `# ${marker}\n[Unit]\nDescription=Poll VIVE Codex bridge (${options.agent})\n\n[Timer]\nOnStartupSec=30s\nOnUnitInactiveSec=${options.interval}s\nAccuracySec=5s\nUnit=${service}\n\n[Install]\nWantedBy=timers.target\n`;
-    plan.files = [{ path: path.join(directory, service), content: serviceContent, mode: '0600' }, { path: path.join(directory, timer), content: timerContent, mode: '0600' }];
+    plan.files = [{ path: paths.join(directory, service), content: serviceContent, mode: '0600' }, { path: paths.join(directory, timer), content: timerContent, mode: '0600' }];
     Object.assign(plan.commands, {
       reload: command('systemctl', ['--user', 'daemon-reload']),
       start: command('systemctl', ['--user', 'enable', '--now', timer]),
@@ -157,9 +175,9 @@ export function createServicePlan(options, { uid = process.getuid?.() ?? 'UID' }
     plan.notes.push('Boot operation without login requires a user manager configured for lingering; this installer does not change system login settings.');
   } else if (options.platform === 'darwin') {
     const label = `mx.vivedeutsch.codex-bridge.${options.agent}`;
-    const filename = path.join(options.home, 'Library', 'LaunchAgents', `${label}.plist`);
-    const logDirectory = path.dirname(options.state);
-    const content = `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<!-- ${marker} -->\n<plist version="1.0"><dict>\n<key>Label</key><string>${label}</string>\n<key>ProgramArguments</key><array>${[options.node, ...args].map(value => `<string>${xml(value)}</string>`).join('')}</array>\n<key>WorkingDirectory</key><string>${xml(options.project)}</string>\n<key>EnvironmentVariables</key><dict><key>PATH</key><string>${xml(executionPath)}</string></dict>\n<key>RunAtLoad</key><true/>\n<key>StartInterval</key><integer>${options.interval}</integer>\n<key>Umask</key><integer>63</integer>\n<key>StandardOutPath</key><string>${xml(path.join(logDirectory, `service-${options.agent}.out.log`))}</string>\n<key>StandardErrorPath</key><string>${xml(path.join(logDirectory, `service-${options.agent}.err.log`))}</string>\n</dict></plist>\n`;
+    const filename = paths.join(options.home, 'Library', 'LaunchAgents', `${label}.plist`);
+    const logDirectory = paths.dirname(options.state);
+    const content = `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<!-- ${marker} -->\n<plist version="1.0"><dict>\n<key>Label</key><string>${label}</string>\n<key>ProgramArguments</key><array>${[options.node, ...args].map(value => `<string>${xml(value)}</string>`).join('')}</array>\n<key>WorkingDirectory</key><string>${xml(options.project)}</string>\n<key>EnvironmentVariables</key><dict><key>PATH</key><string>${xml(executionPath)}</string></dict>\n<key>RunAtLoad</key><true/>\n<key>StartInterval</key><integer>${options.interval}</integer>\n<key>Umask</key><integer>63</integer>\n<key>StandardOutPath</key><string>${xml(paths.join(logDirectory, `service-${options.agent}.out.log`))}</string>\n<key>StandardErrorPath</key><string>${xml(paths.join(logDirectory, `service-${options.agent}.err.log`))}</string>\n</dict></plist>\n`;
     plan.files = [{ path: filename, content, mode: '0600' }];
     const target = `gui/${uid}/${label}`;
     Object.assign(plan.commands, {
@@ -168,15 +186,17 @@ export function createServicePlan(options, { uid = process.getuid?.() ?? 'UID' }
       status: command('launchctl', ['print', target]),
       pause: command('launchctl', ['bootout', target]),
       resume: command('launchctl', ['bootstrap', `gui/${uid}`, filename]),
-      disable: command('launchctl', ['disable', target]),
+      disable: { steps: [command('launchctl', ['disable', target]), command('launchctl', ['bootout', target])] },
     });
     plan.notes.push('This LaunchAgent starts at login and does not run while the user is logged out. Pause before changing an active installation.');
+    plan.notes.push('Permanent disable/removal requires both commands.disable.steps in order: disable future loading, then bootout the loaded definition. Bootout can terminate a running task; wait for it to finish first. If the definition is already absent, confirm that with the status command before skipping bootout.');
   } else {
     plan.commands.manual = command(options.node, args, { cwd: options.project, environment: { PATH: executionPath } });
     plan.notes.push('Windows installation is unsupported. Configure Task Scheduler manually with the absolute program, arguments, working directory, login account, Git on PATH and a recurring trigger.');
   }
-  if (plan.files.some(file => inside(options.project, file.path))) throw new Error('User service files must be outside the project checkout.');
-  plan.remove = { first: 'Disable the schedule, then remove only the listed owned files. Keep task state unless deliberately resetting message history.', files: plan.files.map(file => file.path) };
+  if (plan.files.some(file => inside(options.project, file.path, paths))) throw new Error('User service files must be outside the project checkout.');
+  plan.remove = { first: 'Run every listed removal step in order before removing only the listed owned files. Keep task state unless deliberately resetting message history.',
+    steps: options.platform === 'win32' ? [] : (plan.commands.disable.steps || [plan.commands.disable]), files: plan.files.map(file => file.path) };
   return plan;
 }
 
