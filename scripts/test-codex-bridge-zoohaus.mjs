@@ -428,6 +428,44 @@ await test('status reads the owned task without starting a worker or changing fi
   assert.equal(f.fs.mutations.length, 0);
 });
 
+await test('missing launch prerequisites do not prevent owned status and pause, but still block run', async () => {
+  for (const missing of [codex, git, helper, project]) {
+    const f = fixture();
+    await f.client.install(options('install'));
+    f.fs.putFile(statePath, 'KEEP_UNCERTAIN_STATE');
+    const beforeConfig = await f.fs.readFile(configPath, 'utf8');
+    f.fs.entries.delete(f.fs.key(missing));
+    f.calls.length = 0;
+    f.fs.mutations.length = 0;
+    assert.equal((await f.client.status(options('status'))).scheduleVerified, true);
+    assert.equal((await f.client.pause(options('pause'))).paused, true);
+    await assert.rejects(() => f.client.run(options('run')));
+    assert.equal(taskOperations(f, 'register', 'start', 'secureAcl').length, 0);
+    assert.equal(taskOperations(f, 'pause').length, 1);
+    assert.equal(f.fs.mutations.length, 0);
+    assert.equal(await f.fs.readFile(statePath, 'utf8'), 'KEEP_UNCERTAIN_STATE');
+    assert.equal(await f.fs.readFile(configPath, 'utf8'), beforeConfig);
+  }
+});
+
+await test('management recovery still rejects redirected launch paths and unsafe private ACLs', async () => {
+  for (const mode of ['status', 'pause']) {
+    const f = fixture();
+    await f.client.install(options('install'));
+    f.fs.putSymlink(codex, 'C:\\redirected');
+    f.calls.length = 0;
+    await assert.rejects(() => f.client[mode](options(mode)));
+    assert.equal(taskOperations(f, 'pause', 'start', 'register').length, 0);
+    const g = fixture();
+    await g.client.install(options('install'));
+    g.fs.entries.delete(g.fs.key(codex));
+    g.behavior.safeAcl = false;
+    g.calls.length = 0;
+    await assert.rejects(() => g.client[mode](options(mode)));
+    assert.equal(taskOperations(g, 'pause', 'start', 'register').length, 0);
+  }
+});
+
 await test('changed or disabled startup triggers and execution limits cannot be reported ready or overwritten', async () => {
   const alterations = [
     task => { task.triggers = []; },

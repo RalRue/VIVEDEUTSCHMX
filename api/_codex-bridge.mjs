@@ -1,6 +1,6 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
 import { BRIDGE_MAX_RECORDS, bridgeAppendCapacity, hasReservedBridgePrefix, isBridgeTimestamp,
-  NATIVE_MAX_RESULT_BYTES, NATIVE_REPLY_MARKER, nativeReplyId } from '../lib/codex-bridge-protocol.mjs';
+  NATIVE_MAX_RESULT_BYTES, NATIVE_REPLY_MARKER, nativeReplyId, hasCredentialPattern } from '../lib/codex-bridge-protocol.mjs';
 
 export const REPOSITORY = 'RalRue/VIVEDEUTSCHMX-CODEX-BRIDGE';
 export const BRANCH = 'codex-bridge-v1';
@@ -124,7 +124,7 @@ export function validateSubmission(taskId, body, env) {
   if (typeof body === 'string' && Buffer.byteLength(body, 'utf8') > MAX_TASK_BYTES) throw new BridgeError(413, 'task_too_large');
   if (!text(body, MAX_TASK_BYTES)) throw new BridgeError(400, 'invalid_task');
   if (hasReservedBridgePrefix(body)) throw new BridgeError(400, 'reserved_task_prefix');
-  if ([env.VIVE_BRIDGE_ACTION_TOKEN, env.VIVE_BRIDGE_GITHUB_TOKEN].some(secret => secret && body.includes(secret))) throw new BridgeError(400, 'sensitive_task');
+  if (hasCredentialPattern(body) || [env.VIVE_BRIDGE_ACTION_TOKEN, env.VIVE_BRIDGE_GITHUB_TOKEN].some(secret => secret && body.includes(secret))) throw new BridgeError(400, 'sensitive_task');
 }
 
 export function validateAcknowledgement(taskId, replyId) {
