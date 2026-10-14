@@ -137,3 +137,15 @@ assert.equal(shortSession.run('state.stats.done'), 2);
 shortSession.run("topicFilter.value = 'missing'; applyFilter();");
 assert.match(shortSession.nodes.get('conversion-summary').textContent, /Prueba otro/);
 console.log('TRAINER_SHORT_SESSION_TEST=PASS: full translations, attainable filter targets, continued practice and local history');
+
+const regional = setup('vokabeltrainer/index.html');
+for (const [de, direction, answer] of [
+    ['die Fahrkarte', 'de-es', 'el boleto'],
+    ['der Abfalleimer', 'de-es', 'el bote de basura'],
+    ['der Familienname / der Nachname', 'es-de', 'der Nachname'],
+    ['anfangen / beginnen', 'es-de', 'beginnen']
+]) {
+    regional.run(`nextCard(); currentDirection = ${JSON.stringify(direction)}; current = vocabulary.find(item => item.de === ${JSON.stringify(de)}); answerInput.value = ${JSON.stringify(answer)}; checkAnswer();`);
+}
+assert.equal(regional.run('stats.right'), 4, 'Real vocabulary entries must accept the four curated correct variants');
+assert.equal(regional.run('stats.wrong'), 0);

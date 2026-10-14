@@ -29,12 +29,16 @@
         return 'es';
     }
 
+    function storedConsent() {
+        const value = JSON.parse(localStorage.getItem(storageKey));
+        return value && typeof value.analytics === 'boolean' && typeof value.marketing === 'boolean' ? value : null;
+    }
+
     function readConsent() {
         // A failed write must not let an older stored grant override a withdrawal.
         if (consentStorageFailed) return memoryConsent;
         try {
-            const value = JSON.parse(localStorage.getItem(storageKey));
-            if (value && typeof value.analytics === 'boolean' && typeof value.marketing === 'boolean') return value;
+            return storedConsent();
         } catch (error) { /* Invalid or unavailable storage means no stored consent. */ }
         return memoryConsent;
     }
@@ -157,6 +161,24 @@
     }
 
     window.viveConsent = { get: readConsent, allows: allows, open: showPanel };
+    window.addEventListener('storage', function (event) {
+        if (event.key !== storageKey && event.key !== null) return;
+        if (event.storageArea && event.storageArea !== localStorage) return;
+        // A remote removal/invalid value must not revive this tab's old grant.
+        // Keep a local withdrawal authoritative if its storage write failed.
+        if (consentStorageFailed && memoryConsent) {
+            let persisted = null;
+            try { persisted = storedConsent(); } catch (error) { /* Fail closed. */ }
+            memoryConsent = {
+                analytics: memoryConsent.analytics === true && persisted?.analytics === true,
+                marketing: memoryConsent.marketing === true && persisted?.marketing === true
+            };
+        } else memoryConsent = null;
+        const consent = readConsent();
+        updateGoogleConsent(consent);
+        loadAnalytics();
+        window.dispatchEvent(new CustomEvent('vive:consentchange', { detail: consent }));
+    });
     updateGoogleConsent(readConsent());
     loadAnalytics();
     document.addEventListener('DOMContentLoaded', function () {

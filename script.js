@@ -200,20 +200,23 @@ window.addEventListener('scroll', () => {
 const menuToggle = document.querySelector('.menu-toggle');
 const navLinks = document.querySelector('.nav-links');
 
-const closeMenu = () => {
+const closeMenu = (restoreFocus = false) => {
+    const wasOpen = navLinks?.classList.contains('open');
     navLinks?.classList.remove('open');
     menuToggle?.setAttribute('aria-expanded', 'false');
+    if (restoreFocus && wasOpen) menuToggle?.focus();
 };
 
 menuToggle?.addEventListener('click', () => {
     const isOpen = navLinks?.classList.toggle('open') || false;
     menuToggle.setAttribute('aria-expanded', String(isOpen));
+    if (isOpen) navLinks.querySelector('a, button')?.focus();
 });
 navLinks?.querySelectorAll('a, button').forEach(control => {
-    control.addEventListener('click', closeMenu);
+    control.addEventListener('click', () => closeMenu());
 });
 document.addEventListener('keydown', event => {
-    if (event.key === 'Escape') closeMenu();
+    if (event.key === 'Escape') closeMenu(true);
 });
 window.addEventListener('resize', () => {
     if (window.innerWidth > 1680) closeMenu();
@@ -284,35 +287,12 @@ document.querySelectorAll('.blog-toggle').forEach(btn => {
         const card = btn.closest('.blog-card');
         const isExpanded = card.classList.toggle('expanded');
         btn.setAttribute('aria-expanded', String(isExpanded));
+        const content = card.querySelector('.blog-full');
+        if (content) content.hidden = !isExpanded;
         btn.textContent = isExpanded
             ? translations[currentLang]['blog.read-less']
             : translations[currentLang]['blog.read-more'];
     });
-});
-
-// ===== CONTACT FORM =====
-const form = document.getElementById('contact-form');
-const feedback = document.getElementById('form-feedback');
-
-form?.addEventListener('submit', e => {
-    e.preventDefault();
-    const data = new FormData(form);
-    const name = data.get('name')?.toString().trim();
-    const email = data.get('email')?.toString().trim();
-
-    feedback.hidden = false;
-    feedback.classList.remove('success', 'error');
-
-    if (!name || !email || !email.includes('@')) {
-        feedback.classList.add('error');
-        feedback.textContent = translations[currentLang]['form.error'];
-        return;
-    }
-
-    // TODO: Connect to a real backend (Formspree, EmailJS, Netlify Forms, etc.)
-    feedback.classList.add('success');
-    feedback.textContent = translations[currentLang]['form.success'];
-    form.reset();
 });
 
 // ===== FOOTER YEAR =====

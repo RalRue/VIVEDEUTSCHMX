@@ -25,3 +25,10 @@ const legacy={id,token:issueToken(parent,true,secret,now,LEGACY_VERSION),version
 assert.equal((await call(modern,{}, {env:{...env,VERCEL_ENV:'preview',VIVE_INQUIRY_MODE:'live'}})).result.test,true);
 assert.throws(()=>readingScores([], 'future'));assert.equal(validatePlacement({...modern,token:modern.token,consent:false}),null);
 console.log('PLACEMENT PUBLIC API PASS: private version keys; HMAC/24h/version scope; consent; one writing sample; no answer/token response; beginner; original legacy contract; origin/flags/storage/content-type/conflict; preview TEST. No private fixture required.');
+
+for (const patch of [{id:[id]}, {writing:['Hallo\u000bRalph','','']}]) {
+ const before=sends, result=await call({...modern,...patch});
+ assert.equal(result.status,400);assert.equal(result.result.storageAttempted,false);assert.equal(sends,before,'Invalid input must not contact receiver');
+}
+const upstreamFailure=await call(modern,{}, {send:async()=>{throw Error('unknown upstream outcome');}});
+assert.equal(upstreamFailure.result.storageAttempted,undefined,'Unknown receiver outcomes must not claim no storage attempt');

@@ -3,7 +3,7 @@ let step=0,path='test',writingTask=null;
 const answers=placement.map(()=>[null,null,null,null]),writing=placement.map(()=>'');
 const token=/^#[A-Za-z0-9_-]+\.[a-f0-9]{64}$/.test(location.hash)?location.hash.slice(1):null;
 const submissionId=crypto.randomUUID();
-let stored=false,sending=false,attempted=null,blocked=false,accessReady=false,accessDeadline=0,checkingAccess=false;
+let stored=false,sending=false,attempted=null,uncertain=false,blocked=false,accessReady=false,accessDeadline=0,checkingAccess=false;
 history.replaceState(null,'',location.pathname);
 const expiredMessage='El acceso venció. Descarga tus respuestas. Si ya intentaste enviarlas, Ralph debe comprobar ese intento antes de que comiences de nuevo.';
 function checkAccess(){
@@ -100,13 +100,15 @@ $('send').onclick=async()=>{
  if(path!=='beginner'&&!hasLanguageEvidence()){$('save-status').textContent='Noch keine auswertbare Sprachprobe. Du musst nichts raten. Sprich mit Ralph.';return;}
  const body=JSON.stringify({id:submissionId,token,version:PLACEMENT_VERSION,path,writingTask,answers,writing:selectedWriting(),consent:true});
  if(attempted!==null&&attempted!==body){$('save-status').textContent='Der erste Versuch könnte gespeichert sein. Geänderte Antworten werden nicht als zweite Abgabe gesendet.';return;}
+ if(attempted===null&&selectedWriting().some(text=>/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(text))){$('save-status').textContent='Dein Text enthält ein ungültiges Steuerzeichen. Entferne es vor dem Senden; du kannst deine Antworten ändern.';return;}
  attempted=body;review();sending=true;$('send').disabled=true;$('save-status').textContent='Wird gesendet …';
  try{const response=await fetch('/api/placement',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body,signal:AbortSignal.timeout(25000)});const result=await response.json();
  if(response.status===409){blocked=true;$('save-status').textContent='Für diese Anfrage gibt es bereits eine andere Abgabe. Ralph muss sie prüfen. Nichts ersetzt.';return;}
  if(response.status===401){blocked=true;$('save-status').textContent='Der Link ist nicht mehr gültig. Sichere deine Antworten und sprich mit Ralph. Speicherung nicht bestätigt.';return;}
+ if(!response.ok&&result.ok===false&&result.storageAttempted===false&&!uncertain){attempted=null;review();$('save-status').textContent='Nicht gespeichert. Prüfe deine Eingaben und versuche es erneut. Du kannst deine Antworten ändern.';return;}
  if(!response.ok||result.ok!==true||result.stored!==true||result.id!==submissionId||result.version!==PLACEMENT_VERSION||!confirmedProfile(result))throw new Error('unconfirmed');
  stored=true;$('mode').textContent='Respuestas guardadas y vinculadas a tu consulta. No necesitas otro enlace ni repetir el envío.';profile(result.reading);$('save-status').textContent=result.test?'INTERNER TEST: als TEST gespeichert. Kein automatischer Versand.':path==='beginner'?'Dein Wunsch nach A1-Orientierung ist gespeichert. Kein Niveau geprüft, kein Platz reserviert.':selectedWriting().some(v=>v.trim())?'Antworten gespeichert. Ralph prüft deine Schreibprobe. Hören und Sprechen fehlen. Kein Platz reserviert.':'Antworten gespeichert. Schreiben, Hören und Sprechen sind nicht geprüft. Kein Platz reserviert.';$('send').textContent='Gespeichert';
- }catch{if(checkAccess())$('save-status').textContent='Speicherung nicht bestätigt. Du darfst genau denselben Versuch erneut senden. Änderungen sind gesperrt. Lade vor dem Schließen deine Antworten herunter.';else $('save-status').textContent=expiredMessage;}
+ }catch{uncertain=true;if(checkAccess())$('save-status').textContent='Speicherung nicht bestätigt. Du darfst genau denselben Versuch erneut senden. Änderungen sind gesperrt. Lade vor dem Schließen deine Antworten herunter.';else $('save-status').textContent=expiredMessage;}
  finally{sending=false;$('send').disabled=stored||blocked;}
 };
 window.addEventListener('beforeunload',e=>{if((!stored&&hasUnsavedContent())||hasUnsentWritingDrafts()){e.preventDefault();e.returnValue='';}});

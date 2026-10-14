@@ -28,7 +28,7 @@ export function verifyToken(token,secret,now=Date.now()) {
 export function validatePlacement(body) {
  if(!body||typeof body!=='object'||Array.isArray(body))return null;
  const modern=body.version===VERSION,allowed=['id','token','version','answers','writing','consent',...(modern?['path','writingTask']:[])];
- if(Object.keys(body).some(k=>!allowed.includes(k))||!uuid.test(body.id)||![VERSION,LEGACY_VERSION].includes(body.version)||body.consent!==true||typeof body.token!=='string')return null;
+ if(Object.keys(body).some(k=>!allowed.includes(k))||typeof body.id!=='string'||!uuid.test(body.id)||![VERSION,LEGACY_VERSION].includes(body.version)||body.consent!==true||typeof body.token!=='string')return null;
  if(!Array.isArray(body.answers)||body.answers.length!==3||!body.answers.every(a=>Array.isArray(a)&&a.length===4&&a.every(v=>v===null||(Number.isInteger(v)&&v>=0&&v<=3))))return null;
  if(!Array.isArray(body.writing)||body.writing.length!==3||!body.writing.every(v=>typeof v==='string'&&v.length<=1800&&!/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(v)))return null;
  if(modern){

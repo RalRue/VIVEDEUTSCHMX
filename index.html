@@ -696,7 +696,7 @@
                         <small data-i18n="blog.cat1">Gramática</small>
                         <h4 data-i18n="blog.p1.title">Los artículos der/die/das sin sufrir</h4>
                         <p class="blog-desc" data-i18n="blog.p1.desc"></p>
-                        <div class="blog-full">
+                        <div class="blog-full" hidden>
                             <p data-i18n="blog.p1.full"></p>
                         </div>
                         <button class="blog-toggle" aria-expanded="false" data-i18n="blog.read-more">Leer más ↓</button>
@@ -708,7 +708,7 @@
                         <small data-i18n="blog.cat2">Conversación</small>
                         <h4 data-i18n="blog.p2.title">5 frases para romper el hielo en alemán</h4>
                         <p class="blog-desc" data-i18n="blog.p2.desc"></p>
-                        <div class="blog-full">
+                        <div class="blog-full" hidden>
                             <p data-i18n="blog.p2.full"></p>
                         </div>
                         <button class="blog-toggle" aria-expanded="false" data-i18n="blog.read-more">Leer más ↓</button>
@@ -720,7 +720,7 @@
                         <small data-i18n="blog.cat3">Cultura</small>
                         <h4 data-i18n="blog.p3.title">Trabajar en Alemania: lo que debes saber</h4>
                         <p class="blog-desc" data-i18n="blog.p3.desc"></p>
-                        <div class="blog-full">
+                        <div class="blog-full" hidden>
                             <p data-i18n="blog.p3.full"></p>
                         </div>
                         <button class="blog-toggle" aria-expanded="false" data-i18n="blog.read-more">Leer más ↓</button>
@@ -760,13 +760,13 @@
                         <span>ralph_stoecker@live.com</span>
                     </div>
                 </a>
-                <button type="button" class="contact-item contact-item-booking setmore-open" id="setmore-trigger">
+                <a href="https://ralphrudiger.setmore.com" target="_blank" rel="noopener" class="contact-item contact-item-booking setmore-open" id="setmore-trigger">
                     <span class="contact-icon">📅</span>
                     <div>
                         <strong data-i18n="contact.booking.title">Reservar clase individual</strong>
                         <span data-i18n="contact.booking.desc">Horarios y detalles en la página de reservas</span>
                     </div>
-                </button>
+                </a>
                 <a href="https://www.instagram.com/vivedeutschmx/" target="_blank" rel="noopener" class="contact-item social-link instagram-link" aria-label="Abrir Instagram de VIVE DEUTSCH MX">
                     <span class="contact-platform-label">Instagram</span>
                     <div>
@@ -830,14 +830,5 @@
 
     <script src="translations.js"></script>
     <script src="script.js"></script>
-    <script id="anywhere_book_now_script" src="https://assets.setmore.com/integration/book-now/live/v1/anywhere-book-now.js"></script>
-    <button id="Anywhere_button_iframe" class="anywhere-book-now-button" style="display:none" data-booking-url="https://ralphrudiger.setmore.com" data-new-tab="false">Reservar</button>
-    <script>
-        document.querySelectorAll('.setmore-open').forEach(function(button) {
-            button.addEventListener('click', function() {
-                document.getElementById('Anywhere_button_iframe').click();
-            });
-        });
-    </script>
 </body>
 </html>
