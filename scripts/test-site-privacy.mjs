@@ -41,6 +41,7 @@ class Element {
     querySelector(selector) {
         const descendants = this.children.flatMap(child => [child, ...child.descendants()]);
         if (selector.startsWith('#')) return descendants.find(child => child.id === selector.slice(1));
+        if (selector === 'a, button') return descendants.find(child => child.tagName === 'a' || child.tagName === 'button');
         const choice = selector.match(/^\[data-choice="([^"]+)"\]$/)?.[1];
         if (choice) return descendants.find(child => child.dataset.choice === choice);
         return descendants.find(child => child.tagName === selector);
@@ -131,14 +132,46 @@ const config = blocked.window.dataLayer.filter(command => command[0] === 'config
 assert.equal(config.allow_google_signals, true, 'Changing marketing consent must update a previously loaded GA configuration');
 assert.equal(config.send_page_view, false, 'Consent changes must not count another page view');
 
+// Two tabs share persisted consent but must synchronize loaded provider state.
+const shared = new Map([['vivePrivacyConsentV1', JSON.stringify(grant)]]);
+const tabA = consentPage({stored: shared}), tabB = consentPage({stored: shared});
+tabA.choose('all');
+tabB.choose('necessary');
+tabA.window.dispatchEvent({type: 'storage', key: 'vivePrivacyConsentV1'});
+assert.equal(tabA.window.viveConsent.allows('analytics'), false);
+assert.equal(tabA.window['ga-disable-G-07SGVPMFHL'], true);
+assert.equal(tabA.window.fbq.queue.at(-1)[1], 'revoke');
+assert.equal(tabA.window.dataLayer.filter(x => x[0] === 'consent' && x[1] === 'update').at(-1)[2].analytics_storage, 'denied');
+tabB.choose('all');
+tabA.window.dispatchEvent({type: 'storage', key: 'vivePrivacyConsentV1'});
+assert.equal(tabA.window['ga-disable-G-07SGVPMFHL'], false);
+shared.clear();
+tabA.window.dispatchEvent({type: 'storage', key: null});
+assert.equal(tabA.window.viveConsent.allows('analytics'), false, 'Storage clear must not revive the old in-memory grant');
+assert.equal(tabA.window.fbq.queue.at(-1)[1], 'revoke');
+shared.set('vivePrivacyConsentV1', '{invalid');
+tabA.window.dispatchEvent({type: 'storage', key: 'vivePrivacyConsentV1'});
+assert.equal(tabA.window['ga-disable-G-07SGVPMFHL'], true);
+const failedGrant = consentPage({setFails: true});
+failedGrant.choose('all');
+failedGrant.window.dispatchEvent({type: 'storage', key: 'vivePrivacyConsentV1'});
+assert.equal(failedGrant.window.viveConsent.allows('analytics'), false, 'A failed local grant must not defeat a remote removal');
+const failedWithdrawal = consentPage({saved: grant, setFails: true, removeFails: true});
+failedWithdrawal.choose('necessary');
+failedWithdrawal.window.dispatchEvent({type: 'storage', key: 'vivePrivacyConsentV1'});
+assert.equal(failedWithdrawal.window.viveConsent.allows('analytics'), false, 'Remote grant must not defeat an unpersisted local withdrawal');
+
 function homepage({savedLang = null, getFails = false, setFails = false} = {}) {
-    const document = {documentElement: {lang: 'es'}, addEventListener() {}};
+    const keyEvents = {};
+    const document = {documentElement: {lang: 'es'}, addEventListener(name, callback) { keyEvents[name] = callback; }};
     const make = () => new Element('button', document);
     const buttons = ['es', 'en', 'de'].map(lang => { const button = make(); button.dataset.lang = lang; return button; });
     const card = make(), toggle = make(), school = make(), angela = make(), menu = make(), links = make();
     toggle.classes.add('blog-toggle');
     toggle.setAttribute('data-i18n', 'blog.read-more');
     toggle.closest = () => card;
+    const firstLink = new Element('a', document);
+    links.appendChild(firstLink);
     links.querySelectorAll = () => [];
     const selectors = {'.lang-btn': buttons, '[data-i18n]': [toggle], '.school-whatsapp-link': [school], '.angela-whatsapp-link': [angela], '.blog-toggle': [toggle]};
     document.querySelectorAll = selector => selectors[selector] || [];
@@ -151,7 +184,7 @@ function homepage({savedLang = null, getFails = false, setFails = false} = {}) {
         IntersectionObserver: class {observe() {}}});
     vm.runInContext(read('translations.js'), context);
     vm.runInContext(read('script.js'), context);
-    return {document, window, buttons, card, toggle, school, angela, menu, events, run: code => vm.runInContext(code, context)};
+    return {document, window, buttons, card, toggle, school, angela, menu, firstLink, keyEvents, events, run: code => vm.runInContext(code, context)};
 }
 
 for (const storage of [{getFails: true, setFails: true}, {setFails: true}, {savedLang: 'unsupported'}]) {
@@ -165,6 +198,11 @@ for (const storage of [{getFails: true, setFails: true}, {setFails: true}, {save
     assert.equal(home.menu.getAttribute('aria-expanded'), 'true', 'Storage failure must not stop mobile navigation');
 }
 const home = homepage();
+home.menu.fire('click');
+assert.equal(home.document.activeElement, home.firstLink);
+home.keyEvents.keydown({key: 'Escape'});
+assert.equal(home.document.activeElement, home.menu);
+assert.equal(home.menu.getAttribute('aria-expanded'), 'false');
 home.toggle.fire('click');
 home.buttons[2].fire('click');
 assert.equal(home.toggle.textContent, 'Weniger anzeigen ↑', 'An expanded article must keep its collapse label after language changes');
@@ -181,6 +219,8 @@ home.run("trackSiteEvent('whatsapp_click')");
 assert.equal(home.events.length, 1, 'A withdrawal must immediately block further site events');
 
 const html = read('index.html');
+assert.match(html, /<a[^>]+href="https:\/\/ralphrudiger\.setmore\.com"[^>]+id="setmore-trigger"/);
+assert.equal(html.includes('anywhere-book-now.js'), false, 'Booking must not require the integration script');
 for (const tag of html.matchAll(/<a\b[^>]*class="[^"]*(?:school-whatsapp-link|angela-whatsapp-link)[^"]*"[^>]*>/g)) {
     assert.match(tag[0], /href="https:\/\/wa\.me\/52315110(?:9282|4908)\?text=[^"]+"/, 'Contact links must also work before JavaScript runs');
 }
