@@ -3,9 +3,42 @@ let step=0,path='test',writingTask=null;
 const answers=placement.map(()=>[null,null,null,null]),writing=placement.map(()=>'');
 const token=/^#[A-Za-z0-9_-]+\.[a-f0-9]{64}$/.test(location.hash)?location.hash.slice(1):null;
 const submissionId=crypto.randomUUID();
-let stored=false,sending=false,attempted=null,blocked=false;
+let stored=false,sending=false,attempted=null,blocked=false,accessReady=false,accessDeadline=0,checkingAccess=false;
 history.replaceState(null,'',location.pathname);
-if(token){$('mode').textContent='Freiwilliger Test zu deiner Anfrage. Prüfe alles vor dem Senden.';$('submit-area').hidden=false;}
+const expiredMessage='El acceso venció. Descarga tus respuestas. Si ya intentaste enviarlas, Ralph debe comprobar ese intento antes de que comiences de nuevo.';
+function checkAccess(){
+ if(stored)return true;
+ if(!accessReady)return false;
+ // Rest duration comes from a signed server check; device wall-clock changes do not gate access.
+ if(performance.now()>=accessDeadline){
+  accessReady=false;blocked=true;$('submit-area').hidden=true;$('send').disabled=true;
+  $('mode').textContent='Este enlace venció. Puedes descargar tus respuestas. Pide a Ralph un enlace personal nuevo para tu consulta existente.';
+  $('save-status').textContent=expiredMessage;return false;
+ }
+ return true;
+}
+async function validateAccess(){
+ if(!token||checkingAccess||stored||sending||attempted!==null)return;
+ checkingAccess=true;accessReady=false;$('submit-area').hidden=true;$('retry-access').hidden=true;
+ $('mode').textContent='Comprobando tu enlace personal antes de empezar…';
+ const started=performance.now();
+ try{
+  const response=await fetch('/api/placement-access-check',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({token}),signal:AbortSignal.timeout(10000)});
+  const result=await response.json();
+  if(response.status===401){blocked=true;$('mode').textContent='Este enlace venció o no es válido. Puedes explorar y descargar tus respuestas, pero no enviarlas. Solicita a Ralph un enlace personal nuevo para tu consulta existente.';return;}
+  if(!response.ok||result.ok!==true||result.version!==PLACEMENT_VERSION||!Number.isSafeInteger(result.expires)||!Number.isSafeInteger(result.expiresInMs)||result.expiresInMs<=0||result.expiresInMs>86400000)throw Error('unconfirmed access');
+  accessDeadline=started+result.expiresInMs;accessReady=true;blocked=false;
+  if(!checkAccess())return;
+  $('mode').textContent='Enlace personal comprobado · límite de envío: '+new Date(result.expires).toLocaleString('es-MX')+' (zona horaria de tu dispositivo). No compartas este enlace. Tus respuestas aún no están guardadas.';
+  $('submit-area').hidden=false;
+ }catch{
+  $('mode').textContent='No pudimos comprobar tu acceso. Puedes explorar y conservar tus respuestas. Comprueba de nuevo antes de enviarlas; no necesitas repetir tu consulta.';
+  $('retry-access').hidden=false;
+ }finally{checkingAccess=false;}
+}
+$('retry-access').onclick=validateAccess;
+const initialAccessCheck=token?validateAccess():Promise.resolve();
+window.addEventListener('focus',checkAccess);
 function selectedWriting(){return writing.map((text,i)=>i===writingTask?text:'');}
 function hasUnsentWritingDrafts(){return writing.some((text,i)=>i!==writingTask&&text.length);}
 function hasLanguageEvidence(){return answers.some(a=>a.some(v=>Number.isInteger(v)&&v>=0&&v<3))||selectedWriting().some(v=>v.trim());}
@@ -17,6 +50,7 @@ function confirmedProfile(result){
 }
 function node(tag,text){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;}
 function render(){
+ checkAccess();
  $('stage').replaceChildren();
  if(step<3){const part=placement[step];$('progress').textContent=`Block ${step+1} von 3 · ${part.title}`;
  $('stage').append(node('p','Lies. Wähle eine Antwort. Du darfst stoppen.'));
@@ -38,6 +72,7 @@ function render(){
 }
 function capture(){if(step<3)placement[step].questions.forEach((q,i)=>{const input=document.querySelector(`input[name=q${i}]:checked`);answers[step][i]=input?Number(input.value):null;});else if(writingTask!==null&&$('writing'))writing[writingTask]=$('writing').value;}
 function review(){
+ checkAccess();
  $('intro').hidden=true;$('test').hidden=true;$('result').hidden=false;$('scores').replaceChildren();
  $('review').replaceChildren();$('result-title').textContent=path==='beginner'?'A1-Einstieg besprechen':'Prüfe deine Antworten';
  if(path==='beginner')$('review').append(node('p','Du hast noch nie Deutsch gelernt. Du brauchst nichts zu raten. Besprich mit Ralph den A1-Einstieg. Das ist keine geprüfte Sprachleistung und keine Buchung.'));
@@ -60,6 +95,7 @@ $('test').onsubmit=e=>{e.preventDefault();if(attempted!==null)return;capture();i
 $('download').onclick=()=>{const selected=selectedWriting();const report={version:PLACEMENT_VERSION,submissionId,submissionState:stored?'confirmed':attempted!==null?'unconfirmed':'not_sent',path,answers,writing:selected,writingTask,writingStatus:selected.some(v=>v.trim())?'pending_teacher_review':'not_assessed',unsentWritingDrafts:writing.map((text,i)=>i===writingTask?'':text),listening:'not_assessed',speaking:'not_assessed',courseRecommendation:null};const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));const a=node('a');a.href=url;a.download='VIVE-respuestas-v2-1.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
 $('send').onclick=async()=>{
  if(!token||sending||stored||blocked)return;
+ if(!checkAccess())return;
  if(!$('consent').checked){$('save-status').textContent='Bitte lies den Datenschutzhinweis und bestätige den freiwilligen Versand.';return;}
  if(path!=='beginner'&&!hasLanguageEvidence()){$('save-status').textContent='Noch keine auswertbare Sprachprobe. Du musst nichts raten. Sprich mit Ralph.';return;}
  const body=JSON.stringify({id:submissionId,token,version:PLACEMENT_VERSION,path,writingTask,answers,writing:selectedWriting(),consent:true});
@@ -69,8 +105,8 @@ $('send').onclick=async()=>{
  if(response.status===409){blocked=true;$('save-status').textContent='Für diese Anfrage gibt es bereits eine andere Abgabe. Ralph muss sie prüfen. Nichts ersetzt.';return;}
  if(response.status===401){blocked=true;$('save-status').textContent='Der Link ist nicht mehr gültig. Sichere deine Antworten und sprich mit Ralph. Speicherung nicht bestätigt.';return;}
  if(!response.ok||result.ok!==true||result.stored!==true||result.id!==submissionId||result.version!==PLACEMENT_VERSION||!confirmedProfile(result))throw new Error('unconfirmed');
- stored=true;profile(result.reading);$('save-status').textContent=result.test?'INTERNER TEST: als TEST gespeichert. Kein automatischer Versand.':path==='beginner'?'Dein Wunsch nach A1-Orientierung ist gespeichert. Kein Niveau geprüft, kein Platz reserviert.':selectedWriting().some(v=>v.trim())?'Antworten gespeichert. Ralph prüft deine Schreibprobe. Hören und Sprechen fehlen. Kein Platz reserviert.':'Antworten gespeichert. Schreiben, Hören und Sprechen sind nicht geprüft. Kein Platz reserviert.';$('send').textContent='Gespeichert';
- }catch{$('save-status').textContent='Speicherung nicht bestätigt. Du darfst genau denselben Versuch erneut senden. Änderungen sind gesperrt. Lade vor dem Schließen deine Antworten herunter.';}
+ stored=true;$('mode').textContent='Respuestas guardadas y vinculadas a tu consulta. No necesitas otro enlace ni repetir el envío.';profile(result.reading);$('save-status').textContent=result.test?'INTERNER TEST: als TEST gespeichert. Kein automatischer Versand.':path==='beginner'?'Dein Wunsch nach A1-Orientierung ist gespeichert. Kein Niveau geprüft, kein Platz reserviert.':selectedWriting().some(v=>v.trim())?'Antworten gespeichert. Ralph prüft deine Schreibprobe. Hören und Sprechen fehlen. Kein Platz reserviert.':'Antworten gespeichert. Schreiben, Hören und Sprechen sind nicht geprüft. Kein Platz reserviert.';$('send').textContent='Gespeichert';
+ }catch{if(checkAccess())$('save-status').textContent='Speicherung nicht bestätigt. Du darfst genau denselben Versuch erneut senden. Änderungen sind gesperrt. Lade vor dem Schließen deine Antworten herunter.';else $('save-status').textContent=expiredMessage;}
  finally{sending=false;$('send').disabled=stored||blocked;}
 };
 window.addEventListener('beforeunload',e=>{if((!stored&&hasUnsavedContent())||hasUnsentWritingDrafts()){e.preventDefault();e.returnValue='';}});

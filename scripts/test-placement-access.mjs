@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {createHandler as inquiryHandler} from '../api/inquiry.mjs';
 import {createHandler,placementCookieName} from '../api/placement-access.mjs';
 import {issueToken,verifyToken} from '../api/_placement.mjs';
+import {createHandler as checkHandler} from '../api/placement-access-check.mjs';
 
 const id='ca30b8bc-743b-44f9-bae8-a5296ab89c9b',otherId='b7c0df76-ed93-41a7-ae44-782647999104';
 const secret='s'.repeat(64),now=1000;
@@ -76,3 +77,27 @@ assert.equal((await access({headers:{host:'preview.vercel.app'},config:{VERCEL_E
 assert.equal((await access({headers:{host:'preview.vercel.app'},config:{VERCEL_ENV:'production',VERCEL_URL:'preview.vercel.app'}})).code,403);
 assert.equal((await access({headers:{'sec-fetch-site':'none'}})).code,200,'Native no-referrer/new-tab navigation is supported');
 console.log('PLACEMENT_ACCESS=PASS: HttpOnly per-inquiry cookies, token-free JSON, navigation-only COOP handoff, origin/mode/expiry/binding rejection');
+
+const signedToken=issueToken(id,false,secret,now);
+async function check({body={token:signedToken},method='POST',headers={},time=now,config={}}={}){
+  const res=record();
+  await checkHandler({env:{...env,...config},now:()=>time})({method,headers:{origin:'https://vive-deutsch-mx.vercel.app','content-type':'application/json',...headers},body},res);
+  assert.equal(res.headers['Cache-Control'],'no-store');
+  assert.equal(JSON.stringify(res.body).includes(signedToken),false,'Preflight never echoes the capability');
+  assert.equal(JSON.stringify(res.body).includes(id),false,'Preflight returns no inquiry identity');
+  return res;
+}
+assert.deepEqual((await check({time:now+2000})).body,{ok:true,version:'draft-2026-09-30-v2-1',expires:now+86400000,expiresInMs:86398000});
+assert.equal((await check({method:'GET'})).code,405);
+assert.equal((await check({headers:{origin:'https://unapproved.example'}})).code,403);
+assert.equal((await check({headers:{'content-type':'text/plain'}})).code,415);
+for(const body of ['broken',null,[],{token:signedToken,extra:true},{token:23}])assert.equal((await check({body})).code,400);
+assert.equal((await check({body:'x'.repeat(1025)})).code,413);
+assert.equal((await check({body:{token:signedToken.slice(0,-1)+(signedToken.endsWith('0')?'1':'0')}})).code,401);
+assert.equal((await check({time:now+86400000})).code,401,'Exact server expiry is enforced before test work');
+assert.equal((await check({body:{token:issueToken(id,false,secret,now+1)}})).code,401,'Future-issued token is rejected by server time');
+assert.equal((await check({config:{VIVE_PLACEMENT_ENABLED:'false'}})).code,503);
+assert.equal((await check({config:{VIVE_INQUIRY_SECRET:''}})).code,503);
+assert.equal((await check({headers:{origin:'https://preview.vercel.app'},config:{VERCEL_ENV:'preview',VERCEL_URL:'preview.vercel.app'}})).code,200);
+assert.equal((await check({headers:{origin:'https://preview.vercel.app'},config:{VERCEL_ENV:'production',VERCEL_URL:'preview.vercel.app'}})).code,403);
+console.log('PLACEMENT_PREFLIGHT=PASS: signed server-time scope, exact remaining lifetime, tamper/expiry/origin/body/config guards, no capability/identity response or receiver call');
