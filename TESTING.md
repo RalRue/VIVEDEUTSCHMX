@@ -10,6 +10,16 @@ Modelle und installieren keine Dienste.
 `npm run test:inquiry:browser` prüft zusätzlich den echten Chromium-Ablauf über
 einen lokalen Testserver: Eingabekorrektur, native neue Tabs, mehrere Anfragen,
 HttpOnly-Zugang, Zugriffssperre für Messskripte und den isolierten Fensterwechsel.
+Er öffnet außerdem einen persönlichen Einstufungslink über eine simulierte
+fremde App in einem separaten Browserkontext ohne Cookies und prüft die echte
+Testoberfläche bis zur synthetisch bestätigten, zugeordneten Abgabe. Die
+allgemeine Vorschau darf nicht senden; der Cookiezugang funktioniert im fremden
+Kontext nicht. Persönliche Links werden nur mit einem lokalen Testschlüssel
+erzeugt und nie ausgegeben. Ein rein lesender Serveraufruf prüft Signatur und
+Restdauer vor dem Start; er kontaktiert den privaten Empfänger nicht. Die
+UI-Prüfungen decken den Ablauf vor Testbeginn, während der Bearbeitung und nach
+einem unbestätigten Sendeversuch ab, außerdem falsche Geräteuhren und die
+Wiederholung einer fehlgeschlagenen Zugangsprüfung ohne Antwortversand.
 Hierfür ist lokal Chromium nötig; mit `VIVE_CHROMIUM_BINARY` lässt sich dessen
 Pfad angeben. Der Test benutzt synthetische Speicherung, fängt die optionalen
 Messskripte ab und blockiert externe Hostauflösung. Er erzeugt keine echten
