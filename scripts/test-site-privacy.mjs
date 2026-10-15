@@ -57,7 +57,7 @@ class Element {
     }
 }
 
-function consentPage({saved = null, getFails = false, setFails = false, removeFails = false, stored = new Map(saved ? [['vivePrivacyConsentV1', JSON.stringify(saved)]] : [])} = {}) {
+function consentPage({search = '', session = new Map(), sessionGetFails = false, sessionSetFails = false, sessionRemoveFails = false, saved = null, getFails = false, setFails = false, removeFails = false, stored = new Map(saved ? [['vivePrivacyConsentV1', JSON.stringify(saved)]] : [])} = {}) {
     const document = {documentElement: {lang: 'es'}, listeners: {}, activeElement: null};
     document.head = new Element('head', document);
     document.body = new Element('body', document);
@@ -67,16 +67,20 @@ function consentPage({saved = null, getFails = false, setFails = false, removeFa
     document.querySelectorAll = () => [];
     document.getElementsByTagName = tag => document.head.descendants().filter(node => node.tagName === tag);
     document.addEventListener = (name, callback) => { (document.listeners[name] ||= []).push(callback); };
-    const window = {location: {search: ''}, listeners: {}};
+    const window = {location: {search, pathname: '/', hash: ''}, history: {replaceState(_state, _title, url) { window.location.search = new URL(url, 'https://example.invalid').search; }}, listeners: {}};
     window.addEventListener = (name, callback) => { window.listeners[name] = callback; };
     window.dispatchEvent = event => window.listeners[event.type]?.(event);
-    const context = vm.createContext({window, document, URLSearchParams, CustomEvent: class {
+    const context = vm.createContext({window, document, URL, URLSearchParams, CustomEvent: class {
         constructor(type, options) { this.type = type; this.detail = options.detail; }
     }, localStorage: {
         getItem(key) { if (getFails) throw new Error('SecurityError'); return stored.get(key) ?? null; },
         setItem(key, value) { if (setFails) throw new Error('QuotaExceededError'); stored.set(key, value); },
         removeItem(key) { if (removeFails) throw new Error('SecurityError'); stored.delete(key); }
-    }, sessionStorage: {getItem() { return null; }, setItem() {}, removeItem() {}}});
+    }, sessionStorage: {
+        getItem(key) { if (sessionGetFails) throw new Error('SecurityError'); return session.get(key) ?? null; },
+        setItem(key, value) { if (sessionSetFails) throw new Error('QuotaExceededError'); session.set(key, value); },
+        removeItem(key) { if (sessionRemoveFails) throw new Error('SecurityError'); session.delete(key); }
+    }});
     vm.runInContext(read('attribution.js'), context);
     vm.runInContext(read('analytics.js'), context);
     vm.runInContext(read('meta-pixel.js'), context);
@@ -87,6 +91,33 @@ function consentPage({saved = null, getFails = false, setFails = false, removeFa
         panel.fire('click', {target: panel.querySelector('[data-choice="' + choice + '"]')});
     };
     return {window, document, choose, stored};
+}
+
+// Internal test exclusion must survive navigation before optional tracking is allowed.
+const visitSession = new Map();
+const landingInternal = consentPage({search: '?vive_internal=1', session: visitSession});
+assert.equal(landingInternal.window.location.search, '', 'The flag must be scrubbed from the address');
+assert.equal(visitSession.get('viveInternalVisit'), '1', 'Record exclusion before consent');
+assert.equal(landingInternal.window.__viveDeutschGaLoaded, undefined, 'Exclusion must not load GA before consent');
+const internalNextPage = consentPage({session: visitSession, stored: landingInternal.stored});
+internalNextPage.choose('analytics');
+const isInternal = page => page.window.dataLayer.some(command => command[0] === 'set' && command[1].traffic_type === 'internal');
+assert.equal(isInternal(internalNextPage), true, 'Navigation followed by consent must remain internal');
+const internalReload = consentPage({session: visitSession, stored: internalNextPage.stored});
+assert.equal(isInternal(internalReload), true, 'Reload with saved consent must remain internal');
+const disableInternal = consentPage({search: '?vive_internal=0', session: visitSession});
+assert.equal(visitSession.has('viveInternalVisit'), false, 'Explicit disable works before consent');
+disableInternal.choose('analytics');
+assert.equal(isInternal(disableInternal), false);
+assert.equal(isInternal(consentPage({session: visitSession, stored: disableInternal.stored})), false, 'Disable survives reload');
+for (const failures of [{sessionGetFails:true}, {sessionSetFails:true}, {sessionRemoveFails:true}]) {
+    const enabled = consentPage({search:'?vive_internal=1', session: new Map(), ...failures});
+    assert.equal(enabled.window.__viveDeutschGaLoaded, undefined);
+    enabled.choose('analytics');
+    assert.equal(isInternal(enabled), true, 'Explicit enable remains authoritative despite session storage failures');
+    const disabled = consentPage({search:'?vive_internal=0', session: new Map([['viveInternalVisit','1']]), ...failures});
+    disabled.choose('analytics');
+    assert.equal(isInternal(disabled), false, 'Explicit disable remains authoritative despite stale session storage');
 }
 
 const grant = {analytics: true, marketing: true};

@@ -28,5 +28,31 @@ function safeAttribution(search) {
 }
 
 globalThis.viveSafeAttribution = safeAttribution;
+
+// Keep the same allowlist for measurement and inquiry navigation. Capture before
+// analytics normalizes the address, and never decorate unrelated/external links.
+const location = globalThis.window?.location;
+const attribution = safeAttribution(location?.search || '');
+function inquiryUrl(href) {
+  if (!location?.origin || typeof URL === 'undefined') return href;
+  try {
+    const target = new URL(href, location.href);
+    if (target.origin !== location.origin || !['/consulta/', '/consulta/index.html'].includes(target.pathname)) return href;
+    for (const [key, value] of attribution) target.searchParams.set(key, value);
+    return target.href;
+  } catch { return href; }
+}
+globalThis.viveInquiryUrl = inquiryUrl;
+function decorateInquiryLinks() {
+  globalThis.document?.querySelectorAll('a[href]').forEach(link => {
+    const href = link.getAttribute('href');
+    if (href) link.href = inquiryUrl(href);
+  });
+}
+if (globalThis.document?.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', decorateInquiryLinks, {once: true});
+} else {
+  decorateInquiryLinks();
+}
 })();
 

@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "build": "node scripts/validate-root.js && node scripts/test-group-inquiry-links.js && node scripts/test-site-privacy.mjs && node scripts/test-trainers.js && node scripts/test-reply-assistant.mjs && node scripts/test-synthetic-utilities.cjs && node scripts/test-inquiry.mjs && node scripts/test-inquiry-ui.mjs && node scripts/test-placement-access.mjs && npm run test:placement",
+    "build": "node scripts/validate-root.js && node scripts/test-group-inquiry-links.js && node scripts/test-attribution-links.mjs && node scripts/test-site-privacy.mjs && node scripts/test-trainers.js && node scripts/test-reply-assistant.mjs && node scripts/test-synthetic-utilities.cjs && node scripts/test-inquiry.mjs && node scripts/test-inquiry-ui.mjs && node scripts/test-placement-access.mjs && npm run test:placement",
     "test:privacy": "node scripts/test-site-privacy.mjs",
     "test:inquiry": "node scripts/test-inquiry.mjs && node scripts/test-inquiry-ui.mjs && node scripts/test-placement-access.mjs",
     "test:inquiry:private": "node scripts/test-inquiry.mjs --require-receiver",

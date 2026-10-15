@@ -76,7 +76,7 @@ function updateContactLinks() {
     });
 
     document.querySelectorAll('.group-inquiry-link').forEach(link => {
-        link.href = courseInquiryUrl;
+        link.href = globalThis.viveInquiryUrl(courseInquiryUrl);
     });
 }
 
