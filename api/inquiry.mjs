@@ -1,3 +1,9 @@
+function validPrivateAttribution(value) {
+  if (value === undefined) return true;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const allowed = {source:'instagram', medium:'paid_social', campaign:'vive_a1_cafe_microtest_202610', content:'cafe_cards_v1'};
+  return Object.keys(value).length === 4 && Object.keys(allowed).every(key => Object.hasOwn(value,key) && value[key] === allowed[key]);
+}
 import { createHmac } from 'node:crypto';
 import {issueToken} from './_placement.mjs';
 import {placementCookieName} from './placement-access.mjs';
@@ -7,7 +13,8 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{1
 
 export function validate(body) {
   if (!body || Array.isArray(body) || typeof body !== 'object') return null;
-  const allowed = ['id','name','email','course','experience','goal','schedule','privacy','analytics','marketing','website'];
+  const allowed = ['id','name','email','course','experience','goal','schedule','privacy','analytics','marketing','website','attribution'];
+  if (!validPrivateAttribution(body.attribution)) return null;
   if (Object.keys(body).some(key => !allowed.includes(key)) || body.website || body.privacy !== true ||
       typeof body.id !== 'string' || !UUID.test(body.id)) return null;
   const text = (key, max, required = true) => typeof body[key] === 'string' && body[key].length <= max &&
@@ -18,7 +25,7 @@ export function validate(body) {
   if (typeof body.analytics !== 'boolean' || typeof body.marketing !== 'boolean') return null;
   return {id: body.id.toLowerCase(), name: body.name.trim(), email: body.email.trim().toLowerCase(), course: body.course,
     experience: body.experience, goal: body.goal.trim(), schedule: body.schedule.trim(), privacyVersion: '2026-09-27',
-    analytics: body.analytics, marketing: body.marketing, test: false};
+    analytics: body.analytics, marketing: body.marketing, test: false, ...(body.attribution === undefined ? {} : {attribution: {...body.attribution}})};
 }
 
 export function createHandler({env = process.env, send = fetch, now = Date.now, report = code => console.warn('Inquiry receiver:', code)} = {}) {
@@ -77,3 +84,4 @@ export function createHandler({env = process.env, send = fetch, now = Date.now, 
 }
 
 export default createHandler();
+
