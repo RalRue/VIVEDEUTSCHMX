@@ -1,3 +1,4 @@
+import '../attribution.js';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
@@ -10,7 +11,7 @@ let submit, requests = [], removed = false, successful = false, measurements = 0
 const button = {}, status = {}, success = {hidden:true, focus(){}};
 const form = {querySelector:()=>button, reportValidity:()=>true, addEventListener:(name,fn)=>{submit=fn;},
   reset(){}, remove(){removed=true;}};
-const context = vm.createContext({
+const context = vm.createContext({viveValidPrivateAttribution: globalThis.viveValidPrivateAttribution,
   document:{querySelector:s=>({'#inquiry':form,'#status':status,'#success':success})[s],body:{dataset:{}}},
   crypto:{randomUUID:()=> 'ca30b8bc-743b-44f9-bae8-a5296ab89c9b'},
   FormData:class {get(k){return fields.get(k) ?? null;} has(k){return fields.has(k);}},
@@ -47,7 +48,7 @@ function rejectedFlow(replies) {
   let submit;
   const requests=[],status={},button={},success={hidden:true,focus(){}},link={},pilot={hidden:true};
   const form={querySelector:()=>button,reportValidity:()=>true,addEventListener:(name,fn)=>{submit=fn;},reset(){},remove(){}};
-  const context=vm.createContext({
+  const context=vm.createContext({viveValidPrivateAttribution: globalThis.viveValidPrivateAttribution,
     document:{querySelector:s=>({'#inquiry':form,'#status':status,'#success':success,'#placement-link':link,'#placement-pilot':pilot})[s],body:{dataset:{}}},
     crypto:{randomUUID:()=> 'ca30b8bc-743b-44f9-bae8-a5296ab89c9b'},
     FormData:class {get(k){return fields.get(k)??null;} has(k){return fields.has(k);}},

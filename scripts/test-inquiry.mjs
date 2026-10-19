@@ -107,7 +107,7 @@ for (const [campaign, campaignId, adId] of adPairs) {
 }
 assert.equal(safeAttribution('?utm_campaign=a1_cafe_202610&campaign_id=120248958374280767&utm_content=120248958374300767').has('campaign_id'),false);
 assert.equal(safeAttribution('?utm_campaign=a1_confirma_hora_202610&campaign_id=120248958374280767&utm_content=120248962296790767').has('utm_content'),false);
-for (const campaign of ['a1_minilecciones_sep2026','a1_confirma_hora_202610','a1_cafe_202610']) {
+for (const campaign of ['a1_minilecciones_sep2026']) {
   for (const content of ['mini01','mini02','mini03']) assert.equal(safeAttribution(`?utm_campaign=${campaign}&utm_content=${content}`).get('utm_content'),content);
 }
 console.log('Approved numeric attribution: exact IDs, campaign binding, ambiguous/unresolved/unknown input rejection and legacy values: PASS');

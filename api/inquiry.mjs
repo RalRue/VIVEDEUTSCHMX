@@ -1,8 +1,21 @@
+function canonicalAttributionSource(value) {
+  const sources = {fb:'facebook', ig:'instagram', facebook:'facebook', instagram:'instagram'};
+  return typeof value === 'string' && Object.hasOwn(sources,value) ? sources[value] : null;
+}
 function validPrivateAttribution(value) {
   if (value === undefined) return true;
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
-  const allowed = {source:'instagram', medium:'paid_social', campaign:'vive_a1_cafe_microtest_202610', content:'cafe_cards_v1'};
-  return Object.keys(value).length === 4 && Object.keys(allowed).every(key => Object.hasOwn(value,key) && value[key] === allowed[key]);
+  const keys = ['source','medium','campaign','content'];
+  const approved = {
+    vive_a1_trainer_20261019: 'edad_bin_v1',
+    vive_a1_cafe_microtest_202610: 'cafe_cards_v1',
+    a1_cafe_202610: '120248962296790767',
+    a1_confirma_hora_202610: '120248958374300767'
+  };
+  return Object.keys(value).length === 4 && keys.every(key => Object.hasOwn(value,key)) &&
+    ['facebook','instagram'].includes(value.source) && value.medium === 'paid_social' &&
+    typeof value.campaign === 'string' && Object.hasOwn(approved,value.campaign) &&
+    value.content === approved[value.campaign];
 }
 import { createHmac } from 'node:crypto';
 import {issueToken} from './_placement.mjs';
@@ -14,7 +27,9 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{1
 export function validate(body) {
   if (!body || Array.isArray(body) || typeof body !== 'object') return null;
   const allowed = ['id','name','email','course','experience','goal','schedule','privacy','analytics','marketing','website','attribution'];
-  if (!validPrivateAttribution(body.attribution)) return null;
+  const attribution = body.attribution === undefined ? undefined :
+    {...body.attribution, source: canonicalAttributionSource(body.attribution?.source)};
+  if (!validPrivateAttribution(attribution)) return null;
   if (Object.keys(body).some(key => !allowed.includes(key)) || body.website || body.privacy !== true ||
       typeof body.id !== 'string' || !UUID.test(body.id)) return null;
   const text = (key, max, required = true) => typeof body[key] === 'string' && body[key].length <= max &&
@@ -25,7 +40,7 @@ export function validate(body) {
   if (typeof body.analytics !== 'boolean' || typeof body.marketing !== 'boolean') return null;
   return {id: body.id.toLowerCase(), name: body.name.trim(), email: body.email.trim().toLowerCase(), course: body.course,
     experience: body.experience, goal: body.goal.trim(), schedule: body.schedule.trim(), privacyVersion: '2026-09-27',
-    analytics: body.analytics, marketing: body.marketing, test: false, ...(body.attribution === undefined ? {} : {attribution: {...body.attribution}})};
+    analytics: body.analytics, marketing: body.marketing, test: false, ...(attribution === undefined ? {} : {attribution})};
 }
 
 export function createHandler({env = process.env, send = fetch, now = Date.now, report = code => console.warn('Inquiry receiver:', code)} = {}) {

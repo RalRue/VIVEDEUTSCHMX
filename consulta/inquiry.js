@@ -17,7 +17,7 @@ form.addEventListener('submit', async event => {
     experience: fields.get('experience'), goal: fields.get('goal'), schedule: fields.get('schedule'), website: fields.get('website'),
     privacy: fields.has('privacy'), ...consent};
   const privateAttribution = {source: attribution.get('utm_source'), medium: attribution.get('utm_medium'), campaign: attribution.get('utm_campaign'), content: attribution.get('utm_content')};
-  if (privateAttribution.source === 'instagram' && privateAttribution.medium === 'paid_social' && privateAttribution.campaign === 'vive_a1_cafe_microtest_202610' && privateAttribution.content === 'cafe_cards_v1') body.attribution = privateAttribution;
+  if (globalThis.viveValidPrivateAttribution(privateAttribution)) body.attribution = privateAttribution;
   const serialized = JSON.stringify(body);
   // A timed-out request may already be stored; never acknowledge changed data as its duplicate.
   if (attemptedBody !== null && attemptedBody !== serialized) {

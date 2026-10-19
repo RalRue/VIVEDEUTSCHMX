@@ -262,6 +262,6 @@ console.log('SITE_PRIVACY=PASS: storage failures, withdrawal, provider gates, fo
 const polluted = homepage({search:'?utm_campaign=synthetic@example.invalid&utm_content=synthetic_private_answer'});
 polluted.window.viveConsent={allows:()=>true};polluted.run("trackSiteEvent('review')");
 assert.equal(polluted.events[0][2].campaign_id,'none');assert.equal(polluted.events[0][2].campaign_content,'none');
-const clean = homepage({search:'?utm_source=facebook&utm_campaign=a1_cafe_202610&utm_content=mini01'});
+const clean = homepage({search:'?utm_source=facebook&utm_medium=paid_social&utm_campaign=a1_cafe_202610&utm_content=120248962296790767'});
 clean.window.viveConsent={allows:()=>true};clean.run("trackSiteEvent('review')");
-assert.equal(clean.events[0][2].campaign_id,'a1_cafe_202610');assert.equal(clean.events[0][2].campaign_content,'mini01');
+assert.equal(clean.events[0][2].campaign_id,'a1_cafe_202610');assert.equal(clean.events[0][2].campaign_content,'120248962296790767');
