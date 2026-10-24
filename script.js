@@ -77,6 +77,11 @@ function updateContactLinks() {
 
     document.querySelectorAll('.group-inquiry-link').forEach(link => {
         link.href = globalThis.viveInquiryUrl(courseInquiryUrl);
+        if (['A1', 'A2', 'B1'].includes(link.dataset.level)) {
+            const target = new URL(link.href);
+            target.searchParams.set('course', link.dataset.level);
+            link.href = target.href;
+        }
     });
 }
 

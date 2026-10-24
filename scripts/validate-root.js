@@ -43,7 +43,7 @@ assert(
 
 assert(
   homepage.includes("Consultar un grupo no reserva lugar ni genera cobros") &&
-    homepage.includes('href="https://vive-deutsch-mx.vercel.app/consulta/" class="btn btn-primary group-inquiry-link"'),
+    ['A1', 'A2', 'B1'].every(level => homepage.includes(`href="https://vive-deutsch-mx.vercel.app/consulta/?course=${level}" class="btn btn-primary group-inquiry-link" data-level="${level}"`)),
   "Group inquiry form must remain visible without a checkout promise."
 );
 

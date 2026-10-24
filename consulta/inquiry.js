@@ -7,6 +7,10 @@ let requestId = crypto.randomUUID();
 let busy = false;
 let attemptedBody = null;
 const attribution = safeAttribution(location.search);
+const requestedCourses = new URLSearchParams(location.search).getAll('course');
+if (requestedCourses.length === 1 && ['A1', 'A2', 'B1'].includes(requestedCourses[0])) {
+  form.elements.namedItem('course').value = requestedCourses[0];
+}
 
 form.addEventListener('submit', async event => {
   event.preventDefault();

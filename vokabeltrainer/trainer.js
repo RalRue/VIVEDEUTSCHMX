@@ -133,6 +133,7 @@
 
         function normalize(value) {
             return value
+                .normalize("NFC")
                 .toLowerCase()
                 .trim()
                 .replace(/ä/g, "ae")

@@ -153,3 +153,28 @@ for (const [de, direction, answer] of [
 }
 assert.equal(regional.run('stats.right'), 4, 'Real vocabulary entries must accept the four curated correct variants');
 assert.equal(regional.run('stats.wrong'), 0);
+
+const unicodeAnswers = setup('vokabeltrainer/index.html');
+const normalizationCases = [];
+for (const [de, transliteration] of [['ändern', 'aendern'], ['öffnen', 'oeffnen'], ['üben', 'ueben']]) {
+    for (const answer of [de, de.normalize('NFD'), transliteration]) {
+        normalizationCases.push([de, answer], [de, answer.toUpperCase()]);
+    }
+}
+normalizationCases.push(
+    ['heißen', 'heissen'],
+    ['heißen', 'HEISSEN'],
+    ['rápido', 'rapido'],
+    ['rápido', 'ra\u0301pido'],
+    ['öffnen', '  ÖFFNEN!?  '],
+    ['ir en vehículo', 'ir   en vehiculo']
+);
+for (const [de, answer] of normalizationCases) {
+    const before = unicodeAnswers.run('stats.right');
+    unicodeAnswers.run(`nextCard(); currentDirection = 'es-de'; current = ${JSON.stringify({de, es: 'fixture'})}; answerInput.value = ${JSON.stringify(answer)}; checkAnswer();`);
+    assert.equal(unicodeAnswers.run('stats.right'), before + 1, `Correct answer must score: ${JSON.stringify({de, answer})}`);
+}
+assert.equal(unicodeAnswers.run('stats.wrong'), 0);
+unicodeAnswers.run('nextCard(); currentDirection = "es-de"; current = {de: "ändern", es: "fixture"}; answerInput.value = "andern"; checkAnswer();');
+assert.equal(unicodeAnswers.run('stats.wrong'), 1, 'A missing umlaut or transliteration must still be marked wrong');
+console.log(`TRAINER_UNICODE_TEST=PASS: ${normalizationCases.length} accepted variants, NFC/NFD umlauts, capitals, transliterations, ss, accents, punctuation and unchanged negative scoring`);
