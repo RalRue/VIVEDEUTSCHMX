@@ -11,8 +11,14 @@ const courseOptions = [...courseMarkup.matchAll(/<option\b([^>]*)>([^<]*)<\/opti
 assert.deepEqual(courseOptions, ['', 'A1', 'A2', 'B1', 'No lo sé']);
 assert.doesNotMatch(courseMarkup, /\b(?:hidden|disabled)\b/, 'Course must remain a visible editable select');
 function courseElements(fields) {
-  const control = {get value(){return fields.get('course');}, set value(value){fields.set('course', courseOptions.includes(value) ? value : '');}};
-  return {namedItem:name=>name === 'course' ? control : null};
+  const controls = [...new Set([...fields.keys(), 'analytics', 'marketing'])].map(name => ({
+    name, disabled:false,
+    get value(){return fields.get(name);},
+    set value(value){fields.set(name,name === 'course' && !courseOptions.includes(value) ? '' : value);},
+    get checked(){return fields.has(name);},
+    set checked(value){if(value)fields.set(name,'on');else fields.delete(name);}
+  }));
+  return {controls,namedItem:name=>controls.find(control=>control.name===name)||null};
 }
 
 const source = readFileSync(new URL('../consulta/inquiry.js', import.meta.url), 'utf8')
@@ -22,7 +28,7 @@ const fields = new Map(Object.entries({name:'TEST', email:'first@example.invalid
 let submit, requests = [], removed = false, successful = false, measurements = 0;
 const button = {}, status = {}, success = {hidden:true, focus(){}};
 const form = {querySelector:()=>button, reportValidity:()=>true, addEventListener:(name,fn)=>{submit=fn;},
-  elements:courseElements(fields), reset(){}, remove(){removed=true;}};
+  elements:courseElements(fields),querySelectorAll:()=>form.elements.controls,reset(){}, remove(){removed=true;}};
 const context = vm.createContext({viveValidPrivateAttribution: globalThis.viveValidPrivateAttribution,
   document:{querySelector:s=>({'#inquiry':form,'#status':status,'#success':success})[s],body:{dataset:{}}},
   crypto:{randomUUID:()=> 'ca30b8bc-743b-44f9-bae8-a5296ab89c9b'},
@@ -57,15 +63,16 @@ console.log('INQUIRY_UI=PASS: uncertain submission, changed retry blocked, exact
 
 function rejectedFlow(replies, search = '', initialCourse = 'A1') {
   const fields = new Map(Object.entries({name:'TEST',email:'synthetic@example.invalid',course:initialCourse,experience:'Desde cero',goal:'',schedule:'',website:'',privacy:'on'}));
-  let submit;
+  const listeners={},measurements=[];
   const requests=[],status={},button={},success={hidden:true,focus(){}},link={},pilot={hidden:true};
-  const form={querySelector:()=>button,elements:courseElements(fields),reportValidity:()=>true,addEventListener:(name,fn)=>{submit=fn;},reset(){},remove(){}};
+  const form={querySelector:()=>button,elements:courseElements(fields),querySelectorAll:()=>form.elements.controls,
+    reportValidity:()=>true,addEventListener:(name,fn)=>{listeners[name]=fn;},reset(){fields.delete('analytics');fields.delete('marketing');},remove(){}};
   const context=vm.createContext({viveValidPrivateAttribution: globalThis.viveValidPrivateAttribution,
     document:{querySelector:s=>({'#inquiry':form,'#status':status,'#success':success,'#placement-link':link,'#placement-pilot':pilot})[s],body:{dataset:{}}},
     crypto:{randomUUID:()=> 'ca30b8bc-743b-44f9-bae8-a5296ab89c9b'},
     FormData:class {get(k){return fields.get(k)??null;} has(k){return fields.has(k);}},
     location:{search},history:{replaceState(){}},AbortSignal,URLSearchParams,
-    safeAttribution:()=>new URLSearchParams(),sendMeasurement(){},
+    safeAttribution:()=>new URLSearchParams(),sendMeasurement(result,consent){measurements.push(JSON.parse(JSON.stringify(consent)));},
     fetch:async(url,options)=>{
       requests.push(JSON.parse(options.body));
       const reply=replies.shift();
@@ -74,7 +81,9 @@ function rejectedFlow(replies, search = '', initialCourse = 'A1') {
     }
   });
   vm.runInContext(source,context);
-  return {fields,course:form.elements.namedItem('course'),requests,status,button,success,link,pilot,submit:()=>submit({preventDefault(){}})};
+  return {fields,controls:form.elements.controls,course:form.elements.namedItem('course'),requests,status,button,success,link,pilot,measurements,
+    choice(name,checked){const control=form.elements.namedItem(name);control.checked=checked;listeners.change({target:control});},
+    submit:()=>listeners.submit({preventDefault(){}})};
 }
 const rejection={ok:false,status:400,json:async()=>({ok:false,storageAttempted:false})};
 const accepted={ok:true,status:200,json:async()=>({ok:true,stored:true,id:'ca30b8bc-743b-44f9-bae8-a5296ab89c9b',test:true})};
@@ -160,3 +169,53 @@ await courseRetry.submit();
 assert.equal(courseRetry.requests.length,2);
 assert.deepEqual(courseRetry.requests[0],courseRetry.requests[1]);
 console.log(`INQUIRY_COURSE_PREFILL=PASS: 3 real CTA-to-form-to-validator paths, ${neutralQueries.length} neutral/invalid/duplicate queries, manual changes including No lo sé, no automatic submission and exact retry`);
+
+const liveAccepted={ok:true,status:200,json:async()=>({...await accepted.json(),test:false})};
+function deferred(){let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};}
+for (const category of ['analytics','marketing']) {
+  const reply=deferred(),flow=rejectedFlow([reply.promise]);
+  flow.choice(category,true);
+  const pending=flow.submit();
+  assert.equal(flow.button.disabled,true);
+  for (const control of flow.controls) assert.equal(control.disabled,!['analytics','marketing'].includes(control.name),
+    `Pending ${control.name}: contact fields lock, optional choices stay operable`);
+  flow.choice(category,false);
+  reply.resolve(liveAccepted);await pending;
+  assert.equal(flow.requests[0][category],true,'Persisted request retains submit-time permission');
+  assert.equal(flow.measurements[0][category],false,'A pending withdrawal prevents optional measurement');
+  assert(flow.controls.every(control=>!control.disabled),'Original disabled states restore after completion');
+
+  const uncertain=deferred(),retry=rejectedFlow([uncertain.promise,liveAccepted]);
+  retry.choice(category,true);
+  const first=retry.submit();retry.choice(category,false);
+  uncertain.resolve(Promise.reject(Error('Lost acknowledgement')));await first;
+  assert.equal(retry.button.disabled,false);
+  assert(retry.controls.every(control=>!control.disabled),'Lost outcome unlocks editing without discarding retry identity');
+  await retry.submit();
+  assert.equal(retry.requests.length,2,'Withdrawal must not force restoration of an old optional checkbox');
+  assert.deepEqual(retry.requests[0],retry.requests[1],'Retry body and full ID remain immutable after withdrawal');
+  assert.equal(retry.measurements[0][category],false);
+
+  const remembered=deferred(),rechecked=rejectedFlow([remembered.promise,liveAccepted]);
+  rechecked.choice(category,true);
+  const lost=rechecked.submit();rechecked.choice(category,false);rechecked.choice(category,true);
+  remembered.resolve(Promise.reject(Error('Lost acknowledgement')));await lost;
+  await rechecked.submit();
+  assert.deepEqual(rechecked.requests[0],rechecked.requests[1]);
+  assert.equal(rechecked.measurements[0][category],false,'Rechecking for an exact retry must not revive a withdrawn grant');
+
+  const later=deferred(),unsubmitted=rejectedFlow([later.promise]);
+  const submitting=unsubmitted.submit();unsubmitted.choice(category,true);
+  later.resolve(liveAccepted);await submitting;
+  assert.equal(unsubmitted.requests[0][category],false);
+  assert.equal(unsubmitted.measurements[0][category],false,'A grant absent from the submitted payload cannot enable measurement');
+
+  const definitive=rejectedFlow([rejection,liveAccepted]);
+  await definitive.submit();definitive.choice(category,true);await definitive.submit();
+  assert.equal(definitive.measurements[0][category],true,'A definitive no-storage rejection allows a new corrected permission');
+}
+const unchangedGrant=rejectedFlow([liveAccepted]);
+unchangedGrant.choice('analytics',true);unchangedGrant.choice('marketing',true);await unchangedGrant.submit();
+assert.deepEqual(unchangedGrant.measurements,[{analytics:true,marketing:true}],
+  'Effective permission must be captured before resetting checkbox controls');
+console.log('INQUIRY_PENDING_CONSENT=PASS: contact lock/unlock, both optional withdrawals, immutable unknown retry without regrant, remembered withdrawal after recheck, submitted/current intersection, definitive rejection reset and pre-reset positive grants');
