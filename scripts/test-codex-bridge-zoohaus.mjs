@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import path from 'node:path';
+import { EventEmitter } from 'node:events';
+import { PassThrough } from 'node:stream';
 import { createZoohausConnector, parseZoohausArgs } from './codex-bridge-zoohaus.mjs';
 
 // All files, native executables and PowerShell calls are fixtures. No Windows operation,
@@ -36,6 +38,16 @@ function schedule() {
 }
 
 function failure(code) { return Object.assign(new Error(code), { code }); }
+
+function workerProcess(pid = 42_424_242) {
+  const child = Object.assign(new EventEmitter(), { pid, exitCode: null, signalCode: null,
+    stdout: new PassThrough(), stderr: new PassThrough() });
+  child.finish = (code, signal = null) => {
+    child.exitCode = code; child.signalCode = signal;
+    child.stdout.end(); child.stderr.end(); child.emit('close', code, signal);
+  };
+  return child;
+}
 
 class MemoryFiles {
   constructor() { this.entries = new Map(); this.mutations = []; this.realpaths = new Map(); this.beforeLink = null; }
@@ -159,7 +171,7 @@ function fixture({ platform = 'win32', dependencies = {} } = {}) {
   fs.putDirectory(localAppData);
   for (const filename of [node, codex, git, connector, helper]) fs.putFile(filename, 'Fixture native executable or helper');
   const calls = [];
-  const behavior = { currentSid: sid, task: null, safeAcl: true, ready: true, nativeDiscovery: codex, gitRoot: project, workerPromise: null };
+  const behavior = { currentSid: sid, task: null, safeAcl: true, ready: true, nativeDiscovery: codex, gitRoot: project, workerChild: null };
   const respondToExecution = async (program, args, options = {}) => {
     assert.notEqual(options.shell, true, 'Shell execution is forbidden');
     assert.equal(options.windowsHide, true, 'Native management and helper children must hide their console windows');
@@ -227,17 +239,19 @@ function fixture({ platform = 'win32', dependencies = {} } = {}) {
     }
     assert.fail(`Unexpected executable fixture: ${executable}`);
   };
-  const execFile = (program, args, options = {}) => {
-    if (win.basename(program).toLowerCase() === 'node.exe' && args.includes('--once') && behavior.workerPromise) {
-      assert.equal(options.shell, false);
-      assert.equal(options.windowsHide, true);
-      calls.push({ program, args, options });
-      return behavior.workerPromise;
-    }
-    return respondToExecution(program, args, options);
+  const spawnProcess = (program, args, options = {}) => {
+    assert.equal(program, node);
+    assert.ok(args.includes('--once'));
+    assert.equal(options.shell, false);
+    assert.equal(options.windowsHide, true);
+    assert.deepEqual(options.stdio, ['ignore', 'pipe', 'pipe']);
+    calls.push({ program, args, options });
+    const child = behavior.workerChild || workerProcess();
+    if (!behavior.workerChild) queueMicrotask(() => child.finish(0));
+    return child;
   };
   const client = createZoohausConnector({ platform, pathApi: win, env: environment, nodePath: node,
-    scriptPath: connector, fs, execFile, cwd: project, ...dependencies });
+    scriptPath: connector, fs, execFile: respondToExecution, spawnProcess, cwd: project, ...dependencies });
   return { fs, calls, behavior, client };
 }
 
@@ -572,11 +586,8 @@ await test('abort and timeout terminate only the owned worker tree before its le
     const timers = [];
     const cleared = [];
     const stopped = [];
-    const child = { pid: 42_424_242 };
-    let rejectWorker;
+    const child = workerProcess();
     let closed = false;
-    const pending = new Promise((_resolve, reject) => { rejectWorker = reject; });
-    pending.child = child;
     const f = fixture({ dependencies: {
       signal: controller.signal,
       setTimer: (callback, milliseconds) => {
@@ -592,20 +603,21 @@ await test('abort and timeout terminate only the owned worker tree before its le
         stopped.push(signal);
         if (signal === 'SIGKILL') {
           closed = true;
-          rejectWorker(new Error('Fixture owned worker closed after tree termination'));
+          child.finish(1);
         }
       },
     } });
     await f.client.install(options('install'));
     f.fs.putFile(statePath, 'PERSISTED_STARTED_STATE_KEEP');
-    f.behavior.workerPromise = pending;
+    f.behavior.workerChild = child;
     const running = f.client.run(parseZoohausArgs(['--run'], { cwd: project, pathApi: win }));
     const rejected = rejects(() => running, /job|interrupted|state|uncertain|failed/i);
     for (let tick = 0; tick < 3000 && !timers.some(timer => timer.milliseconds === 1_100_000); tick++) await Promise.resolve();
     const deadline = timers.find(timer => timer.milliseconds === 1_100_000);
     assert.ok(deadline, 'Owned worker deadline was not scheduled');
     const started = f.calls.find(call => win.basename(call.program).toLowerCase() === 'node.exe' && call.args.includes('--once'));
-    assert.equal(started.options.timeout, 0, 'Native execFile must not kill the leader before tree termination');
+    assert.equal(started.options.timeout, undefined, 'Native spawn must not kill the leader before tree termination');
+    assert.equal(started.options.maxBuffer, undefined, 'Output bounds must not invoke execFile leader-only termination');
     if (trigger === 'abort') controller.abort(); else deadline.callback();
     assert.deepEqual(stopped, ['SIGTERM']);
     assert.equal(closed, false);
@@ -616,6 +628,112 @@ await test('abort and timeout terminate only the owned worker tree before its le
     assert.deepEqual(stopped, ['SIGTERM', 'SIGKILL']);
     assert.ok(cleared.includes(deadline) && cleared.includes(force));
     assert.equal(await f.fs.readFile(statePath, 'utf8'), 'PERSISTED_STARTED_STATE_KEEP');
+  }
+});
+
+async function waitForWorker(child) {
+  for (let tick = 0; tick < 3000 && child.listenerCount('close') === 0; tick++) await Promise.resolve();
+  assert.ok(child.listenerCount('close'), 'Owned worker did not attach its completion handler');
+}
+
+await test('split Unicode output at the exact per-stream byte boundary completes without termination', async () => {
+  const stopped = [];
+  const child = workerProcess();
+  const f = fixture({ dependencies: { terminateProcess: (...args) => stopped.push(args) } });
+  await f.client.install(options('install'));
+  f.behavior.workerChild = child;
+  const running = f.client.run(options('run'));
+  await waitForWorker(child);
+  const limit = 512 * 1024;
+  const text = Buffer.from('ñ🙂');
+  const bytes = Buffer.concat([Buffer.from('ñ🙂'.repeat(Math.floor(limit / text.length))), Buffer.alloc(limit % text.length, 0x78)]);
+  assert.equal(bytes.length, limit);
+  for (const stream of [child.stdout, child.stderr]) {
+    // Break UTF-8 sequences across chunks; count bytes without corrupt decoding.
+    stream.write(bytes.subarray(0, 1));
+    stream.write(bytes.subarray(1, 5));
+    stream.write(bytes.subarray(5));
+  }
+  child.finish(0);
+  assert.equal((await running).runCompleted, true);
+  assert.deepEqual(stopped, []);
+});
+
+await test('stdout or stderr overflow terminates only the owned live tree and preserves uncertain state', async () => {
+  for (const channel of ['stdout', 'stderr']) {
+    const child = workerProcess();
+    const stopped = [];
+    const f = fixture({ dependencies: { terminateProcess: (target, signal, settings) => {
+      assert.equal(target, child);
+      assert.equal(child.exitCode, null, 'Leader exited before tree termination');
+      assert.equal(settings.platform, 'win32');
+      stopped.push(signal);
+    } } });
+    await f.client.install(options('install'));
+    f.fs.putFile(statePath, 'PERSISTED_UNCERTAIN_KEEP');
+    f.behavior.workerChild = child;
+    const running = f.client.run(options('run'));
+    const rejected = rejects(() => running, /job|interrupted|state|uncertain|failed/i);
+    await waitForWorker(child);
+    child[channel].write(Buffer.alloc(512 * 1024 - 2, 0x78));
+    assert.deepEqual(stopped, []);
+    child[channel].write('🙂'); // Four bytes, despite a JS string length of two.
+    assert.deepEqual(stopped, ['SIGTERM']);
+    child[channel].write('later output must not repeat the termination');
+    assert.deepEqual(stopped, ['SIGTERM']);
+    child.finish(0); // Even a zero exit cannot turn the overflow into success.
+    await rejected;
+    assert.equal(await f.fs.readFile(statePath, 'utf8'), 'PERSISTED_UNCERTAIN_KEEP');
+    assert.equal(f.calls.filter(call => call.args.includes('--once')).length, 1, 'No automatic worker retry');
+  }
+});
+
+await test('output-stream failure terminates the owned live tree and cannot report success', async () => {
+  const child = workerProcess();
+  const stopped = [];
+  const f = fixture({ dependencies: { terminateProcess: (target, signal) => {
+    assert.equal(target, child); assert.equal(child.exitCode, null);
+    stopped.push(signal); child.finish(1);
+  } } });
+  await f.client.install(options('install'));
+  f.behavior.workerChild = child;
+  const running = f.client.run(options('run'));
+  const rejected = rejects(() => running, /job|interrupted|failed/i);
+  await waitForWorker(child);
+  child.stderr.emit('error', new Error('Synthetic pipe failure'));
+  await rejected;
+  assert.deepEqual(stopped, ['SIGTERM']);
+});
+
+await test('spawn failure without a live PID fails closed without targeting another process', async () => {
+  const child = workerProcess(); child.pid = undefined;
+  const stopped = [];
+  const f = fixture({ dependencies: { terminateProcess: (...args) => stopped.push(args) } });
+  await f.client.install(options('install'));
+  f.behavior.workerChild = child;
+  const running = f.client.run(options('run'));
+  const rejected = rejects(() => running, /job|interrupted|failed/i);
+  await waitForWorker(child);
+  child.emit('error', Object.assign(new Error('Synthetic spawn failure'), { code: 'ENOENT' }));
+  child.finish(-2);
+  await rejected;
+  assert.deepEqual(stopped, []);
+});
+
+await test('nonzero exit or process signal fails without retry or resetting state', async () => {
+  for (const [code, signal] of [[1, null], [null, 'SIGTERM']]) {
+    const child = workerProcess();
+    const f = fixture();
+    await f.client.install(options('install'));
+    f.fs.putFile(statePath, 'FAILED_OUTCOME_KEEP');
+    f.behavior.workerChild = child;
+    const running = f.client.run(options('run'));
+    const rejected = rejects(() => running, /job|interrupted|failed/i);
+    await waitForWorker(child);
+    child.finish(code, signal);
+    await rejected;
+    assert.equal(await f.fs.readFile(statePath, 'utf8'), 'FAILED_OUTCOME_KEEP');
+    assert.equal(f.calls.filter(call => call.args.includes('--once')).length, 1);
   }
 });
 

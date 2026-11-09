@@ -6,28 +6,52 @@ const button = form.querySelector('button[type=submit]');
 let requestId = crypto.randomUUID();
 let busy = false;
 let attemptedBody = null;
+let measurementConsent = null;
 const attribution = safeAttribution(location.search);
 const requestedCourses = new URLSearchParams(location.search).getAll('course');
 if (requestedCourses.length === 1 && ['A1', 'A2', 'B1'].includes(requestedCourses[0])) {
   form.elements.namedItem('course').value = requestedCourses[0];
 }
 
+form.addEventListener('change', event => {
+  const field = event.target;
+  if (measurementConsent && ['analytics', 'marketing'].includes(field.name) && !field.checked) {
+    measurementConsent[field.name] = false;
+  }
+});
+
 form.addEventListener('submit', async event => {
   event.preventDefault();
   if (busy || !form.reportValidity()) return;
   const fields = new FormData(form);
   const consent = {analytics: fields.has('analytics'), marketing: fields.has('marketing')};
+  if (measurementConsent) {
+    for (const category of ['analytics', 'marketing']) {
+      if (!consent[category]) measurementConsent[category] = false;
+    }
+  }
   const body = {id: requestId, name: fields.get('name'), email: fields.get('email'), course: fields.get('course'),
     experience: fields.get('experience'), goal: fields.get('goal'), schedule: fields.get('schedule'), website: fields.get('website'),
     privacy: fields.has('privacy'), ...consent};
   const privateAttribution = {source: attribution.get('utm_source'), medium: attribution.get('utm_medium'), campaign: attribution.get('utm_campaign'), content: attribution.get('utm_content')};
   if (globalThis.viveValidPrivateAttribution(privateAttribution)) body.attribution = privateAttribution;
+  if (attemptedBody !== null) {
+    // Retry the immutable stored request; optional measurement permission is separate.
+    const attempted = JSON.parse(attemptedBody);
+    body.analytics = attempted.analytics;
+    body.marketing = attempted.marketing;
+  }
   const serialized = JSON.stringify(body);
   // A timed-out request may already be stored; never acknowledge changed data as its duplicate.
   if (attemptedBody !== null && attemptedBody !== serialized) {
     status.textContent = 'El primer envío podría estar guardado. Estos cambios no se han enviado. Para corregir tus datos, escribe a ralph_stoecker@live.com. Si deseas reintentar el mismo envío, restablece los datos originales.';
     return;
   }
+  if (measurementConsent === null) measurementConsent = {...consent};
+  const lockedControls = [...form.querySelectorAll('input, select, textarea')]
+    .filter(field => !['analytics', 'marketing'].includes(field.name))
+    .map(field => [field, field.disabled]);
+  lockedControls.forEach(([field]) => { field.disabled = true; });
   busy = true; button.disabled = true; button.textContent = 'Enviando…'; status.textContent = '';
   try {
     const response = await fetch('/api/inquiry', {method: 'POST', headers: {'Content-Type': 'application/json'},
@@ -35,6 +59,7 @@ form.addEventListener('submit', async event => {
     const result = await response.json();
     if (!response.ok && [400,403,413,415,503].includes(response.status) && result.ok === false && result.storageAttempted === false) {
       // A later rejection cannot disprove storage by an earlier, unconfirmed attempt.
+      if (attemptedBody === null) measurementConsent = null;
       status.textContent = attemptedBody !== null
         ? 'Este intento fue rechazado, pero el primer envío podría estar guardado. Reintenta con los mismos datos o escribe a ralph_stoecker@live.com.'
         : response.status === 400
@@ -44,10 +69,14 @@ form.addEventListener('submit', async event => {
       return;
     }
     if (!response.ok || result.ok !== true || result.stored !== true || result.id !== requestId) throw new Error('not-confirmed');
+    const effectiveConsent = {
+      analytics: body.analytics && measurementConsent.analytics && form.elements.namedItem('analytics').checked,
+      marketing: body.marketing && measurementConsent.marketing && form.elements.namedItem('marketing').checked
+    };
     // Remove PII and any unexpected URL parameters before loading measurement libraries.
     form.reset(); form.remove();
-    if (!consent.marketing) attribution.delete('fbclid');
-    if (!consent.analytics && !consent.marketing) [...attribution.keys()].forEach(key => attribution.delete(key));
+    if (!effectiveConsent.marketing) attribution.delete('fbclid');
+    if (!effectiveConsent.analytics && !effectiveConsent.marketing) [...attribution.keys()].forEach(key => attribution.delete(key));
     history.replaceState(null, '', '/consulta/' + (attribution.size ? '?' + attribution.toString() : ''));
     document.body.dataset.test = String(result.test);
     document.querySelector('#success').hidden = false;
@@ -60,11 +89,13 @@ form.addEventListener('submit', async event => {
       document.querySelector('#placement-pilot').hidden = false;
     }
     status.textContent = '';
-    try { sendMeasurement(result, consent, attribution); } catch { /* Measurement must never undo confirmed receipt. */ }
+    try { sendMeasurement(result, effectiveConsent, attribution); } catch { /* Measurement must never undo confirmed receipt. */ }
   } catch {
     attemptedBody = serialized;
     status.textContent = 'No pudimos confirmar el envío. Tus datos siguen aquí. Inténtalo de nuevo; no se generará una consulta duplicada.';
     busy = false; button.disabled = false; button.textContent = 'Reintentar envío';
+  } finally {
+    lockedControls.forEach(([field, disabled]) => { field.disabled = disabled; });
   }
 });
 

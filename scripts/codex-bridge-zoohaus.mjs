@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { execFile as nativeExecFile } from 'node:child_process';
+import { execFile as nativeExecFile, spawn as nativeSpawn } from 'node:child_process';
 import * as nativeFs from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
@@ -14,6 +14,7 @@ export const SCHEMA = 'codex-bridge-zoohaus/v1';
 const CONFIG_KEYS = ['schema', 'owner', 'ownerSid', 'project', 'node', 'codex', 'git', 'connector', 'runtime',
   'helper', 'config', 'state', 'remote', 'agent', 'allowFrom', 'sandbox', 'maxMessages', 'timeout'];
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
+const MAX_HELPER_OUTPUT_BYTES = 512 * 1024;
 const HELP = `Zoohaus Windows connector (Node.js 18+).
 
   node scripts/codex-bridge-zoohaus.mjs --plan       Preview, no files/tasks written (default)
@@ -206,7 +207,7 @@ function Task-Time($value) {
 
 export function createZoohausConnector({ platform = process.platform, pathApi = platform === 'win32' ? path.win32 : path,
   env = process.env, nodePath = process.execPath, scriptPath = SCRIPT_PATH, fs = nativeFs,
-  execFile = promisify(nativeExecFile), terminateProcess = terminateCodexProcess,
+  execFile = promisify(nativeExecFile), spawnProcess = nativeSpawn, terminateProcess = terminateCodexProcess,
   signal, setTimer = setTimeout, clearTimer = clearTimeout, cwd = process.cwd() } = {}) {
   const p = pathApi;
   function requireWindows() { if (platform !== 'win32') throw new ZoohausError('Install and management must run on the actual Windows Zoohaus PC.'); }
@@ -216,7 +217,7 @@ export function createZoohausConnector({ platform = process.platform, pathApi = 
   }
   async function runHelper(config) {
     if (signal?.aborted) throw new ZoohausError('The owned task was interrupted before starting.');
-    let pending;
+    let child;
     let deadline;
     let forced;
     let interrupted = false;
@@ -225,20 +226,39 @@ export function createZoohausConnector({ platform = process.platform, pathApi = 
     const stop = () => {
       if (interrupted) return;
       interrupted = true;
-      if (pending?.child) {
-        terminateProcess(pending.child, 'SIGTERM', { platform, windowsRoot: env.SystemRoot || env.WINDIR });
-        forced = setTimer(() => terminateProcess(pending.child, 'SIGKILL', { platform, windowsRoot: env.SystemRoot || env.WINDIR }), 7_000);
+      if (Number.isInteger(child?.pid) && child.pid > 0) {
+        terminateProcess(child, 'SIGTERM', { platform, windowsRoot: env.SystemRoot || env.WINDIR });
+        forced = setTimer(() => terminateProcess(child, 'SIGKILL', { platform, windowsRoot: env.SystemRoot || env.WINDIR }), 7_000);
       } else rejectWithoutChild(new ZoohausError('The owned task was interrupted or reached its time limit.'));
     };
     try {
-      // Preserve Promise.child: terminate this owned tree while its leader is
-      // still alive. Native execFile timeout/AbortSignal would kill only Node.
-      pending = execFile(config.node, flags(config, false), { cwd: config.project, env: childEnvironment(config),
-        encoding: 'utf8', timeout: 0, maxBuffer: 512 * 1024, windowsHide: true, shell: false });
+      // Drain bounded streams ourselves: execFile's maxBuffer/timeout/AbortSignal
+      // can kill only the leader before its owned descendants are terminated.
+      child = spawnProcess(config.node, flags(config, false), { cwd: config.project, env: childEnvironment(config),
+        stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true, shell: false });
+      const completed = new Promise((resolve, reject) => {
+        child.once('error', () => {
+          if (Number.isInteger(child.pid) && child.pid > 0) stop();
+          else reject(new ZoohausError('The owned task could not be started.'));
+        });
+        child.once('close', (code, exitSignal) => {
+          if (interrupted || code !== 0 || exitSignal) reject(new ZoohausError('The owned task failed or was interrupted.'));
+          else resolve();
+        });
+        for (const stream of [child.stdout, child.stderr]) {
+          let size = 0;
+          stream.on('data', chunk => {
+            if (interrupted) return;
+            size += Buffer.byteLength(chunk);
+            if (size > MAX_HELPER_OUTPUT_BYTES) stop();
+          });
+          stream.once('error', stop);
+        }
+      });
       signal?.addEventListener('abort', stop, { once: true });
       deadline = setTimer(stop, 1_100_000);
       if (signal?.aborted) stop();
-      await Promise.race([pending, withoutChild]);
+      await Promise.race([completed, withoutChild]);
       if (interrupted) throw new ZoohausError('The owned task was interrupted or reached its time limit.');
     } catch {
       throw new ZoohausError('The owned local job failed or was interrupted. Preserve its state; it will not automatically rerun an uncertain task.');
